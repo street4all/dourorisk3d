@@ -372,19 +372,20 @@ function setup3DControls(manager: Alijo3DManager) {
   // outros passos (ex.: "Ver Sanfins de perto", quiosque) também param a volta
   window.addEventListener("orbit-stopped", resetOrbitBtn);
 
-  const handlePreset = (preset: "santuario" | "sanfins" | "pinhao" | "favaios" | "tua" | "general") => {
+  const handlePreset = (preset: "santuario" | "igreja" | "sanfins" | "pinhao" | "favaios" | "tua" | "general") => {
     resetOrbitBtn();
     manager.goToPreset(preset);
   };
 
   // Connect both Header and Panel Preset buttons
   document.getElementById("header-preset-santuario")?.addEventListener("click", () => handlePreset("santuario"));
+  document.getElementById("header-preset-igreja")?.addEventListener("click", () => handlePreset("igreja"));
   document.getElementById("header-preset-sanfins")?.addEventListener("click", () => handlePreset("sanfins"));
   document.getElementById("header-preset-pinhao")?.addEventListener("click", () => handlePreset("pinhao"));
   document.getElementById("header-preset-favaios")?.addEventListener("click", () => handlePreset("favaios"));
   document.getElementById("header-preset-tua")?.addEventListener("click", () => handlePreset("tua"));
   document.getElementById("header-preset-general")?.addEventListener("click", () => handlePreset("general"));
-  document.getElementById("btn-focus-church")?.addEventListener("click", () => handlePreset("santuario"));
+  document.getElementById("btn-focus-church")?.addEventListener("click", () => handlePreset("igreja"));
 }
 
 // Start application

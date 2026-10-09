@@ -536,8 +536,8 @@ export class Alijo3DManager {
     map.add(this.stationLayer);
     map.add(this.churchLayer);
 
-    // 10. Real 3D Architectural GLB Model placed accurately on the church footprint
-    const sanctuaryGraphic = new Graphic({
+    // 10. Igreja Matriz de Sanfins do Douro (Santa Marinha) - Real 3D Architectural GLB Model
+    const matrizGraphic = new Graphic({
       geometry: new Point({
         longitude: -7.51810,
         latitude: 41.29352,
@@ -545,19 +545,19 @@ export class Alijo3DManager {
       symbol: new PointSymbol3D({
         symbolLayers: [
           new ObjectSymbol3DLayer({
-            resource: { href: "/models/santuario_sanfins.glb?v=arch2" },
+            resource: { href: "/models/santuario_sanfins.glb?v=matriz3" },
             height: 25, // Escala arquitetónica completa (escadaria até à cruz)
-            heading: 348, // Fachada e escadaria viradas para o adro e rotunda (Este)
+            heading: 90, // Fachada e escadaria viradas diretamente de frente para a câmara e Largo da Igreja (Este, 90°)
             anchor: "bottom",
           }),
         ],
       }),
       attributes: {
-        name: "Igreja Matriz e Santuário de Sanfins do Douro",
-        tipo: "Património Religioso Monumental do Alto Douro",
+        name: "Igreja Matriz de Sanfins do Douro (Santa Marinha)",
+        tipo: "Igreja Paroquial e Património Religioso Monumental (Vila de Sanfins)",
         epoca: "Século XVIII (Barroco Duriense)",
         detalhes:
-          "Escadaria monumental de cantaria, fachada nobre com medalhões e nicho, torre sineira central com sino de bronze e coruchéu, e solar adjacente.",
+          "Igreja Paroquial de Santa Marinha, no centro da vila de Sanfins do Douro. Apresenta imponente escadaria de cantaria, fachada nobre barroca com medalhões de azulejos e nicho, torre sineira central com sino de bronze e coruchéu, e solar seiscentista adjacente.",
         imagem: "/images/santuario_sanfins.jpg",
       },
       popupTemplate: {
@@ -569,13 +569,54 @@ export class Alijo3DManager {
             <p><strong>Época:</strong> {epoca}</p>
             <p><strong>Descrição Arquitetónica:</strong> {detalhes}</p>
             <hr style="border: 0; border-top: 1px solid #444; margin: 8px 0;" />
-            <p style="color: #4caf50; font-weight: 500; font-size: 11px;">✓ Modelo 3D GLB posicionado na pegada real do edifício com fachada virada ao Adro (Este).</p>
+            <p style="color: #4caf50; font-weight: 500; font-size: 11px;">✓ Modelo 3D posicionado na pegada real do edifício com fachada virada ao Largo da Igreja.</p>
           </div>
         `,
       },
     });
 
-    this.churchLayer.add(sanctuaryGraphic);
+    // 10b. Santuário de Nossa Senhora da Piedade (Modelo 3D Arquitetónico Real no Cimo do Monte - 737m)
+    const santuario3DGraphic = new Graphic({
+      geometry: new Point({
+        longitude: -7.51352,
+        latitude: 41.29182,
+      }),
+      symbol: new PointSymbol3D({
+        symbolLayers: [
+          new ObjectSymbol3DLayer({
+            resource: { href: "/models/santuario_monte.glb?v=real4" },
+            height: 18, // Altura monumental completa (adro até à cruz cónica)
+            heading: 225, // Fachada, porta e escadaria viradas diretamente de frente nesta perspetiva da vila (Sudoeste, 225°)
+            anchor: "bottom",
+          }),
+        ],
+      }),
+      attributes: {
+        name: "Santuário de Nossa Senhora da Piedade",
+        local: "Cimo do Monte da Senhora da Piedade (737 m de altitude)",
+        tipo: "Santuário Mariano, Promontório e Miradouro Panorâmico",
+        epoca: "Século XVIII / XIX (Neobarroco Duriense)",
+        detalhes:
+          "Emblemático santuário implantado no cimo do Monte da Senhora da Piedade sobranceiro à vila de Sanfins do Douro. O monumento é caracterizado pela sua capela de planta octogonal com cúpula cónica escalonada em cantaria de granito aparelhada, portal barroco com nicho e sineira, as capelinhas da Via-Sacra ao longo das curvas em ziguezague da subida, e miradouro 360° sobre a paisagem duriense.",
+        imagem: "/images/santuario_piedade_fachada.jpg",
+      },
+      popupTemplate: {
+        title: "⛰️ {name}",
+        content: `
+          <div style="font-size: 13px; line-height: 1.6;">
+            <img src="{imagem}" alt="{name}" style="width: 100%; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.5);" />
+            <p><strong>Localização:</strong> {local}</p>
+            <p><strong>Classificação:</strong> {tipo}</p>
+            <p><strong>Época:</strong> {epoca}</p>
+            <p><strong>Descrição Arquitetónica:</strong> {detalhes}</p>
+            <hr style="border: 0; border-top: 1px solid #444; margin: 8px 0;" />
+            <p style="color: #ff9800; font-weight: 500; font-size: 11px;">✓ Modelo 3D octogonal com cúpula escalonada posicionado no cimo do monte e virado de frente para as casas da vila.</p>
+          </div>
+        `,
+      },
+    });
+
+    this.churchLayer.addMany([matrizGraphic, santuario3DGraphic]);
 
     // 10. SceneView focused on Sanfins do Douro with Physical Sun Shadows
     this.view = new SceneView({
@@ -791,13 +832,26 @@ export class Alijo3DManager {
   }
 
   // Scenic Presets in Alijó / Douro
-  public goToPreset(preset: "santuario" | "sanfins" | "pinhao" | "favaios" | "tua" | "general"): void {
+  public goToPreset(preset: "santuario" | "igreja" | "sanfins" | "pinhao" | "favaios" | "tua" | "general"): void {
     if (!this.view) return;
     this.stopOrbit();
 
     let cam: Camera;
     switch (preset) {
       case "santuario":
+        // Santuário de Nossa Senhora da Piedade no cimo do monte (737m), virado de frente para a vila
+        cam = new Camera({
+          position: new Point({
+            longitude: -7.5162,
+            latitude: 41.2905,
+            z: 870,
+          }),
+          tilt: 64,
+          heading: 58,
+        });
+        break;
+      case "igreja":
+        // Igreja Matriz de Sanfins do Douro no centro da vila (Largo da Igreja)
         cam = new Camera({
           position: new Point({
             longitude: -7.5168,
