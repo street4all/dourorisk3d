@@ -32,7 +32,7 @@ export interface VisitLayer {
   describe: (cls: number) => string;
 }
 
-const RISK_COLORS = ["#F7D98A", "#EFA650", "#D0672A", "#983519", "#47180D"];
+const RISK_COLORS = ["#036403", "#88B302", "#FFFE06", "#FE9900", "#DD2203"];
 const RISK_WORDS = ["muito baixo", "baixo", "médio", "alto", "muito alto"];
 
 function riskLegend(): LegendItem[] {
@@ -84,9 +84,9 @@ export function applyAccessibleLayers(): void {
     title: "Encostas inclinadas",
     question: "Quanto sobe a encosta",
     legend: [
-      { classes: [2], color: "#F7D98A", label: "um pouco inclinada" },
-      { classes: [3], color: "#D0672A", label: "muito inclinada" },
-      { classes: [4], color: "#47180D", label: "quase a pique" },
+      { classes: [2], color: "#88B302", label: "um pouco inclinada" },
+      { classes: [3], color: "#FE9900", label: "muito inclinada" },
+      { classes: [4], color: "#DD2203", label: "quase a pique" },
     ],
     grid: new ClassGrid(`${A11Y}/declive_classes.png`, EXT_25M),
     empty: "Aqui não há dados.",
@@ -140,7 +140,7 @@ export function renderLegend(el: HTMLElement | null, key: string): void {
     .map((it) => {
       const num = it.number ? `<span class="sw-num">${it.number}</span>` : "";
       const fl = it.flames ? `<span class="flames" aria-hidden="true">${flame.repeat(it.flames)}</span>` : "";
-      const dark = ["#47180D", "#983519", "#006D2C", "#31A354"].includes(it.color);
+      const dark = ["#036403", "#DD2203", "#006837", "#47180D", "#983519", "#006D2C", "#31A354"].includes(it.color);
       return `<li><span class="sw${dark ? " dark" : ""}" style="background:${it.color}">${num}</span><span class="lg-label">${it.label}</span>${fl}</li>`;
     })
     .join("");

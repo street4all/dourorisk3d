@@ -21,8 +21,8 @@ from PIL import Image
 SRC = os.path.join("public", "data", "dourorisk")
 OUT = os.path.join(SRC, "a11y")
 
-# Escala de perigo 1..5 (especificação de acessibilidade)
-RISK = {1: (247, 217, 138, 170), 2: (239, 166, 80, 190), 3: (208, 103, 42, 210), 4: (152, 53, 25, 225), 5: (71, 24, 13, 235)}
+# Escala de perigo 1..5 com as cores oficiais solicitadas (Verde escuro, Verde lima, Amarelo, Laranja, Vermelho)
+RISK = {1: (3, 100, 3, 205), 2: (136, 179, 2, 215), 3: (255, 254, 6, 225), 4: (254, 153, 0, 235), 5: (221, 34, 3, 245)}
 # Cores originais (export_dourorisk_to_web.py)
 ORIG_RISK = {(26, 150, 65): 1, (166, 217, 106): 2, (254, 224, 139): 3, (244, 109, 67): 4, (215, 25, 28): 5}
 ORIG_REC = {(254, 217, 118): 1, (254, 178, 76): 2, (253, 141, 60): 3, (240, 59, 32): 4, (189, 0, 38): 5}
