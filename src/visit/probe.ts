@@ -130,6 +130,7 @@ export class Probe {
   private parishes: Parish[] = [];
   private picked = new Set<string>();
   private boundaries: Promise<void> | null = null;
+  private housesByParish: Promise<Map<string, number> | null> | null = null;
 
   constructor(
     private manager: Alijo3DManager,
@@ -369,7 +370,13 @@ export class Probe {
     this.setHint(`A ler ${chosen.length === 1 ? "a freguesia" : `${chosen.length} freguesias`}…`);
     const title = chosen.length === 1 ? chosen[0].name : chosen.length === this.parishes.length ? "Todas as freguesias" : `${chosen.length} freguesias`;
     const key = `f:${chosen.map((p) => p.id).join(",")}`;
-    const html = await this.regionHtml(title, key, chosen.map((p) => p.rings), chosen.length > 1 && chosen.length < this.parishes.length ? chosen.map((p) => p.short) : null);
+    const html = await this.regionHtml(
+      title,
+      key,
+      chosen.map((p) => p.rings),
+      chosen.length > 1 && chosen.length < this.parishes.length ? chosen.map((p) => p.short) : null,
+      chosen.map((p) => p.name),
+    );
     if (seq !== this.seq) return;
     if (body) body.innerHTML = html;
     this.setHint("Toca noutra freguesia para a juntar ou tirar.");
@@ -515,17 +522,44 @@ export class Probe {
   }
 
   /** Concelho ou freguesias: as mesmas linhas, contadas dentro dos polígonos. */
-  private async regionHtml(title: string, key: string, polys: Rings[], names: string[] | null = null): Promise<string> {
+  private async regionHtml(title: string, key: string, polys: Rings[], names: string[] | null = null, parishNames: string[] | null = null): Promise<string> {
     const grid = VISIT_LAYERS.risco_2025.grid;
     const risk = await grid.histogramPolygons(key, polys);
     const lat = polys[0][0].reduce((s, p) => s + p[1], 0) / polys[0][0].length;
     const ha = risk ? risk.total * grid.cellHa(lat) : 0;
     const list = names ? `<br /><span>${names.map(esc).join(", ")}</span>` : "";
     const head = `<p class="probe-head"><strong>${esc(title)}</strong><br /><span>${fmtHa(ha)}</span>${list}</p>`;
-    const geom = new Polygon({ rings: polys.flat(), spatialReference: { wkid: 4326 } });
-    const houses = this.housesHtml(await this.countHouses(geom), "na área escolhida");
+    const houses = this.housesHtml(await this.countHousesIn(parishNames), parishNames ? "na área escolhida" : "no concelho");
     const rows = await this.rowsHtml((k) => VISIT_LAYERS[k].grid.histogramPolygons(key, polys));
     return `${head}${houses}${rows}`;
+  }
+
+  /**
+   * Casas por freguesia (cada edifício traz o nome da freguesia): contadas uma vez e guardadas.
+   * Contar dentro de um polígono complicado demora dezenas de segundos; por nome é imediato.
+   */
+  private async countHousesIn(parishNames: string[] | null): Promise<number | null> {
+    const layer = this.manager.sanfinsBuildingsLayer;
+    if (!layer) return null;
+    if (!this.housesByParish) {
+      this.housesByParish = (async () => {
+        await layer.load();
+        const res = await layer.queryFeatures({ where: "1=1", outFields: ["freguesia"], returnGeometry: false });
+        const counts = new Map<string, number>();
+        for (const f of res.features) {
+          const k = String(f.attributes.freguesia);
+          counts.set(k, (counts.get(k) ?? 0) + 1);
+        }
+        return counts;
+      })().catch(() => {
+        this.housesByParish = null;
+        return null;
+      });
+    }
+    const counts = await this.housesByParish;
+    if (!counts) return null;
+    if (!parishNames) return [...counts.values()].reduce((a, b) => a + b, 0);
+    return parishNames.reduce((n, name) => n + (counts.get(name) ?? 0), 0);
   }
 
   private async countHouses(geometry: Geometry): Promise<number | null> {
