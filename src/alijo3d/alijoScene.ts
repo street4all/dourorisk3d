@@ -170,12 +170,13 @@ export class Alijo3DManager {
       ],
     });
 
-    // 3. ImageryTileLayer with Global Wind Data and 3D Elevation
+    // 3. ImageryTileLayer with Global Wind Data and 3D Elevation (Opcional)
     this.windLayer = new ImageryTileLayer({
       url: "https://tiledimageservices.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Global_Average_Wind_Speeds_Month_Altitude/ImageServer",
       renderer: flowRenderer,
-      title: "Correntes de Vento sobre Alijó",
+      title: "Correntes de Vento sobre Alijó (FlowRenderer)",
       opacity: 0.95,
+      visible: false, // FlowRenderer opcional: desligado por defeito
       elevationInfo: {
         mode: this.state.elevationMode,
         offset: this.state.elevationOffset,
@@ -356,23 +357,21 @@ export class Alijo3DManager {
     });
 
     this.sanfinsBuildingsLayer = new GeoJSONLayer({
-      url: "/data/sanfins-ms-buildings.geojson?v=179149",
-      title: "Edifícios Reais de Satélite IA (Microsoft) — Sanfins do Douro",
+      url: "/data/alijo-all-buildings.geojson",
+      title: "Casas e Edifícios 3D do Concelho de Alijó (14.531 edifícios)",
       renderer: wallsRenderer,
       elevationInfo: {
         mode: "on-the-ground",
       },
       popupTemplate: {
-        title: "🏛️ {name}",
+        title: "🏠 {building_type}",
         content: `
           <div style="font-size: 13px; line-height: 1.6;">
             <p><strong>Tipo:</strong> {building_type}</p>
+            <p><strong>Freguesia:</strong> {freguesia}</p>
+            <p><strong>Concelho:</strong> Alijó</p>
             <p><strong>Área Implantação:</strong> <span style="color: #00d2ff; font-weight: bold;">{area_m2} m²</span></p>
             <p><strong>Altura Estimada:</strong> {wall_height} metros ({levels} pisos)</p>
-            <p><strong>Material:</strong> {material}</p>
-            <p><strong>Deteção Satélite:</strong> <span style="color: #4caf50; font-weight: 500;">{source}</span></p>
-            <hr style="border: 0; border-top: 1px solid #444; margin: 8px 0;" />
-            <p style="font-size: 11px; color: #aaa;">Freguesia de Sanfins do Douro, Concelho de Alijó</p>
           </div>
         `,
       },
@@ -409,7 +408,7 @@ export class Alijo3DManager {
           label: "Telhado do Santuário de N. Sra. da Piedade",
         },
         {
-          value: "Quinta / Adega Vinícola do Douro",
+          value: "Quinta / Adega Vinícola",
           symbol: createRoofSymbol([192, 78, 45, 1.0]),
           label: "Telhado Amplo de Adega / Quinta",
         },
@@ -417,8 +416,8 @@ export class Alijo3DManager {
     });
 
     this.sanfinsRoofsLayer = new GeoJSONLayer({
-      url: "/data/sanfins-ms-roofs.geojson?v=179149",
-      title: "Telhados Cerâmicos de Satélite IA — Sanfins do Douro",
+      url: "/data/alijo-all-roofs.geojson",
+      title: "Telhados Cerâmicos 3D do Concelho de Alijó (14.531 telhados)",
       renderer: roofsRenderer,
       elevationInfo: {
         mode: "relative-to-ground",
@@ -850,7 +849,9 @@ export class Alijo3DManager {
         break;
     }
 
-    this.view.goTo(cam, { duration: 1500 });
+    // respeita "reduzir movimento" do sistema: salta sem voo
+    const animate = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    this.view.goTo(cam, { animate, duration: 1500 });
   }
 
   // Camera Rotation & Perspective Angle Controls
@@ -887,7 +888,7 @@ export class Alijo3DManager {
     const cam = this.view.camera.clone();
     cam.heading = (((cam.heading + deltaHeading) % 360) + 360) % 360;
     this.state.heading = Math.round(cam.heading);
-    this.view.goTo(cam, { duration: 400 });
+    this.view.goTo(cam, { animate: !matchMedia("(prefers-reduced-motion: reduce)").matches, duration: 400 });
   }
 
   public toggleContinuousOrbit(speed = 0.22): boolean {

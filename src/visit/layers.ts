@@ -100,8 +100,13 @@ export function applyAccessibleLayers(): void {
     question: "Encostas que apanham sol à tarde",
     legend: [{ classes: [1], color: "#EFA650", label: "virada ao sol (sul e poente)" }],
     grid: new ClassGrid(`${A11Y}/exposicao_sol_classes.png`, EXT_25M),
-    empty: "Aqui a encosta está virada para a sombra.",
-    describe: () => "Aqui a encosta está virada ao sol: o mato fica mais seco.",
+    empty: "Aqui não há dados.",
+    describe: (c) =>
+      c === 1
+        ? "Aqui a encosta está virada ao sol: o mato fica mais seco."
+        : c === 3
+          ? "Aqui o terreno é plano."
+          : "Aqui a encosta está virada para a sombra.",
   });
 
   const BIO_WORDS = ["muito pouco mato", "pouco mato", "algum mato", "muito mato", "mato muito denso"];

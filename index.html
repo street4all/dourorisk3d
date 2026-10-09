@@ -24,7 +24,7 @@
     </header>
 
     <!-- Opções de leitura -->
-    <div class="hud hud-tools" role="toolbar" aria-label="Opções de leitura">
+    <div class="hud hud-tools" role="group" aria-label="Opções de leitura">
       <button type="button" class="tool-btn" id="btn-font" title="Letra maior" aria-label="Letra maior">
         <span aria-hidden="true">A<sup>+</sup></span>
       </button>
@@ -41,23 +41,23 @@
 
     <!-- Barra dos 5 passos -->
     <nav class="dock" aria-label="Passos da visita">
-      <button type="button" class="dock-btn" data-pop="olha" data-step="1" aria-controls="pop-olha" aria-expanded="false">
+      <button type="button" class="dock-btn" data-pop="olha" data-step="1" aria-keyshortcuts="1" aria-controls="pop-olha" aria-expanded="false">
         <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20"/><text x="24" y="31">1</text></svg>
         <span class="dock-label">Olha</span>
       </button>
-      <button type="button" class="dock-btn" data-pop="escolhe" data-step="2" aria-controls="pop-escolhe" aria-expanded="false">
+      <button type="button" class="dock-btn" data-pop="escolhe" data-step="2" aria-keyshortcuts="2" aria-controls="pop-escolhe" aria-expanded="false">
         <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><polygon points="24,3 46,42 2,42"/><text x="24" y="37">2</text></svg>
         <span class="dock-label">Escolhe</span>
       </button>
-      <button type="button" class="dock-btn" data-pop="guarda" data-step="3" aria-controls="pop-guarda" aria-expanded="false">
+      <button type="button" class="dock-btn" data-pop="guarda" data-step="3" aria-keyshortcuts="3" aria-controls="pop-guarda" aria-expanded="false">
         <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="5" width="38" height="38" rx="3"/><text x="24" y="32">3</text></svg>
         <span class="dock-label">Guarda</span>
       </button>
-      <button type="button" class="dock-btn" data-pop="compara" data-step="4" aria-controls="pop-compara" aria-expanded="false">
+      <button type="button" class="dock-btn" data-pop="compara" data-step="4" aria-keyshortcuts="4" aria-controls="pop-compara" aria-expanded="false">
         <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><polygon points="24,1 47,24 24,47 1,24"/><text x="24" y="32">4</text></svg>
         <span class="dock-label">Compara</span>
       </button>
-      <button type="button" class="dock-btn" data-pop="protege" data-step="5" aria-controls="pop-protege" aria-expanded="false">
+      <button type="button" class="dock-btn" data-pop="protege" data-step="5" aria-keyshortcuts="5" aria-controls="pop-protege" aria-expanded="false">
         <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><polygon points="5,44 43,44 43,20 24,3 5,20"/><text x="24" y="38">5</text></svg>
         <span class="dock-label">Protege</span>
       </button>
@@ -76,6 +76,7 @@
         <button type="button" class="pop-close" aria-label="Fechar">×</button>
       </header>
       <div class="pop-body">
+        <p class="pop-status" role="status" aria-live="polite"></p>
         <p class="lead">A nossa terra tem monte com mato a norte e vinhas junto ao rio.</p>
 
         <h3>Vai a um lugar</h3>
@@ -92,8 +93,9 @@
         <div class="switch-list">
           <calcite-label layout="inline" scale="l"><calcite-switch id="concelho-toggle" checked scale="l"></calcite-switch>Limite do concelho</calcite-label>
           <calcite-label layout="inline" scale="l"><calcite-switch id="parishes-toggle" checked scale="l"></calcite-switch>Nomes das freguesias</calcite-label>
-          <calcite-label layout="inline" scale="l"><calcite-switch id="buildings-toggle" checked scale="l"></calcite-switch>Casas de Sanfins</calcite-label>
+          <calcite-label layout="inline" scale="l"><calcite-switch id="buildings-toggle" checked scale="l"></calcite-switch>Casas e edifícios 3D (14.531 no concelho)</calcite-label>
           <calcite-label layout="inline" scale="l"><calcite-switch id="trees-toggle" checked scale="l"></calcite-switch>Árvores</calcite-label>
+          <calcite-label layout="inline" scale="l"><calcite-switch id="wind-toggle-olha" scale="l"></calcite-switch>Correntes de vento 3D (FlowRenderer - Opcional)</calcite-label>
         </div>
 
         <h3>Luz do sol: <span id="sun-time-label">17:20 (fim de tarde)</span></h3>
@@ -105,7 +107,8 @@
           <button type="button" class="big-btn" id="btn-cardinal-north">Norte para cima</button>
           <button type="button" class="big-btn" id="btn-rotate-right" aria-label="Rodar para a direita">Direita ↻</button>
         </div>
-        <button type="button" class="big-btn wide" id="btn-toggle-orbit" aria-pressed="false">▶ Dar a volta</button>
+        <button type="button" class="big-btn wide" id="btn-toggle-orbit" aria-pressed="false"><span aria-hidden="true">↻ </span>Dar a volta</button>
+        <button type="button" class="big-btn primary wide next-btn" data-goto="escolhe">Seguinte: 2 · Escolhe</button>
       </div>
     </section>
 
@@ -117,13 +120,17 @@
         <button type="button" class="pop-close" aria-label="Fechar">×</button>
       </header>
       <div class="pop-body">
+        <p class="pop-status" role="status" aria-live="polite"></p>
         <p class="lead">Toca no mapa para pôr 3 fichas onde achas que o fogo pode chegar.</p>
         <div class="tokens" aria-live="polite">
           <div class="token-slots" id="token-slots" aria-hidden="true"></div>
           <p id="token-count">Fichas no mapa: 0 de 3</p>
         </div>
         <p class="hint">Toca numa ficha para a tirar.</p>
-        <button type="button" class="big-btn" id="btn-clear-tokens">Tirar todas as fichas</button>
+        <div class="row-btns two">
+          <button type="button" class="big-btn" id="btn-token-center">Pôr ficha no centro do mapa</button>
+          <button type="button" class="big-btn" id="btn-clear-tokens">Tirar todas as fichas</button>
+        </div>
 
         <h3>Pistas: toca numa para a ver no mapa</h3>
         <div class="cue-grid" role="group" aria-label="Pistas">
@@ -139,14 +146,15 @@
             <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40c-6-6 0-14 6-12-1-10 12-14 16-6 7-4 15 4 10 10 6 4 2 10-4 8H8z"/><path d="M4 42h40"/></svg>
             <strong>Muito mato</strong><span>Há mais para arder.</span>
           </button>
-          <button type="button" class="cue" data-cue="recorrencia_a11y" aria-pressed="false">
-            <svg viewBox="0 0 48 48" aria-hidden="true"><path class="acc-fill" d="M24 44c-10 0-14-8-12-16 1-6 6-8 6-16 6 4 8 8 7 14 3-2 4-5 4-8 6 5 9 12 7 18-1 5-6 8-12 8z"/></svg>
-            <strong>Já ardeu antes</strong><span>Pode arder outra vez.</span>
+          <button type="button" class="cue" data-cue="icnf_estrutural" aria-pressed="false">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 6h20l8 8v28H10z"/><path d="M30 6v8h8"/><path class="acc" d="M17 24h14M17 31h14M17 38h8"/></svg>
+            <strong>Mapa oficial do perigo</strong><span>O Estado diz onde é mais perigoso.</span>
           </button>
         </div>
         <div class="legend" id="cue-legend" aria-live="polite"></div>
-        <p class="hint" id="cue-point"></p>
+        <p class="hint" id="cue-point" role="status" aria-live="polite"></p>
         <button type="button" class="big-btn" id="btn-hide-cue" hidden>Esconder a pista</button>
+        <button type="button" class="big-btn primary wide next-btn" data-goto="guarda">Seguinte: 3 · Guarda</button>
       </div>
     </section>
 
@@ -158,6 +166,7 @@
         <button type="button" class="pop-close" aria-label="Fechar">×</button>
       </header>
       <div class="pop-body">
+        <p class="pop-status" role="status" aria-live="polite"></p>
         <p class="lead">Fecha o palpite no envelope dos bombeiros para ninguém o mudar depois.</p>
         <div id="guard-need" class="notice" hidden>
           <p>Primeiro põe 3 fichas no mapa.</p>
@@ -165,7 +174,7 @@
         </div>
         <div id="guard-form">
           <h3 id="faces-label">Quanta certeza tens?</h3>
-          <div class="faces" role="radiogroup" aria-labelledby="faces-label">
+          <div class="faces" role="radiogroup" aria-labelledby="faces-label" aria-describedby="faces-error">
             <button type="button" class="face" role="radio" aria-checked="false" data-certeza="1">
               <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20"/><circle class="dot" cx="17" cy="20" r="2.4"/><circle class="dot" cx="31" cy="20" r="2.4"/><path d="M15 34q9-7 18 0"/></svg>
               <span>pouca</span>
@@ -179,6 +188,7 @@
               <span>muita</span>
             </button>
           </div>
+          <p class="field-error" id="faces-error" role="alert" hidden>Escolhe uma cara: pouca, alguma ou muita certeza.</p>
           <label class="field">Nome da turma (se quiseres)
             <input type="text" id="turma-input" maxlength="20" autocomplete="off" placeholder="Por exemplo: 11.º B" />
           </label>
@@ -188,7 +198,7 @@
         <div id="guard-sealed" class="sealed" hidden aria-live="polite">
           <img src="/images/logos/logo_ahbv.png" alt="Carimbo dos Bombeiros Voluntários de Sanfins do Douro" />
           <div>
-            <p class="sealed-title">Palpite guardado</p>
+            <p class="sealed-title" id="sealed-title" tabindex="-1">Palpite guardado</p>
             <p>Código: <strong id="guess-code">—</strong></p>
             <p id="guess-summary"></p>
           </div>
@@ -206,12 +216,20 @@
         <button type="button" class="pop-close" aria-label="Fechar">×</button>
       </header>
       <div class="pop-body">
-        <p class="lead">Vê no mapa onde o fogo passou desde 1990.</p>
+        <p class="pop-status" role="status" aria-live="polite"></p>
+        <p class="lead">Vê no mapa onde o fogo passou desde 1990.</p>
+        <div id="compare-need" class="notice" hidden>
+          <p>Primeiro guarda o palpite no passo 3. Assim ninguém o muda depois de ver o resultado.</p>
+          <button type="button" class="big-btn" data-goto="guarda">Ir para o passo 3</button>
+        </div>
+        <div id="compare-open">
         <button type="button" class="big-btn primary wide" id="btn-show-burned" aria-pressed="false">Mostrar onde ardeu</button>
         <div class="legend" id="burned-legend"></div>
 
         <h3>As tuas fichas</h3>
         <ul class="results" id="token-results" aria-live="polite"><li>Ainda não puseste fichas. Vai ao passo 2.</li></ul>
+        <button type="button" class="big-btn" id="btn-read-burned">Ler o centro do mapa</button>
+        </div>
 
         <div class="fact">
           <div class="grid10" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -226,9 +244,10 @@
         <p id="weather-plain" class="weather-plain">A ler o tempo no Pinhão…</p>
         <ul class="rule30" id="rule30" aria-label="Regra 30-30-30"></ul>
         <div class="switch-list">
-          <calcite-label layout="inline" scale="l"><calcite-switch id="wind-toggle" checked scale="l"></calcite-switch>Ver o vento a mexer</calcite-label>
+          <calcite-label layout="inline" scale="l"><calcite-switch id="wind-toggle" scale="l"></calcite-switch>Ver o vento a mexer (FlowRenderer - Opcional)</calcite-label>
           <calcite-label layout="inline" scale="l"><calcite-switch id="rain-toggle" scale="l"></calcite-switch>Ver a chuva e as nuvens</calcite-label>
         </div>
+        <button type="button" class="big-btn primary wide next-btn" data-goto="protege">Seguinte: 5 · Protege</button>
       </div>
     </section>
 
@@ -240,10 +259,12 @@
         <button type="button" class="pop-close" aria-label="Fechar">×</button>
       </header>
       <div class="pop-body">
+        <p class="pop-status" role="status" aria-live="polite"></p>
         <p class="lead">Escolhe uma ação para proteger as casas, as pessoas e o monte.</p>
         <button type="button" class="big-btn primary wide" id="btn-see-sanfins">Ver Sanfins de perto</button>
         <p class="hint">Toca no mapa para saber o risco de fogo nesse sítio.</p>
-        <p class="answer" id="risk-point" aria-live="polite"></p>
+        <p class="answer" id="risk-point" role="status" aria-live="polite"></p>
+        <button type="button" class="big-btn" id="btn-read-risk">Ler o centro do mapa</button>
         <div class="legend" id="risk-legend"></div>
 
         <h3>Depois do fogo, o mato volta</h3>
@@ -279,6 +300,7 @@
         <button type="button" class="pop-close" aria-label="Fechar">×</button>
       </header>
       <div class="pop-body cols">
+        <p class="pop-status" role="status" aria-live="polite"></p>
         <div>
           <h3>Camada de perigo</h3>
           <calcite-label layout="inline" scale="l"><calcite-switch id="dourorisk-toggle" scale="l"></calcite-switch>Mostrar camada</calcite-label>
@@ -294,7 +316,7 @@
               <calcite-option value="exposicao_sol">Encostas viradas ao sol</calcite-option>
             </calcite-select>
           </calcite-label>
-          <calcite-label scale="l">Transparência: <strong id="dourorisk-opacity-label">75%</strong>
+          <calcite-label scale="l">Força da cor: <strong id="dourorisk-opacity-label">75%</strong>
             <calcite-slider id="dourorisk-opacity-slider" min="10" max="100" value="75" scale="l"></calcite-slider>
           </calcite-label>
           <div class="legend" id="dourorisk-stats-items"></div>
@@ -366,6 +388,7 @@
         <button type="button" class="pop-close" aria-label="Fechar">×</button>
       </header>
       <div class="pop-body cols">
+        <p class="pop-status" role="status" aria-live="polite"></p>
         <div>
           <p class="lead">Segue os 5 passos na barra de baixo, do 1 ao 5.</p>
           <ol class="steps-help">
@@ -401,6 +424,11 @@
       </div>
     </section>
 
+    <div class="crosshair" aria-hidden="true"></div>
+    <div id="idle-warn" class="idle-warn" role="alertdialog" aria-labelledby="idle-warn-text" hidden>
+      <p id="idle-warn-text">Ainda estás aí? Daqui a pouco a visita recomeça.</p>
+      <button type="button" class="big-btn primary" id="btn-idle-continue">Continuar</button>
+    </div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <script type="module" src="/src/main.ts"></script>

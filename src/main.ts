@@ -88,54 +88,67 @@ function setup3DControls(manager: Alijo3DManager) {
   const telemetryCloud = document.getElementById("telemetry-cloud");
 
   // Sync Live Weather from IPMA / Open-Meteo
+  const fmt = (v: number, digits = 1) => (Number.isFinite(v) ? v.toFixed(digits) : "sem dados");
+  let weatherRequest = 0; // só a resposta do pedido mais recente conta
   const syncLiveWeather = async () => {
+    const req = ++weatherRequest;
     if (weatherBadge) {
-      weatherBadge.status = "idle";
-      weatherBadge.textContent = "A sincronizar...";
+      weatherBadge.kind = "neutral";
+      weatherBadge.textContent = "A atualizar…";
     }
+    syncWeatherBtn?.setAttribute("disabled", "");
 
     try {
       const provider = providerSelect?.value || "ipma";
       const weather = await fetchWeather(provider as any);
+      if (req !== weatherRequest) return;
 
       if (telemetryStation) telemetryStation.textContent = weather.stationName;
       if (telemetryDesc) telemetryDesc.textContent = weather.description;
-      if (telemetryTemp) telemetryTemp.textContent = weather.temperature.toFixed(1);
-      if (telemetryHum) telemetryHum.textContent = `${weather.humidity}`;
-      if (telemetryWind) telemetryWind.textContent = weather.windSpeed.toFixed(1);
+      if (telemetryTemp) telemetryTemp.textContent = fmt(weather.temperature);
+      if (telemetryHum) telemetryHum.textContent = fmt(weather.humidity, 0);
+      if (telemetryWind) telemetryWind.textContent = fmt(weather.windSpeed);
       if (telemetryDir) telemetryDir.textContent = `${weather.windDirection}° (${weather.windDirectionText})`;
-      if (telemetryRain) telemetryRain.textContent = weather.precipitation.toFixed(1);
+      if (telemetryRain) telemetryRain.textContent = fmt(weather.precipitation);
       if (telemetryCloud) telemetryCloud.textContent = `${weather.cloudCover}`;
 
       if (weatherBadge) {
-        weatherBadge.status = "brand";
-        weatherBadge.textContent = provider === "ipma" ? "IPMA Online" : "Open-Meteo Online";
+        weatherBadge.kind = "brand";
+        weatherBadge.textContent = provider === "ipma" ? "IPMA" : "Open-Meteo";
       }
 
-      manager.updateFromLiveTelemetry(weather);
+      // o motor 3D precisa de um número: sem medição de vento usa um valor calmo
+      manager.updateFromLiveTelemetry({ ...weather, windSpeed: Number.isFinite(weather.windSpeed) ? weather.windSpeed : 10 });
       window.dispatchEvent(new CustomEvent("live-weather", { detail: weather }));
 
-      // Reflect in sliders
-      if (windSpeedSlider) windSpeedSlider.value = Math.round(weather.windSpeed);
-      if (windSpeedLabel) windSpeedLabel.textContent = `${Math.round(weather.windSpeed)}`;
-      if (rainIntensitySlider) rainIntensitySlider.value = Math.min(100, Math.round(weather.precipitation * 20));
-      if (rainIntensityLabel) rainIntensityLabel.textContent = `${Math.min(100, Math.round(weather.precipitation * 20))}%`;
-      if (cloudCoverSlider) cloudCoverSlider.value = weather.cloudCover;
-      if (cloudCoverLabel) cloudCoverLabel.textContent = `${weather.cloudCover}%`;
+      // Reflect in sliders (com os valores que o motor está mesmo a usar)
+      const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(v)));
+      const st = manager.state;
+      if (windSpeedSlider) windSpeedSlider.value = clamp(st.windSpeed, 5, 45);
+      if (windSpeedLabel) windSpeedLabel.textContent = `${clamp(st.windSpeed, 5, 45)}`;
+      if (rainIntensitySlider) rainIntensitySlider.value = clamp(st.rainPrecipitation * 100, 10, 100);
+      if (rainIntensityLabel) rainIntensityLabel.textContent = `${clamp(st.rainPrecipitation * 100, 0, 100)}%`;
+      if (cloudCoverSlider) cloudCoverSlider.value = clamp(st.cloudCover * 100, 20, 100);
+      if (cloudCoverLabel) cloudCoverLabel.textContent = `${clamp(st.cloudCover * 100, 0, 100)}%`;
     } catch (err) {
+      if (req !== weatherRequest) return;
       console.warn("Could not fetch live weather:", err);
       if (weatherBadge) {
-        weatherBadge.status = "danger";
-        weatherBadge.textContent = "Offline";
+        weatherBadge.kind = "inverse";
+        weatherBadge.textContent = "Sem ligação";
       }
+      window.dispatchEvent(new CustomEvent("live-weather-error"));
+    } finally {
+      if (req === weatherRequest) syncWeatherBtn?.removeAttribute("disabled");
     }
   };
 
   syncWeatherBtn?.addEventListener("click", syncLiveWeather);
   providerSelect?.addEventListener("calciteSegmentedControlChange", syncLiveWeather);
 
-  // Auto-sync live weather on startup
+  // Auto-sync live weather on startup e de 30 em 30 minutos (quiosque ligado o dia todo)
   syncLiveWeather();
+  window.setInterval(syncLiveWeather, 30 * 60_000);
 
   // Wind Elevation Mode & Altitude Offset
   const updateElevation = () => {
@@ -160,10 +173,15 @@ function setup3DControls(manager: Alijo3DManager) {
     manager.setWindDensity(den);
   });
 
-  // Wind Toggle (FlowRenderer On/Off)
-  windToggle?.addEventListener("calciteSwitchChange", () => {
-    manager.setWindVisible(windToggle.checked);
-  });
+  // Wind Toggle (FlowRenderer On/Off - Opcional)
+  const windToggleOlha = document.getElementById("wind-toggle-olha") as any;
+  const setWind = (val: boolean) => {
+    manager.setWindVisible(val);
+    if (windToggle && windToggle.checked !== val) windToggle.checked = val;
+    if (windToggleOlha && windToggleOlha.checked !== val) windToggleOlha.checked = val;
+  };
+  windToggle?.addEventListener("calciteSwitchChange", () => setWind(Boolean(windToggle.checked)));
+  windToggleOlha?.addEventListener("calciteSwitchChange", () => setWind(Boolean(windToggleOlha.checked)));
 
   // Rain Toggle & Intensity
   rainToggle?.addEventListener("calciteSwitchChange", () => {
@@ -194,14 +212,22 @@ function setup3DControls(manager: Alijo3DManager) {
   };
   updateDouroRiskStats(douroriskModelSelect?.value || "risco_2025");
 
+  // O Modo Visita guarda o estado da camada (pistas, "onde ardeu", legendas): avisá-lo
+  const announceLayer = () =>
+    window.dispatchEvent(
+      new CustomEvent("risk-layer", { detail: { key: douroriskModelSelect?.value, visible: !!douroriskToggle?.checked } }),
+    );
+
   douroriskToggle?.addEventListener("calciteSwitchChange", () => {
     manager.setDouroRiskVisible(douroriskToggle.checked);
+    announceLayer();
   });
 
   douroriskModelSelect?.addEventListener("calciteSelectChange", () => {
     const val = douroriskModelSelect.value;
     manager.setDouroRiskModel(val);
     updateDouroRiskStats(val);
+    announceLayer();
   });
 
   douroriskOpacitySlider?.addEventListener("calciteSliderInput", () => {
@@ -297,9 +323,9 @@ function setup3DControls(manager: Alijo3DManager) {
   });
 
   // Cardinal direction buttons
+  // texto fixo ("Dar a volta"); o estado vai só em aria-pressed
   const resetOrbitBtn = () => {
     if (orbitBtn) {
-      orbitBtn.textContent = "▶ Dar a volta";
       orbitBtn.setAttribute("aria-pressed", "false");
     }
   };
@@ -338,12 +364,14 @@ function setup3DControls(manager: Alijo3DManager) {
       resetOrbitBtn();
     } else {
       manager.startOrbit(0.3);
-      orbitBtn.textContent = "⏹ Parar a volta";
       orbitBtn.setAttribute("aria-pressed", "true");
     }
   });
 
   // Scenic Presets Navigation
+  // outros passos (ex.: "Ver Sanfins de perto", quiosque) também param a volta
+  window.addEventListener("orbit-stopped", resetOrbitBtn);
+
   const handlePreset = (preset: "santuario" | "sanfins" | "pinhao" | "favaios" | "tua" | "general") => {
     resetOrbitBtn();
     manager.goToPreset(preset);

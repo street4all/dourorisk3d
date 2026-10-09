@@ -114,11 +114,17 @@ export async function fetchIPMALiveWeather(): Promise<LiveWeatherReport> {
   const obsGeo = await obsResponse.json();
   const features = obsGeo.features || [];
 
-  let target = features.find((f: any) => f.properties?.idEstacao === PINHAO_STATION_ID)?.properties;
+  // O ficheiro traz várias horas por estação: usar sempre a observação mais recente
+  const latest = (id: number) =>
+    features
+      .filter((f: any) => f.properties?.idEstacao === id)
+      .sort((a: any, b: any) => String(b.properties.time).localeCompare(String(a.properties.time)))[0]?.properties;
+
+  let target = latest(PINHAO_STATION_ID);
 
   // Fallback to Vila Real if Pinhao is temporarily offline or has -99 readings
-  if (!target || target.temperatura === -99) {
-    const fallback = features.find((f: any) => f.properties?.idEstacao === VILA_REAL_STATION_ID)?.properties;
+  if (!target || target.temperatura <= -90) {
+    const fallback = latest(VILA_REAL_STATION_ID);
     if (fallback) target = fallback;
   }
 
@@ -157,12 +163,13 @@ export async function fetchIPMALiveWeather(): Promise<LiveWeatherReport> {
     provider: "IPMA (Oficial Portugal)",
     stationName: target.localEstacao || "Pinhão, Santa Bárbara (Alijó)",
     time: target.time,
-    temperature: target.temperatura,
-    humidity: target.humidade,
+    // -99 = sem dados no IPMA: passa a NaN para não ser lido como uma medição
+    temperature: target.temperatura > -90 ? target.temperatura : NaN,
+    humidity: target.humidade >= 0 ? target.humidade : NaN,
     precipitation: target.precAcumulada >= 0 ? target.precAcumulada : 0,
     rain: target.precAcumulada >= 0 ? target.precAcumulada : 0,
     cloudCover,
-    windSpeed: target.intensidadeVentoKM >= 0 ? target.intensidadeVentoKM : 10,
+    windSpeed: target.intensidadeVentoKM >= 0 ? target.intensidadeVentoKM : NaN,
     windDirection: windDirDeg,
     windDirectionText: dirStr,
     weatherCode,

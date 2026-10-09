@@ -79,7 +79,8 @@ def main():
     if args.exposicao:
         e = np.load(args.exposicao)
         sunny = (e >= 135) & (e <= 270)          # vertentes viradas a sueste, sul, sudoeste e oeste
-        cls = np.where(sunny, 1, 0).astype(np.uint8)
+        # 0 = sem dados, 1 = virada ao sol, 2 = virada à sombra, 3 = plano (exposição < 0)
+        cls = np.select([e <= -9000, (e < 0), sunny], [0, 3, 1], default=2).astype(np.uint8)
         paint(cls, {1: (239, 166, 80, 185)}).save(os.path.join(OUT, "exposicao_sol.png"), optimize=True)
         Image.fromarray(cls, "L").save(os.path.join(OUT, "exposicao_sol_classes.png"), optimize=True)
         print("ok exposicao", cls.shape, round(float(sunny.mean()), 3))

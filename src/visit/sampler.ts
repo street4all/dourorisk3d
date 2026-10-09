@@ -9,6 +9,9 @@ export interface Extent4326 {
   ymax: number;
 }
 
+/** Valor devolvido quando o ponto está fora da grelha ou a grelha não carregou. */
+export const NO_DATA = -1;
+
 export class ClassGrid {
   private data: Uint8ClampedArray | null = null;
   private width = 0;
@@ -19,7 +22,7 @@ export class ClassGrid {
 
   load(): Promise<void> {
     if (!this.loading) {
-      this.loading = new Promise((resolve, reject) => {
+      this.loading = new Promise<void>((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement("canvas");
@@ -35,17 +38,27 @@ export class ClassGrid {
         };
         img.onerror = () => reject(new Error(`Não foi possível ler ${this.url}`));
         img.src = this.url;
+      }).catch((err) => {
+        this.loading = null; // permite tentar outra vez (ex.: rede instável)
+        throw err;
       });
     }
     return this.loading;
   }
 
-  /** Classe no ponto (0 = sem dados). `radius` em células: devolve o máximo à volta. */
+  /**
+   * Classe no ponto, ou NO_DATA (-1) fora da grelha ou se a grelha não carregou.
+   * `radius` em células: devolve o máximo à volta (tolerância ao toque).
+   */
   async sample(lon: number, lat: number, radius = 0): Promise<number> {
-    await this.load();
-    if (!this.data) return 0;
+    try {
+      await this.load();
+    } catch {
+      return NO_DATA;
+    }
+    if (!this.data) return NO_DATA;
     const { xmin, ymin, xmax, ymax } = this.extent;
-    if (lon < xmin || lon > xmax || lat < ymin || lat > ymax) return 0;
+    if (lon < xmin || lon > xmax || lat < ymin || lat > ymax) return NO_DATA;
     const col = Math.floor(((lon - xmin) / (xmax - xmin)) * this.width);
     const row = Math.floor(((ymax - lat) / (ymax - ymin)) * this.height);
     let best = 0;
