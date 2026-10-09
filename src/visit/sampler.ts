@@ -46,6 +46,14 @@ export class ClassGrid {
     return this.loading;
   }
 
+  /** A grelha inteira (um byte por célula, linha a linha de norte para sul), para desenhar ou simular. */
+  async raw(): Promise<{ cls: Uint8Array; width: number; height: number; extent: Extent4326 }> {
+    await this.load();
+    const cls = new Uint8Array(this.width * this.height);
+    for (let i = 0; i < cls.length; i++) cls[i] = this.data![i * 4];
+    return { cls, width: this.width, height: this.height, extent: this.extent };
+  }
+
   /**
    * Classe no ponto, ou NO_DATA (-1) fora da grelha ou se a grelha não carregou.
    * `radius` em células: devolve o máximo à volta (tolerância ao toque).

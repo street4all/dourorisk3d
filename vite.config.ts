@@ -4,7 +4,9 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [],
   server: {
-    open: true,
+    // PORT definido (ex.: pré-visualização do Claude): usa essa porta e não abre outro browser
+    port: process.env.PORT ? Number(process.env.PORT) : undefined,
+    open: !process.env.PORT,
   },
   build: {
     outDir: "dist",

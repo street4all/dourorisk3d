@@ -5,7 +5,7 @@ import { ClassGrid, type Extent4326 } from "./sampler";
 
 const EXT_10M_RISCO: Extent4326 = { xmin: -7.605246, ymin: 41.180072, xmax: -7.360933, ymax: 41.402264 };
 const EXT_10M_PERIG: Extent4326 = { xmin: -7.605251, ymin: 41.180003, xmax: -7.360936, ymax: 41.402375 };
-const EXT_25M: Extent4326 = { xmin: -7.61171, ymin: 41.177757, xmax: -7.355757, ymax: 41.405918 };
+export const EXT_25M: Extent4326 ={ xmin: -7.61171, ymin: 41.177757, xmax: -7.355757, ymax: 41.405918 };
 const A11Y = "/data/dourorisk/a11y";
 
 export interface LegendItem {

@@ -33,7 +33,10 @@ async function initializeApp() {
   alijo3dManager.setRainEnabled(false);
 
   // 2. Modo Visita (antes dos controlos, para receber o primeiro tempo ao vivo)
-  new VisitMode(alijo3dManager).init();
+  const visit = new VisitMode(alijo3dManager);
+  visit.init();
+  // só em desenvolvimento: acesso à cena e à visita pela consola
+  if (import.meta.env.DEV) (window as any).__app = { manager: alijo3dManager, visit };
 
   // 3. Setup all UI controls and event listeners
   setupThemeToggle();
@@ -370,6 +373,10 @@ function setup3DControls(manager: Alijo3DManager) {
   const handlePreset = (preset: "santuario" | "igreja" | "sanfins" | "pinhao" | "favaios" | "tua" | "general") => {
     resetOrbitBtn();
     manager.goToPreset(preset);
+    // o cartão do lugar escolhido fica marcado (passo 1 · Olha)
+    document.querySelectorAll<HTMLElement>(".place-card").forEach((c) =>
+      c.setAttribute("aria-pressed", String(c.id === `header-preset-${preset}`)),
+    );
   };
 
   // Connect both Header and Panel Preset buttons

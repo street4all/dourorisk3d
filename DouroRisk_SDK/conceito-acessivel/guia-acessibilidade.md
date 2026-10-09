@@ -38,12 +38,15 @@ Exposição e app para o Centro Interpretativo, feitas para todas as pessoas: al
 
 ## A app (Modo Visita, já implementado em `my-web-map`, commit c8d560c)
 
-- **Ecrã:** mapa 3D em ecrã inteiro; barra discreta em baixo com os 5 passos (número, cor e forma) e "Mais"; cada botão abre uma janela com a pergunta, uma frase simples, os controlos e um botão "Seguinte". O passo seguinte sugerido fica destacado.
+- **Ecrã:** mapa 3D em ecrã inteiro; barra discreta em baixo com os 5 passos (número, cor e forma); cada botão abre uma janela com a pergunta, uma frase simples, os controlos e um botão "Seguinte". O passo seguinte sugerido fica destacado. "Mais" (camadas e controlos técnicos) só aparece com `?tecnico` no endereço.
+- **Regra 30-30-30 sempre à vista:** três mostradores (calor, ar seco, vento) com o tempo de agora do Pinhão; acendem quando passam o limite. No telemóvel fica só a frase-resumo.
 - **Leitura:** A+ (3 tamanhos), alto contraste, tema claro/escuro, Ajuda. Letra Atkinson Hyperlegible.
-- **Escolhe:** tocar no mapa para pôr 3 fichas numeradas (só dentro do concelho) ou "Pôr ficha no centro do mapa" pelo teclado; pistas: encosta inclinada, encosta ao sol, muito mato, mapa oficial do perigo (ICNF).
+- **Olha:** 4 lugares em cartões com desenho (Santuário, Sanfins, Pinhão e o rio, todo o concelho), casas em 3D e nomes das terras, "Dar a volta".
+- **Escolhe:** tocar no mapa para pôr 3 fichas numeradas (só dentro do concelho) ou "Pôr ficha no centro do mapa" pelo teclado; as fichas arrastam-se. Pistas que se somam: encosta muito inclinada, virada ao sol, muito mato, perigo alto no mapa oficial (ICNF); ligam-se várias e o mapa mostra quantas se juntam em cada sítio (cor, número e riscas a partir de 3). Ao pôr ou arrastar uma ficha, um termómetro diz quantas pistas há ali.
 - **Guarda:** 3 caras de certeza, nome da turma opcional, código de 6 letras (SHA-256); as fichas ficam bloqueadas.
-- **Compara:** só depois de guardar; mostra onde ardeu desde 1990, diz quantas fichas acertaram, o tempo de agora (IPMA/Open-Meteo) e a regra 30-30-30.
-- **Protege:** camada de risco 1–5 com leitura por palavras ao tocar, o mato a voltar, lista "Eu vou…".
+- **Compara:** só depois de guardar. "Revelar onde ardeu" passa uma cortina de oeste para este (ou arrasta-se a cortina); cada ficha ganha ✓ ou ✗ no mapa quando a cortina passa e o placar diz quantas caíram onde já ardeu. Mostra também o tempo de agora (IPMA/Open-Meteo) e a regra 30-30-30.
+- **E se uma faísca caísse hoje?** (no passo 4): toca-se no mapa e o fogo anda durante alguns segundos, mais depressa onde o perigo oficial é alto, nas encostas inclinadas, ao sol e a favor do vento de agora (ou sem vento / vento forte). Diz para onde foi e quantos campos de futebol ardeu. É um modelo simplificado para aprender, não uma previsão.
+- **Protege:** camada de risco 1–5; toca-se numa casa e aparece o anel de 50 m à volta. Ações em botões grandes (limpar 50 m, pastoreio, sem queimadas, 112, ponto de encontro); limpar e pastorear baixam o risco à volta da casa e o anel fica verde. "Passaram X anos" mostra o mato a voltar e o risco a subir outra vez (limpar é todos os anos). Frase "Eu vou…".
 - **Quiosque:** `?quiosque` no endereço — aviso de 20 s ao fim de 2 min sem uso e recomeço limpo.
 - **Camadas acessíveis:** `public/data/dourorisk/a11y/` (escala segura para daltonismo + grelhas de classes), geradas por `scripts/prepare_a11y_layers.py`.
 

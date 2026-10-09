@@ -61,8 +61,8 @@
         <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><polygon points="5,44 43,44 43,20 24,3 5,20"/><text x="24" y="38">5</text></svg>
         <span class="dock-label">Protege</span>
       </button>
-      <span class="dock-sep" aria-hidden="true"></span>
-      <button type="button" class="dock-btn dock-more" data-pop="mais" aria-controls="pop-mais" aria-expanded="false">
+      <span class="dock-sep tecnico-only" aria-hidden="true" hidden></span>
+      <button type="button" class="dock-btn dock-more tecnico-only" hidden data-pop="mais" aria-controls="pop-mais" aria-expanded="false">
         <calcite-icon icon="sliders-horizontal" scale="l" aria-hidden="true"></calcite-icon>
         <span class="dock-label">Mais</span>
       </button>
@@ -77,35 +77,31 @@
       </header>
       <div class="pop-body">
         <p class="pop-status" role="status" aria-live="polite"></p>
-        <p class="lead">A nossa terra tem monte com mato a norte e vinhas junto ao rio.</p>
+        <p class="lead">Toca num lugar para voar até lá.</p>
 
-        <h3>Vai a um lugar</h3>
-        <div class="place-grid">
-          <button type="button" class="big-btn" id="header-preset-santuario">Santuário (Monte)</button>
-          <button type="button" class="big-btn" id="header-preset-igreja">Igreja Matriz</button>
-          <button type="button" class="big-btn" id="header-preset-sanfins">Aldeia de Sanfins</button>
-          <button type="button" class="big-btn" id="header-preset-pinhao">Pinhão e rio Douro</button>
-          <button type="button" class="big-btn" id="header-preset-favaios">Favaios</button>
-          <button type="button" class="big-btn" id="header-preset-tua">Vale do Tua</button>
-          <button type="button" class="big-btn" id="header-preset-general">Todo o concelho</button>
+        <div class="place-cards">
+          <button type="button" class="place-card" id="header-preset-santuario" aria-pressed="false">
+            <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M2 30L18 8L28 20L34 13L46 30Z"/><path d="M16 8V3h4"/></svg>
+            <span>Santuário, no monte</span>
+          </button>
+          <button type="button" class="place-card" id="header-preset-sanfins" aria-pressed="false">
+            <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M4 30V16L13 9L22 16V30Z"/><path d="M22 30V12L32 4L42 12V30Z"/><path d="M2 30H46"/></svg>
+            <span>Aldeia de Sanfins</span>
+          </button>
+          <button type="button" class="place-card" id="header-preset-pinhao" aria-pressed="false">
+            <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M2 12C8 8 14 16 20 12S32 8 38 12 46 14 46 14"/><path d="M2 22C8 18 14 26 20 22S32 18 38 22 46 24 46 24"/></svg>
+            <span>Pinhão e o rio</span>
+          </button>
+          <button type="button" class="place-card" id="header-preset-general" aria-pressed="false">
+            <svg viewBox="0 0 48 32" aria-hidden="true"><path stroke-dasharray="4 3" d="M6 4L40 2L46 16L36 30L10 28L2 14Z"/></svg>
+            <span>Todo o concelho</span>
+          </button>
         </div>
 
         <h3>O que mostrar no mapa</h3>
         <div class="switch-list">
-          <calcite-label layout="inline" scale="l"><calcite-switch id="concelho-toggle" checked scale="l"></calcite-switch>Limite do concelho</calcite-label>
-          <calcite-label layout="inline" scale="l"><calcite-switch id="parishes-toggle" checked scale="l"></calcite-switch>Nomes das freguesias</calcite-label>
-          <calcite-label layout="inline" scale="l"><calcite-switch id="buildings-toggle" checked scale="l"></calcite-switch>Casas e edifícios 3D (14.531 no concelho)</calcite-label>
-          <calcite-label layout="inline" scale="l"><calcite-switch id="wind-toggle-olha" scale="l"></calcite-switch>Correntes de vento 3D (FlowRenderer - Opcional)</calcite-label>
-        </div>
-
-        <h3>Luz do sol: <span id="sun-time-label">17:20 (fim de tarde)</span></h3>
-        <calcite-slider id="sun-time-slider" min="8" max="20" value="17.33" step="0.25" label="Hora do dia" scale="l"></calcite-slider>
-
-        <h3>Rodar a vista</h3>
-        <div class="row-btns">
-          <button type="button" class="big-btn" id="btn-rotate-left" aria-label="Rodar para a esquerda">↺ Esquerda</button>
-          <button type="button" class="big-btn" id="btn-cardinal-north">Norte para cima</button>
-          <button type="button" class="big-btn" id="btn-rotate-right" aria-label="Rodar para a direita">Direita ↻</button>
+          <calcite-label layout="inline" scale="l"><calcite-switch id="buildings-toggle" checked scale="l"></calcite-switch>Casas em 3D</calcite-label>
+          <calcite-label layout="inline" scale="l"><calcite-switch id="parishes-toggle" checked scale="l"></calcite-switch>Nomes das terras</calcite-label>
         </div>
         <button type="button" class="big-btn wide" id="btn-toggle-orbit" aria-pressed="false"><span aria-hidden="true">↻ </span>Dar a volta</button>
         <button type="button" class="big-btn primary wide next-btn" data-goto="escolhe">Seguinte: 2 · Escolhe</button>
@@ -126,13 +122,13 @@
           <div class="token-slots" id="token-slots" aria-hidden="true"></div>
           <p id="token-count">Fichas no mapa: 0 de 3</p>
         </div>
-        <p class="hint">Toca numa ficha para a tirar.</p>
+        <p class="hint">Arrasta uma ficha para a mudar de sítio. Toca numa ficha para a tirar.</p>
         <div class="row-btns two">
           <button type="button" class="big-btn" id="btn-token-center">Pôr ficha no centro do mapa</button>
           <button type="button" class="big-btn" id="btn-clear-tokens">Tirar todas as fichas</button>
         </div>
 
-        <h3>Pistas: toca numa para a ver no mapa</h3>
+        <h3>Pistas: liga várias. Onde se juntam, há mais perigo.</h3>
         <div class="cue-grid" role="group" aria-label="Pistas">
           <button type="button" class="cue" data-cue="declive_a11y" aria-pressed="false">
             <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 40h40V8z" /><path class="acc" d="M14 33 34 18m0 0h-7m7 0v7"/></svg>
@@ -153,7 +149,7 @@
         </div>
         <div class="legend" id="cue-legend" aria-live="polite"></div>
         <p class="hint" id="cue-point" role="status" aria-live="polite"></p>
-        <button type="button" class="big-btn" id="btn-hide-cue" hidden>Esconder a pista</button>
+        <button type="button" class="big-btn" id="btn-hide-cue" hidden>Desligar as pistas</button>
         <button type="button" class="big-btn primary wide next-btn" data-goto="guarda">Seguinte: 3 · Guarda</button>
       </div>
     </section>
@@ -223,11 +219,17 @@
           <button type="button" class="big-btn" data-goto="guarda">Ir para o passo 3</button>
         </div>
         <div id="compare-open">
-        <button type="button" class="big-btn primary wide" id="btn-show-burned" aria-pressed="false">Mostrar onde ardeu</button>
-        <div class="legend" id="burned-legend"></div>
+        <button type="button" class="big-btn primary wide" id="btn-show-burned" aria-pressed="false">Revelar onde ardeu</button>
+        <label class="curtain">Ou arrasta a cortina, de oeste para este
+          <input type="range" id="reveal-range" min="0" max="100" value="0" step="1" />
+        </label>
 
-        <h3>As tuas fichas</h3>
+        <div class="score" id="score" role="status" aria-live="polite">
+          <div class="score-marks" id="score-marks" aria-hidden="true"></div>
+          <p class="score-text" id="score-text">Carrega em Revelar.</p>
+        </div>
         <ul class="results" id="token-results" aria-live="polite"><li>Ainda não puseste fichas. Vai ao passo 2.</li></ul>
+        <div class="legend" id="burned-legend"></div>
         <button type="button" class="big-btn" id="btn-read-burned">Ler o centro do mapa</button>
         </div>
 
@@ -243,10 +245,31 @@
         <h3>O que o mapa não sabe: o tempo de hoje</h3>
         <p id="weather-plain" class="weather-plain">A ler o tempo no Pinhão…</p>
         <ul class="rule30" id="rule30" aria-label="Regra 30-30-30"></ul>
-        <div class="switch-list">
-          <calcite-label layout="inline" scale="l"><calcite-switch id="wind-toggle" scale="l"></calcite-switch>Ver o vento a mexer (FlowRenderer - Opcional)</calcite-label>
-          <calcite-label layout="inline" scale="l"><calcite-switch id="rain-toggle" scale="l"></calcite-switch>Ver a chuva e as nuvens</calcite-label>
+
+        <h3 class="spark-title"><svg class="flame-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>E se uma faísca caísse hoje?</h3>
+        <p>Acende uma faísca e vê para onde o fogo anda com o vento de agora.</p>
+        <div class="row-btns two">
+          <button type="button" class="big-btn spark-btn" id="btn-spark" aria-pressed="false">Acender uma faísca</button>
+          <button type="button" class="big-btn" id="btn-spark-center">Acender no centro do mapa</button>
         </div>
+        <div class="regrow" role="group" aria-label="Vento para a faísca">
+          <button type="button" class="chip" data-wind="live" aria-pressed="true">Vento de agora</button>
+          <button type="button" class="chip" data-wind="0" aria-pressed="false">Sem vento</button>
+          <button type="button" class="chip" data-wind="40" aria-pressed="false">Vento forte</button>
+        </div>
+        <div class="spark-box" id="spark-box" hidden>
+          <div class="spark-bar" aria-hidden="true"><div class="spark-fill" id="spark-fill"></div></div>
+          <p class="answer" id="spark-text" role="status" aria-live="polite"></p>
+          <div class="spark-legend">
+            <span><i class="sw-front"></i>A arder agora</span>
+            <span><i class="sw-burnt"></i>Já ardeu</span>
+          </div>
+          <div class="row-btns two">
+            <button type="button" class="big-btn" id="btn-spark-replay">Ver outra vez</button>
+            <button type="button" class="big-btn" id="btn-spark-clear">Apagar o fogo</button>
+          </div>
+        </div>
+        <p class="hint">Modelo simplificado para aprender: o fogo anda mais depressa onde o perigo é alto, nas encostas inclinadas, ao sol e a favor do vento. Não é uma previsão.</p>
         <button type="button" class="big-btn primary wide next-btn" data-goto="protege">Seguinte: 5 · Protege</button>
       </div>
     </section>
@@ -260,31 +283,51 @@
       </header>
       <div class="pop-body">
         <p class="pop-status" role="status" aria-live="polite"></p>
-        <p class="lead">Escolhe uma ação para proteger as casas, as pessoas e o monte.</p>
+        <p class="lead">Toca numa casa no mapa. Depois escolhe o que fazer.</p>
         <button type="button" class="big-btn primary wide" id="btn-see-sanfins">Ver Sanfins de perto</button>
-        <p class="hint">Toca no mapa para saber o risco de incêndio nesse sítio.</p>
-        <p class="answer" id="risk-point" role="status" aria-live="polite"></p>
-        <button type="button" class="big-btn" id="btn-read-risk">Ler o centro do mapa</button>
+        <button type="button" class="big-btn wide" id="btn-read-risk">Escolher a casa no centro do mapa</button>
+
+        <div class="house-risk" id="house-risk" role="status" aria-live="polite" hidden>
+          <span class="risk-num" id="house-risk-num">4</span>
+          <div>
+            <p class="risk-word" id="house-risk-word"></p>
+            <p class="risk-why" id="risk-point"></p>
+          </div>
+        </div>
+
         <div class="legend" id="risk-legend"></div>
 
-        <h3>Depois do fogo, o mato volta</h3>
-        <div class="regrow" role="group" aria-label="Anos depois do fogo">
-          <button type="button" class="chip" data-years="0" aria-pressed="false">logo a seguir</button>
-          <button type="button" class="chip" data-years="2" aria-pressed="false">2 anos</button>
-          <button type="button" class="chip" data-years="5" aria-pressed="false">5 anos</button>
-          <button type="button" class="chip" data-years="10" aria-pressed="true">10 anos</button>
-        </div>
-        <div class="gauge" aria-hidden="true"><div class="gauge-fill" id="regrow-fill"></div></div>
-        <p id="regrow-text" aria-live="polite">Pelas contas do modelo, 10 anos depois do fogo o mato volta a quase metade.</p>
-
         <h3>Eu vou…</h3>
-        <div class="actions">
-          <label class="action"><input type="checkbox" value="limpar" /> <span>Limpar o mato à volta da casa.</span></label>
-          <label class="action"><input type="checkbox" value="queimadas" /> <span>Não fazer queimadas com calor ou vento.</span></label>
-          <label class="action"><input type="checkbox" value="112" /> <span>Ligar 112 se vir fumo.</span></label>
-          <label class="action"><input type="checkbox" value="encontro" /> <span>Saber onde é o ponto de encontro da aldeia.</span></label>
+        <div class="action-tiles" role="group" aria-label="Ações para proteger">
+          <button type="button" class="tile" data-action="limpar" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 26L20 12M18 6l8 8-4 4-8-8z"/><path d="M4 28h10"/></svg>
+            <span>Limpar o mato 50 m à volta da casa</span>
+          </button>
+          <button type="button" class="tile" data-action="pastorear" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="15" cy="16" rx="9" ry="6"/><circle cx="26" cy="13" r="3"/><path d="M10 22v5M20 22v5"/></svg>
+            <span>Pôr cabras e ovelhas a pastar</span>
+          </button>
+          <button type="button" class="tile" data-action="queimadas" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4c1 5 7 7 7 14a7 7 0 0 1-14 0c0-4 3-6 4-7"/><path d="M5 5l22 22"/></svg>
+            <span>Não fazer queimadas com calor ou vento</span>
+          </button>
+          <button type="button" class="tile" data-action="112" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h5l2 6-3 2a14 14 0 0 0 8 8l2-3 6 2v5a3 3 0 0 1-3 3A22 22 0 0 1 5 7a3 3 0 0 1 3-3z"/></svg>
+            <span>Ligar 112 se vir fumo</span>
+          </button>
+          <button type="button" class="tile" data-action="encontro" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 29s9-8 9-15a9 9 0 0 0-18 0c0 7 9 15 9 15z"/><circle cx="16" cy="14" r="3"/></svg>
+            <span>Saber onde é o ponto de encontro</span>
+          </button>
         </div>
-        <p class="answer" id="pledge" aria-live="polite"></p>
+
+        <h3>Depois de limpar, o mato volta</h3>
+        <label class="curtain">Passaram <strong id="regrow-years">0 anos</strong>
+          <input type="range" id="regrow-range" min="0" max="10" step="1" value="0" />
+        </label>
+        <div class="gauge" aria-hidden="true"><div class="gauge-fill" id="regrow-fill"></div></div>
+        <p id="regrow-text" aria-live="polite"></p>
+        <p class="answer pledge" id="pledge" aria-live="polite"></p>
         <div class="vida">
           <img src="/images/logos/logo_ahbv.png" alt="" />
           <p><strong>Vida por Vida</strong><br />Bombeiros Voluntários de Sanfins do Douro</p>
@@ -321,7 +364,24 @@
           </calcite-label>
           <div class="legend" id="dourorisk-stats-items"></div>
 
+          <h3>Mapa</h3>
+          <div class="switch-list">
+            <calcite-label layout="inline" scale="l"><calcite-switch id="concelho-toggle" checked scale="l"></calcite-switch>Limite do concelho</calcite-label>
+          </div>
+          <div class="row-btns">
+            <button type="button" class="big-btn" id="header-preset-igreja">Igreja Matriz</button>
+            <button type="button" class="big-btn" id="header-preset-favaios">Favaios</button>
+            <button type="button" class="big-btn" id="header-preset-tua">Vale do Tua</button>
+          </div>
+          <h3>Luz do sol: <span id="sun-time-label">17:20 (fim de tarde)</span></h3>
+          <calcite-slider id="sun-time-slider" min="8" max="20" value="17.33" step="0.25" label="Hora do dia" scale="l"></calcite-slider>
+
           <h3>Câmara</h3>
+          <div class="row-btns">
+            <button type="button" class="big-btn" id="btn-rotate-left" aria-label="Rodar para a esquerda">↺ Esquerda</button>
+            <button type="button" class="big-btn" id="btn-cardinal-north">Norte</button>
+            <button type="button" class="big-btn" id="btn-rotate-right" aria-label="Rodar para a direita">Direita ↻</button>
+          </div>
           <calcite-label scale="l">Direção: <strong id="cam-heading-label">42° (Nordeste)</strong>
             <calcite-slider id="cam-heading-slider" min="0" max="360" value="42" scale="l"></calcite-slider>
           </calcite-label>
@@ -353,6 +413,10 @@
           <button type="button" class="big-btn wide" id="sync-weather-btn">Atualizar o tempo</button>
 
           <h3>Vento</h3>
+          <div class="switch-list">
+            <calcite-label layout="inline" scale="l"><calcite-switch id="wind-toggle" scale="l"></calcite-switch>Linhas de vento 3D (FlowRenderer)</calcite-label>
+            <calcite-label layout="inline" scale="l"><calcite-switch id="rain-toggle" scale="l"></calcite-switch>Chuva e nuvens</calcite-label>
+          </div>
           <calcite-label scale="l">Altura das linhas
             <calcite-select id="wind-elev-mode" label="Altura das linhas de vento" scale="l">
               <calcite-option value="relative-to-ground" selected>Acima do terreno</calcite-option>
@@ -423,6 +487,23 @@
         </div>
       </div>
     </section>
+
+    <!-- Regra 30-30-30 sempre à vista -->
+    <aside class="hud hud-30" id="hud-30" aria-labelledby="hud-30-title">
+      <p class="hud-30-title" id="hud-30-title">Regra 30-30-30 · agora</p>
+      <ul class="dials">
+        <li class="dial" id="dial-temp"><svg viewBox="0 0 64 36" aria-hidden="true"><path class="arc-bg" d="M6 32A26 26 0 0 1 58 32"/><path class="arc" d="M6 32A26 26 0 0 1 58 32"/></svg><strong>–</strong><span>Calor</span></li>
+        <li class="dial" id="dial-hum"><svg viewBox="0 0 64 36" aria-hidden="true"><path class="arc-bg" d="M6 32A26 26 0 0 1 58 32"/><path class="arc" d="M6 32A26 26 0 0 1 58 32"/></svg><strong>–</strong><span>Ar seco</span></li>
+        <li class="dial" id="dial-wind"><svg viewBox="0 0 64 36" aria-hidden="true"><path class="arc-bg" d="M6 32A26 26 0 0 1 58 32"/><path class="arc" d="M6 32A26 26 0 0 1 58 32"/></svg><strong>–</strong><span>Vento</span></li>
+      </ul>
+      <p class="hud-30-sum" id="hud-30-sum" role="status" aria-live="polite">A ler o tempo no Pinhão…</p>
+    </aside>
+
+    <!-- termómetro da ficha (ao arrastar ou pôr) -->
+    <div class="thermo" id="thermo" aria-hidden="true" hidden>
+      <div class="thermo-bar"><div class="thermo-fill" id="thermo-fill"></div></div>
+      <div><strong id="thermo-title">Ficha 1</strong><br /><span id="thermo-text"></span></div>
+    </div>
 
     <div class="crosshair" aria-hidden="true"></div>
     <div id="idle-warn" class="idle-warn" role="alertdialog" aria-labelledby="idle-warn-text" hidden>
