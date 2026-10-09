@@ -1,0 +1,288 @@
+{
+  "project": "DouroRisk Alijó — Inteligência Territorial do Risco de Incêndio",
+  "description": "Modelos matriciais de risco de incêndio e perigosidade gerados pelo DouroRisk / ICNF para o Concelho de Alijó",
+  "layers": [
+    {
+      "id": "dourorisk_risco_2025_10m",
+      "name": "Risco_Cenario_2025_Incendios_Parametros_Historicos_10m",
+      "image": "/data/dourorisk/dourorisk_risco_2025_10m.png",
+      "extent": {
+        "xmin": -7.605246,
+        "ymin": 41.180072,
+        "xmax": -7.360933,
+        "ymax": 41.402264
+      },
+      "resolution": "10m",
+      "stats": {
+        "1": {
+          "label": "Muito Baixo",
+          "count": 1222831,
+          "pct": 41.1
+        },
+        "2": {
+          "label": "Baixo",
+          "count": 843364,
+          "pct": 28.3
+        },
+        "3": {
+          "label": "Médio",
+          "count": 430872,
+          "pct": 14.5
+        },
+        "4": {
+          "label": "Alto",
+          "count": 401764,
+          "pct": 13.5
+        },
+        "5": {
+          "label": "Muito Alto",
+          "count": 77145,
+          "pct": 2.6
+        }
+      },
+      "title": "Risco de Incêndio (Cenário 2025 — 10m)",
+      "category": "tese"
+    },
+    {
+      "id": "dourorisk_perigosidade_2025_10m",
+      "name": "Perigosidade_Modelo_Tese_Cenario_2025_10m",
+      "image": "/data/dourorisk/dourorisk_perigosidade_2025_10m.png",
+      "extent": {
+        "xmin": -7.605251,
+        "ymin": 41.180003,
+        "xmax": -7.360936,
+        "ymax": 41.402375
+      },
+      "resolution": "10m",
+      "stats": {
+        "1": {
+          "label": "Muito Baixo",
+          "count": 23491,
+          "pct": 0.8
+        },
+        "2": {
+          "label": "Baixo",
+          "count": 654273,
+          "pct": 22.0
+        },
+        "3": {
+          "label": "Médio",
+          "count": 785845,
+          "pct": 26.4
+        },
+        "4": {
+          "label": "Alto",
+          "count": 474195,
+          "pct": 15.9
+        },
+        "5": {
+          "label": "Muito Alto",
+          "count": 1038173,
+          "pct": 34.9
+        }
+      },
+      "title": "Perigosidade de Incêndio (Modelo Tese — 10m)",
+      "category": "tese"
+    },
+    {
+      "id": "dourorisk_perigosidade_icnf_2025",
+      "name": "Perigosidade_Conjuntural_ICNF_2025_25m",
+      "image": "/data/dourorisk/dourorisk_perigosidade_icnf_2025.png",
+      "extent": {
+        "xmin": -7.61171,
+        "ymin": 41.177757,
+        "xmax": -7.355757,
+        "ymax": 41.405918
+      },
+      "resolution": "25m",
+      "stats": {
+        "1": {
+          "label": "Muito Baixo",
+          "count": 4992,
+          "pct": 0.6
+        },
+        "2": {
+          "label": "Baixo",
+          "count": 96066,
+          "pct": 11.5
+        },
+        "3": {
+          "label": "Médio",
+          "count": 320427,
+          "pct": 38.5
+        },
+        "4": {
+          "label": "Alto",
+          "count": 207948,
+          "pct": 25.0
+        },
+        "5": {
+          "label": "Muito Alto",
+          "count": 203720,
+          "pct": 24.5
+        }
+      },
+      "title": "Perigosidade Conjuntural ICNF (Oficial 2025)",
+      "category": "icnf"
+    },
+    {
+      "id": "dourorisk_perigosidade_estrutural_icnf",
+      "name": "Perigosidade_Estrutural_ICNF_2020_2030_25m",
+      "image": "/data/dourorisk/dourorisk_perigosidade_estrutural_icnf.png",
+      "extent": {
+        "xmin": -7.61171,
+        "ymin": 41.177757,
+        "xmax": -7.355757,
+        "ymax": 41.405918
+      },
+      "resolution": "25m",
+      "stats": {
+        "1": {
+          "label": "Muito Baixo",
+          "count": 1808,
+          "pct": 0.2
+        },
+        "2": {
+          "label": "Baixo",
+          "count": 83027,
+          "pct": 10.0
+        },
+        "3": {
+          "label": "Médio",
+          "count": 316666,
+          "pct": 38.0
+        },
+        "4": {
+          "label": "Alto",
+          "count": 212809,
+          "pct": 25.5
+        },
+        "5": {
+          "label": "Muito Alto",
+          "count": 218843,
+          "pct": 26.3
+        }
+      },
+      "title": "Perigosidade Estrutural ICNF (2020–2030)",
+      "category": "icnf"
+    },
+    {
+      "id": "dourorisk_recorrencia_1990_2025",
+      "name": "Recorrencia_1990_2025_25m",
+      "image": "/data/dourorisk/dourorisk_recorrencia_1990_2025.png",
+      "extent": {
+        "xmin": -7.61171,
+        "ymin": 41.177757,
+        "xmax": -7.355757,
+        "ymax": 41.405918
+      },
+      "resolution": "25m",
+      "stats": {
+        "1": {
+          "label": "1 Vez",
+          "count": 143867,
+          "pct": 44.0
+        },
+        "2": {
+          "label": "2 Vezes",
+          "count": 85481,
+          "pct": 26.2
+        },
+        "3": {
+          "label": "3 Vezes",
+          "count": 53949,
+          "pct": 16.5
+        },
+        "4": {
+          "label": "4 Vezes",
+          "count": 22304,
+          "pct": 6.8
+        },
+        "5": {
+          "label": "≥ 5 Vezes",
+          "count": 21157,
+          "pct": 6.5
+        }
+      },
+      "title": "Recorrência de Incêndios (1990–2025)",
+      "category": "historico"
+    },
+    {
+      "id": "dourorisk_biomassa_2025",
+      "name": "Biomassa_Metodo_Original_2025_25m",
+      "image": "/data/dourorisk/dourorisk_biomassa_2025.png",
+      "extent": {
+        "xmin": -7.61171,
+        "ymin": 41.177757,
+        "xmax": -7.355757,
+        "ymax": 41.405918
+      },
+      "resolution": "25m",
+      "stats": {
+        "1": {
+          "label": "< 5 t/ha (M. Baixa)",
+          "count": 26882,
+          "pct": 9.1
+        },
+        "2": {
+          "label": "5-15 t/ha (Baixa)",
+          "count": 105945,
+          "pct": 35.7
+        },
+        "3": {
+          "label": "15-25 t/ha (Média)",
+          "count": 19180,
+          "pct": 6.5
+        },
+        "4": {
+          "label": "25-32 t/ha (Alta)",
+          "count": 24594,
+          "pct": 8.3
+        },
+        "5": {
+          "label": "> 32 t/ha (M. Alta)",
+          "count": 119788,
+          "pct": 40.4
+        }
+      },
+      "title": "Biomassa Vegetal Estimada (2025)",
+      "category": "combustivel"
+    },
+    {
+      "id": "dourorisk_declive_25m",
+      "name": "Declive_Percentagem_25m",
+      "image": "/data/dourorisk/dourorisk_declive_25m.png",
+      "extent": {
+        "xmin": -7.61171,
+        "ymin": 41.177757,
+        "xmax": -7.355757,
+        "ymax": 41.405918
+      },
+      "resolution": "25m",
+      "stats": {
+        "1": {
+          "label": "< 15% (Suave)",
+          "count": 295779,
+          "pct": 34.1
+        },
+        "2": {
+          "label": "15-30% (Moderado)",
+          "count": 301286,
+          "pct": 34.8
+        },
+        "3": {
+          "label": "30-50% (Forte)",
+          "count": 202528,
+          "pct": 23.4
+        },
+        "4": {
+          "label": "> 50% (Escarpado)",
+          "count": 67407,
+          "pct": 7.8
+        }
+      },
+      "title": "Declive do Terreno (%)",
+      "category": "orografia"
+    }
+  ]
+}

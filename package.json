@@ -1,0 +1,26 @@
+{
+  "name": "dourorisk3d",
+  "description": "DouroRisk 3D — Gémeo Digital & Inteligência Territorial de Alijó (BVSD)",
+  "author": "Hugo Vilela <hugovilela81@gmail.com>",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@arcgis/charts-components": "^5.1.0",
+    "@arcgis/core": "^5.1.0",
+    "@arcgis/map-components": "^5.1.0",
+    "@esri/calcite-components": "^5.1.1",
+    "@types/three": "^0.186.0",
+    "sharp": "^0.35.5",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "~24.10.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.16"
+  }
+}
