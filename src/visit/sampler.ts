@@ -55,6 +55,39 @@ export class ClassGrid {
   }
 
   /**
+   * Quantas células de cada classe há dentro de um círculo (raio em metros).
+   * `counts[c]` = células da classe c; `total` = células do círculo dentro da grelha.
+   */
+  async histogram(lon: number, lat: number, radiusM: number): Promise<{ counts: number[]; total: number } | null> {
+    try {
+      await this.load();
+    } catch {
+      return null;
+    }
+    if (!this.data) return null;
+    const { xmin, ymin, xmax, ymax } = this.extent;
+    const dLat = radiusM / 111320;
+    const dLon = radiusM / (111320 * Math.cos((lat * Math.PI) / 180));
+    const colOf = (x: number) => ((x - xmin) / (xmax - xmin)) * this.width;
+    const rowOf = (y: number) => ((ymax - y) / (ymax - ymin)) * this.height;
+    const c0 = Math.max(0, Math.floor(colOf(lon - dLon))), c1 = Math.min(this.width - 1, Math.ceil(colOf(lon + dLon)));
+    const r0 = Math.max(0, Math.floor(rowOf(lat + dLat))), r1 = Math.min(this.height - 1, Math.ceil(rowOf(lat - dLat)));
+    const counts = new Array<number>(256).fill(0);
+    let total = 0;
+    const cw = (xmax - xmin) / this.width, ch = (ymax - ymin) / this.height;
+    for (let r = r0; r <= r1; r++) {
+      const y = (ymax - (r + 0.5) * ch - lat) / dLat;
+      for (let c = c0; c <= c1; c++) {
+        const x = (xmin + (c + 0.5) * cw - lon) / dLon;
+        if (x * x + y * y > 1) continue;
+        counts[this.data[(r * this.width + c) * 4]]++;
+        total++;
+      }
+    }
+    return { counts, total };
+  }
+
+  /**
    * Classe no ponto, ou NO_DATA (-1) fora da grelha ou se a grelha não carregou.
    * `radius` em células: devolve o máximo à volta (tolerância ao toque).
    */

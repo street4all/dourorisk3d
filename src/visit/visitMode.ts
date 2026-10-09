@@ -16,6 +16,7 @@ import { NO_DATA } from "./sampler";
 import { CanvasOverlay } from "./overlay";
 import { COUNT_COLORS, cuesAt, renderCueCount } from "./cues";
 import { loadStack } from "./stack";
+import { Probe } from "./probe";
 import { HA_PER_CELL, HA_PER_FIELD, renderSpread, simulateSpread, type SpreadResult } from "./spread";
 
 type PopName = "olha" | "escolhe" | "guarda" | "compara" | "protege" | "mais" | "ajuda";
@@ -139,7 +140,15 @@ export class VisitMode {
   private actions = new Set<string>();
   private years = 0;
 
-  constructor(private manager: Alijo3DManager) {}
+  // Explorar: ponto ou círculo, a qualquer momento
+  private probe: Probe;
+
+  constructor(private manager: Alijo3DManager) {
+    // em ecrãs estreitos o cartão do Explorar e a janela do passo não cabem os dois
+    this.probe = new Probe(manager, (on) => {
+      if (on && !matchMedia("(min-width: 900px)").matches) this.close();
+    });
+  }
 
   init(): void {
     const view = this.manager.view;
@@ -165,6 +174,7 @@ export class VisitMode {
       }
       view.on("click", (e) => void this.onMapClick(e).catch(() => this.say("Não foi possível ler o mapa. Toca outra vez.")));
       this.wireDrag();
+      this.probe.init();
     }
     if (reduceMotion()) {
       this.manager.setWindVisible(false);
@@ -231,6 +241,10 @@ export class VisitMode {
         this.close();
         return;
       }
+      if (e.key === "Escape" && this.probe.active) {
+        this.probe.setActive(false);
+        return;
+      }
       // atalhos 1 a 5: só com o foco na barra dos passos ou fora de qualquer controlo
       const a = document.activeElement as HTMLElement | null;
       const onDock = !!a?.closest?.(".dock");
@@ -243,6 +257,7 @@ export class VisitMode {
 
   open(name: PopName, opener?: HTMLElement): void {
     if (this.current && this.current !== name) this.hide(this.current);
+    if (this.probe.active && !matchMedia("(min-width: 900px)").matches) this.probe.setActive(false);
     const pop = $(`pop-${name}`);
     if (!pop) return;
     pop.hidden = false;
@@ -403,6 +418,12 @@ export class VisitMode {
 
   // ------------------------------------------------------------------ clique no mapa (e alternativa por teclado)
   private async onMapClick(e: ClickEvent): Promise<void> {
+    // com o Explorar ligado, tocar no mapa lê sempre os dados desse ponto (em qualquer passo)
+    if (this.probe.active) {
+      e.stopPropagation();
+      if (e.mapPoint) this.probe.handleClick(e.mapPoint.longitude ?? 0, e.mapPoint.latitude ?? 0);
+      return;
+    }
     const mode = this.current;
     if (mode !== "escolhe" && mode !== "compara" && mode !== "protege") return;
     e.stopPropagation();
@@ -611,7 +632,7 @@ export class VisitMode {
     const view = this.manager.view!;
     view.on("pointer-down", async (e) => {
       this.dragging = null;
-      if (this.current !== "escolhe" || this.sealed || !this.tokens.length) return;
+      if (this.probe.active || this.current !== "escolhe" || this.sealed || !this.tokens.length) return;
       const hit = await view.hitTest(e, { include: [this.tokenLayer] });
       const g = hit.results.find((r) => r.type === "graphic")?.graphic as Graphic | undefined;
       const token = g && this.tokens.find((t) => t.graphic === g);
@@ -1321,6 +1342,7 @@ export class VisitMode {
   // ------------------------------------------------------------------ quiosque: aviso e recomeço sem uso
   private resetVisit(): void {
     this.close();
+    this.probe.setActive(false);
     this.resetGuess();
     this.visited.clear();
     this.clearCues();

@@ -24,7 +24,10 @@
     </header>
 
     <!-- Opções de leitura -->
-    <div class="hud hud-tools" role="group" aria-label="Opções de leitura">
+    <div class="hud hud-tools" role="group" aria-label="Ferramentas e opções de leitura">
+      <button type="button" class="tool-btn tool-probe" id="btn-probe" aria-pressed="false" aria-controls="probe-card" title="Explorar: dados de um ponto ou de uma área" aria-label="Explorar: dados de um ponto ou de uma área">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+      </button>
       <button type="button" class="tool-btn" id="btn-font" title="Letra maior" aria-label="Letra maior">
         <span aria-hidden="true">A<sup>+</sup></span>
       </button>
@@ -192,7 +195,7 @@
           <p class="hint">Os cientistas também fazem assim: decidem antes de ver o resultado.</p>
         </div>
         <div id="guard-sealed" class="sealed" hidden aria-live="polite">
-          <img src="/images/logos/logo_ahbv.png" alt="Carimbo dos Bombeiros Voluntários de Sanfins do Douro" />
+          <img src="/images/logos/logo_ahbv_brasao.png" alt="Carimbo dos Bombeiros Voluntários de Sanfins do Douro" />
           <div>
             <p class="sealed-title" id="sealed-title" tabindex="-1">Palpite guardado</p>
             <p>Código: <strong id="guess-code">—</strong></p>
@@ -329,7 +332,7 @@
         <p id="regrow-text" aria-live="polite"></p>
         <p class="answer pledge" id="pledge" aria-live="polite"></p>
         <div class="vida">
-          <img src="/images/logos/logo_ahbv.png" alt="" />
+          <img src="/images/logos/logo_ahbv_brasao.png" alt="" />
           <p><strong>Vida por Vida</strong><br />Bombeiros Voluntários de Sanfins do Douro</p>
         </div>
       </div>
@@ -468,6 +471,7 @@
             <li>Afasta ou junta dois dedos para aproximar ou afastar.</li>
             <li>Com o rato: botão direito e arrastar para rodar.</li>
             <li>Teclas 1 a 5 abrem os passos. A tecla Esc fecha a janela.</li>
+            <li><strong>Explorar</strong> (botão com a mira, em cima): toca num ponto para ver os dados dele. Para uma área, carrega sem largar e arrasta: o círculo cresce com o dedo.</li>
           </ul>
         </div>
         <div>
@@ -480,9 +484,9 @@
           <h3>Dados</h3>
           <p>Projeto DouroRisk, concelho de Alijó, 1990 a 2025. Edifícios vistos por satélite: Microsoft Global ML Building Footprints (ODbL). Tempo: IPMA e Open-Meteo.</p>
           <div class="partners">
-            <img src="/images/logos/logo_ahbv.png" alt="Associação Humanitária dos Bombeiros Voluntários de Sanfins do Douro" />
-            <img src="/images/logos/logo_fct.png" alt="Fundação para a Ciência e a Tecnologia" />
-            <img src="/images/logos/logo_bpi_lacaixa.png" alt="BPI e Fundação la Caixa" />
+            <img class="logo-selo" src="/images/logos/logo_ahbv_selo.png" alt="Associação Humanitária dos Bombeiros Voluntários de Sanfins do Douro" />
+            <img class="logo-utad" src="/images/logos/logo_utad.png" alt="UTAD, Universidade de Trás-os-Montes e Alto Douro" />
+            <img class="logo-strip" src="/images/logos/logo_fct_bpi_lacaixa.png" alt="Fundação para a Ciência e a Tecnologia, BPI e Fundação la Caixa" />
           </div>
         </div>
       </div>
@@ -497,6 +501,25 @@
         <li class="dial" id="dial-wind"><svg viewBox="0 0 64 36" aria-hidden="true"><path class="arc-bg" d="M6 32A26 26 0 0 1 58 32"/><path class="arc" d="M6 32A26 26 0 0 1 58 32"/></svg><strong>–</strong><span>Vento</span></li>
       </ul>
       <p class="hud-30-sum" id="hud-30-sum" role="status" aria-live="polite">A ler o tempo no Pinhão…</p>
+    </aside>
+
+    <!-- Explorar: dados de um ponto ou de uma área em círculo -->
+    <aside class="hud probe-card" id="probe-card" aria-labelledby="probe-title" hidden>
+      <header class="probe-top">
+        <svg class="probe-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+        <h2 id="probe-title" tabindex="-1">Explorar o mapa</h2>
+        <button type="button" class="pop-close" id="probe-close" aria-label="Fechar o Explorar">×</button>
+      </header>
+      <p class="probe-hint" id="probe-hint" role="status" aria-live="polite"></p>
+      <div class="probe-modes" role="group" aria-label="Tamanho a ler">
+        <button type="button" class="chip" data-probe-r="0" aria-pressed="true">Ponto</button>
+        <button type="button" class="chip" data-probe-r="100" aria-pressed="false">100 m</button>
+        <button type="button" class="chip" data-probe-r="250" aria-pressed="false">250 m</button>
+        <button type="button" class="chip" data-probe-r="500" aria-pressed="false">500 m</button>
+        <button type="button" class="chip" data-probe-r="1000" aria-pressed="false">1 km</button>
+      </div>
+      <button type="button" class="big-btn wide" id="probe-center">Ler o centro do mapa</button>
+      <div class="probe-body" id="probe-body" aria-live="polite"></div>
     </aside>
 
     <!-- termómetro da ficha (ao arrastar ou pôr) -->
