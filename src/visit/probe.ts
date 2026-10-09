@@ -32,9 +32,16 @@ const PROBE_RGB: [number, number, number] = [0, 190, 255];
 
 interface Row {
   key: string;
-  title: string;
-  /** frase para uma área, a partir das contagens (null = não dizer nada) */
+  /** nome curto no ponto */
+  short: string;
+  /** o que o número da área mede */
+  label: string;
+  /** % da área com isso (o número grande da linha) */
+  metric: (counts: number[], total: number) => number;
+  /** frase completa para uma área (leitor de ecrã e dica ao passar o rato) */
   area: (counts: number[], total: number) => string | null;
+  /** palavra curta para um ponto, a partir da classe */
+  word: (cls: number) => string;
 }
 
 const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0);
@@ -52,23 +59,46 @@ function mostCommon(counts: number[], total: number, words: string[]): string | 
 }
 
 const RISK_WORDS = ["muito baixo", "baixo", "médio", "alto", "muito alto"];
+const riskWord = (c: number) => (c >= 1 && c <= 5 ? `${c} · ${RISK_WORDS[c - 1]}` : "sem dados");
 const ROWS: Row[] = [
-  { key: "risco_2025", title: "Risco de incêndio", area: (c, t) => mostCommon(c, t, RISK_WORDS) },
-  { key: "icnf_estrutural", title: "Perigo no mapa oficial (ICNF)", area: (c, t) => mostCommon(c, t, RISK_WORDS) },
   {
-    key: "recorrencia_a11y",
-    title: "Quantas vezes ardeu (1990–2025)",
+    key: "risco_2025", short: "Risco", label: "Risco alto",
+    metric: (c, t) => pct(sum(c, [4, 5]), t), area: (c, t) => mostCommon(c, t, RISK_WORDS), word: riskWord,
+  },
+  {
+    key: "icnf_estrutural", short: "Perigo oficial", label: "Perigo oficial alto",
+    metric: (c, t) => pct(sum(c, [4, 5]), t), area: (c, t) => mostCommon(c, t, RISK_WORDS), word: riskWord,
+  },
+  {
+    key: "recorrencia_a11y", short: "Já ardeu", label: "Já ardeu",
+    metric: (c, t) => pct(sum(c, [1, 2, 3, 4, 5]), t),
     area: (c, t) => {
       const burned = sum(c, [1, 2, 3, 4, 5]);
       if (!burned) return "Não ardeu desde 1990.";
       let max = 5;
       while (max > 1 && !c[max]) max--;
-      return `Já ardeu ${pct(burned, t)} % da área, até ${max >= 5 ? "5 ou mais" : max} ${max === 1 ? "vez" : "vezes"}.`;
+      return `Já ardeu ${pct(burned, t)} % da área desde 1990, até ${max >= 5 ? "5 ou mais" : max} ${max === 1 ? "vez" : "vezes"}.`;
     },
+    word: (c) => (c <= 0 ? "não ardeu" : c >= 5 ? "5 ou mais vezes" : `${c} ${c === 1 ? "vez" : "vezes"}`),
   },
-  { key: "declive_a11y", title: "Encosta", area: (c, t) => `Muito inclinada ou quase a pique: ${pct(sum(c, [3, 4]), t)} %.` },
-  { key: "exposicao_sol", title: "Sol", area: (c, t) => `Virada ao sol (o mato seca mais): ${pct(c[1], t)} %.` },
-  { key: "biomassa_2025", title: "Mato", area: (c, t) => `Muito mato ou mato denso: ${pct(sum(c, [4, 5]), t)} %.` },
+  {
+    key: "declive_a11y", short: "Encosta", label: "Muito inclinada",
+    metric: (c, t) => pct(sum(c, [3, 4]), t),
+    area: (c, t) => `Muito inclinada ou quase a pique: ${pct(sum(c, [3, 4]), t)} %.`,
+    word: (c) => ["sem dados", "quase plana", "pouco inclinada", "muito inclinada", "quase a pique"][c] ?? "sem dados",
+  },
+  {
+    key: "exposicao_sol", short: "Sol", label: "Virada ao sol",
+    metric: (c, t) => pct(c[1], t),
+    area: (c, t) => `Virada ao sol (o mato seca mais): ${pct(c[1], t)} %.`,
+    word: (c) => (c === 1 ? "virada ao sol" : c === 2 ? "à sombra" : c === 3 ? "plano" : "sem dados"),
+  },
+  {
+    key: "biomassa_2025", short: "Mato", label: "Muito mato",
+    metric: (c, t) => pct(sum(c, [4, 5]), t),
+    area: (c, t) => `Muito mato ou mato denso: ${pct(sum(c, [4, 5]), t)} %.`,
+    word: (c) => ["sem dados", "muito pouco", "pouco", "algum", "muito", "muito denso"][c] ?? "sem dados",
+  },
 ];
 
 function targetSvg(): string {
@@ -309,26 +339,33 @@ export class Probe {
 
   private renderParishList(): void {
     const list = $("probe-parish-list");
-    if (!list || list.childElementCount === this.parishes.length) {
-      this.syncParishList();
-      return;
+    if (list && list.childElementCount !== this.parishes.length) {
+      list.innerHTML = this.parishes
+        .map(
+          (p) =>
+            `<label class="parish-item" title="${esc(p.name)}"><input type="checkbox" data-parish="${p.id}" /><span>${esc(p.short)}</span></label>`,
+        )
+        .join("");
+      list.querySelectorAll<HTMLInputElement>("[data-parish]").forEach((cb) =>
+        cb.addEventListener("change", () => {
+          const id = cb.dataset.parish!;
+          if (cb.checked) this.picked.add(id);
+          else this.picked.delete(id);
+          void this.readParishes();
+        }),
+      );
     }
-    list.innerHTML = this.parishes
-      .map((p) => `<button type="button" class="chip parish" data-parish="${p.id}" aria-pressed="false" title="${esc(p.name)}">${esc(p.short)}</button>`)
-      .join("");
-    list.querySelectorAll<HTMLButtonElement>("[data-parish]").forEach((b) =>
-      b.addEventListener("click", () => {
-        const id = b.dataset.parish!;
-        if (this.picked.has(id)) this.picked.delete(id);
-        else this.picked.add(id);
-        void this.readParishes();
-      }),
-    );
     this.syncParishList();
   }
 
   private syncParishList(): void {
-    document.querySelectorAll<HTMLButtonElement>("[data-parish]").forEach((b) => b.setAttribute("aria-pressed", String(this.picked.has(b.dataset.parish!))));
+    document.querySelectorAll<HTMLInputElement>("[data-parish]").forEach((cb) => (cb.checked = this.picked.has(cb.dataset.parish!)));
+    const n = this.picked.size;
+    const summary = $("probe-parish-summary");
+    if (summary) summary.textContent = n ? `Escolher freguesias (${n} escolhida${n === 1 ? "" : "s"})` : "Escolher freguesias";
+    // sem nenhuma escolhida, a lista abre-se sozinha
+    const det = $("probe-parishes-details") as HTMLDetailsElement | null;
+    if (det && !n) det.open = true;
   }
 
   private async toggleParishAt(lon: number, lat: number): Promise<void> {
@@ -465,7 +502,8 @@ export class Probe {
     const alt = await this.altitude(lon, lat);
     await this.loadBoundaries().catch(() => undefined);
     const parish = this.parishes.find((p) => inRings(lon, lat, p.rings));
-    const head = `<p class="probe-head"><strong>Ponto</strong>${alt != null ? ` · ${alt} m de altitude` : ""}<br /><span>${parish ? `${esc(parish.name)} · ` : ""}${this.coords(lon, lat)}</span></p>`;
+    const where = [parish ? esc(parish.short) : "", alt != null ? `${alt} m de altitude` : ""].filter(Boolean).join(" · ");
+    const head = `<p class="probe-head"><strong>Ponto</strong>${where ? ` · ${where}` : ""}</p>`;
     if (inside <= 0) return `${head}<p class="probe-out">Fora do concelho de Alijó: aqui não há dados.</p>`;
     const items: string[] = [];
     for (const row of ROWS) {
@@ -473,16 +511,16 @@ export class Probe {
       if (!layer) continue;
       const cls = await layer.grid.sample(lon, lat, 0);
       const it = cls > 0 ? legendItemFor(layer.legend, cls) : undefined;
-      const sw = it
-        ? `<span class="sw" style="background:${it.color}">${it.number ?? ""}</span>`
-        : `<span class="sw none" aria-hidden="true">–</span>`;
-      const txt = cls > 0 ? layer.describe(cls) : layer.empty;
-      items.push(`<li>${sw}<span><strong>${row.title}</strong><br />${txt}</span></li>`);
+      const sw = it ? `<span class="sw" style="background:${it.color}"></span>` : `<span class="sw none"></span>`;
+      const sentence = cls > 0 ? layer.describe(cls) : layer.empty;
+      items.push(
+        `<tr title="${esc(sentence)}"><th scope="row">${row.short}</th><td>${sw}</td><td class="pv">${row.word(cls)}<span class="sr-only">. ${esc(sentence)}</span></td></tr>`,
+      );
     }
-    return `${head}<ul class="probe-list">${items.join("")}</ul>`;
+    return `${head}<table class="probe-table point"><tbody>${items.join("")}</tbody></table><p class="probe-foot">${this.coords(lon, lat)}</p>`;
   }
 
-  /** Uma linha por tema: barra empilhada com as cores da legenda e a mesma informação por palavras. */
+  /** Uma linha por tema: o que se mede, a barra com as classes da legenda e o número grande (% da área). */
   private rowsHtml(hist: (key: string) => Promise<Histogram>): Promise<string> {
     return (async () => {
       const items: string[] = [];
@@ -494,31 +532,33 @@ export class Probe {
         const segs = layer.legend
           .map((it) => ({ it, n: sum(h.counts, it.classes) }))
           .filter((s) => s.n > 0)
-          .map((s) => `<i style="width:${((s.n / h.total) * 100).toFixed(1)}%;background:${s.it.color}" title="${s.it.label}: ${pct(s.n, h.total)} %"></i>`)
+          .map((s) => `<i style="width:${((s.n / h.total) * 100).toFixed(1)}%;background:${s.it.color}"></i>`)
           .join("");
-        const txt = row.area(h.counts, h.total) ?? "";
-        items.push(`<li class="area"><strong>${row.title}</strong><span class="probe-bar" aria-hidden="true">${segs}</span><span>${txt}</span></li>`);
+        const sentence = row.area(h.counts, h.total) ?? "";
+        items.push(
+          `<tr title="${esc(sentence)}"><th scope="row">${row.label}</th><td><span class="probe-bar" aria-hidden="true">${segs}</span></td><td class="pv"><strong>${row.metric(h.counts, h.total)} %</strong><span class="sr-only">. ${esc(sentence)}</span></td></tr>`,
+        );
       }
-      return `<ul class="probe-list">${items.join("")}</ul>`;
+      return `<table class="probe-table"><caption class="sr-only">Percentagem da área</caption><tbody>${items.join("")}</tbody></table><p class="probe-foot">% da área. Passa o rato (ou toca) numa linha para mais.</p>`;
     })();
   }
 
-  private housesHtml(n: number | null, where: string): string {
-    return n == null ? "" : `<p class="probe-houses"><strong>${n.toLocaleString("pt-PT")}</strong> ${n === 1 ? "casa ou edifício" : "casas e edifícios"} ${where}.</p>`;
+  private housesText(n: number | null): string {
+    return n == null ? "" : ` · ${n.toLocaleString("pt-PT")} ${n === 1 ? "casa" : "casas"}`;
   }
 
   private async circleHtml(lon: number, lat: number, r: number): Promise<string> {
     const ha = (Math.PI * r * r) / 10000;
-    const head = `<p class="probe-head"><strong>Círculo de ${fmtM(r)} de raio</strong><br /><span>${fmtHa(ha)}</span></p>`;
     const risk = await VISIT_LAYERS.risco_2025.grid.histogram(lon, lat, r);
     const insideCells = risk ? sum(risk.counts, [1, 2, 3, 4, 5]) : 0;
+    const circle = new Circle({ center: new Point({ longitude: lon, latitude: lat }), radius: r, radiusUnit: "meters", geodesic: true, numberOfPoints: 64 });
+    const houses = insideCells ? this.housesText(await this.countHouses(circle)) : "";
+    const head = `<p class="probe-head"><strong>Círculo de ${fmtM(r)}</strong><br /><span>${fmtHa(ha)}${houses}</span></p>`;
     if (!risk || !insideCells) return `${head}<p class="probe-out">Fora do concelho de Alijó: aqui não há dados.</p>`;
     const share = pct(insideCells, risk.total);
-    const note = share < 98 ? `<p class="hint">${share} % do círculo está dentro do concelho.</p>` : "";
-    const circle = new Circle({ center: new Point({ longitude: lon, latitude: lat }), radius: r, radiusUnit: "meters", geodesic: true, numberOfPoints: 64 });
-    const houses = this.housesHtml(await this.countHouses(circle), "dentro do círculo");
+    const note = share < 98 ? `<p class="probe-foot">${share} % do círculo está dentro do concelho.</p>` : "";
     const rows = await this.rowsHtml((key) => VISIT_LAYERS[key].grid.histogram(lon, lat, r));
-    return `${head}${note}${houses}${rows}`;
+    return `${head}${rows}${note}`;
   }
 
   /** Concelho ou freguesias: as mesmas linhas, contadas dentro dos polígonos. */
@@ -527,11 +567,11 @@ export class Probe {
     const risk = await grid.histogramPolygons(key, polys);
     const lat = polys[0][0].reduce((s, p) => s + p[1], 0) / polys[0][0].length;
     const ha = risk ? risk.total * grid.cellHa(lat) : 0;
-    const list = names ? `<br /><span>${names.map(esc).join(", ")}</span>` : "";
-    const head = `<p class="probe-head"><strong>${esc(title)}</strong><br /><span>${fmtHa(ha)}</span>${list}</p>`;
-    const houses = this.housesHtml(await this.countHousesIn(parishNames), parishNames ? "na área escolhida" : "no concelho");
+    const houses = this.housesText(await this.countHousesIn(parishNames));
+    const list = names ? `<br /><span class="probe-names">${names.map(esc).join(", ")}</span>` : "";
+    const head = `<p class="probe-head"><strong>${esc(title)}</strong><br /><span>${fmtHa(ha)}${houses}</span>${list}</p>`;
     const rows = await this.rowsHtml((k) => VISIT_LAYERS[k].grid.histogramPolygons(key, polys));
-    return `${head}${houses}${rows}`;
+    return `${head}${rows}`;
   }
 
   /**

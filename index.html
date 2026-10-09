@@ -531,26 +531,27 @@
         <button type="button" data-probe-scope="concelho" aria-pressed="false">Concelho</button>
       </div>
       <p class="probe-hint" id="probe-hint" role="status" aria-live="polite"></p>
+      <div class="probe-body" id="probe-body" aria-live="polite"></div>
       <div class="probe-local" id="probe-local">
-        <p class="probe-label" id="probe-modes-label">Ao tocar, ler:</p>
-        <div class="probe-modes" role="group" aria-labelledby="probe-modes-label">
+        <div class="probe-modes" role="group" aria-label="Ao tocar, ler">
           <button type="button" class="chip" data-probe-r="0" aria-pressed="true">Ponto</button>
           <button type="button" class="chip" data-probe-r="100" aria-pressed="false">100 m</button>
           <button type="button" class="chip" data-probe-r="250" aria-pressed="false">250 m</button>
           <button type="button" class="chip" data-probe-r="500" aria-pressed="false">500 m</button>
           <button type="button" class="chip" data-probe-r="1000" aria-pressed="false">1 km</button>
+          <button type="button" class="chip" id="probe-center" title="Ler no centro do mapa (a mira)">Centro</button>
         </div>
-        <button type="button" class="big-btn wide" id="probe-center">Ler o centro do mapa</button>
       </div>
       <div class="probe-parishes" id="probe-parishes" hidden>
-        <p class="probe-label" id="probe-parish-label">Freguesias (escolhe uma ou várias):</p>
-        <div class="probe-parish-list" id="probe-parish-list" role="group" aria-labelledby="probe-parish-label"></div>
-        <div class="row-btns two">
-          <button type="button" class="big-btn" id="probe-all">Todas</button>
-          <button type="button" class="big-btn" id="probe-none">Nenhuma</button>
-        </div>
+        <details id="probe-parishes-details" open>
+          <summary id="probe-parish-summary">Escolher freguesias</summary>
+          <div class="probe-parish-tools">
+            <button type="button" class="link-btn" id="probe-all">Todas</button>
+            <button type="button" class="link-btn" id="probe-none">Nenhuma</button>
+          </div>
+          <div class="probe-parish-list" id="probe-parish-list" role="group" aria-labelledby="probe-parish-summary"></div>
+        </details>
       </div>
-      <div class="probe-body" id="probe-body" aria-live="polite"></div>
     </aside>
 
     <!-- Mapas de risco: escolher, ver e comparar -->
