@@ -87,6 +87,67 @@ export class ClassGrid {
     return { counts, total };
   }
 
+  /** máscaras de polígonos já desenhadas nesta grelha (concelho, freguesias), pela chave da seleção */
+  private masks = new Map<string, Uint8Array>();
+
+  /**
+   * Quantas células de cada classe há dentro de um ou mais polígonos (anéis GeoJSON em lon/lat).
+   * `key` identifica a seleção, para reaproveitar a máscara já desenhada.
+   */
+  async histogramPolygons(key: string, polygons: number[][][][]): Promise<{ counts: number[]; total: number } | null> {
+    try {
+      await this.load();
+    } catch {
+      return null;
+    }
+    if (!this.data) return null;
+    let mask = this.masks.get(key);
+    if (!mask) {
+      const { xmin, ymin, xmax, ymax } = this.extent;
+      const canvas = document.createElement("canvas");
+      canvas.width = this.width;
+      canvas.height = this.height;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return null;
+      ctx.beginPath();
+      for (const rings of polygons) {
+        for (const ring of rings) {
+          ring.forEach(([lon, lat], i) => {
+            const x = ((lon - xmin) / (xmax - xmin)) * this.width;
+            const y = ((ymax - lat) / (ymax - ymin)) * this.height;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.closePath();
+        }
+      }
+      ctx.fillStyle = "#000";
+      ctx.fill("evenodd");
+      const px = ctx.getImageData(0, 0, this.width, this.height).data;
+      mask = new Uint8Array(this.width * this.height);
+      for (let i = 0; i < mask.length; i++) mask[i] = px[i * 4 + 3] > 127 ? 1 : 0;
+      this.masks.set(key, mask);
+      // só as últimas seleções ficam guardadas (as grelhas de 10 m têm 5 milhões de células)
+      if (this.masks.size > 6) this.masks.delete(this.masks.keys().next().value!);
+    }
+    const counts = new Array<number>(256).fill(0);
+    let total = 0;
+    for (let i = 0; i < mask.length; i++) {
+      if (!mask[i]) continue;
+      counts[this.data[i * 4]]++;
+      total++;
+    }
+    return { counts, total };
+  }
+
+  /** Área de uma célula em hectares, à latitude dada. */
+  cellHa(lat: number): number {
+    const { xmin, ymin, xmax, ymax } = this.extent;
+    const w = ((xmax - xmin) / this.width) * 111320 * Math.cos((lat * Math.PI) / 180);
+    const h = ((ymax - ymin) / this.height) * 111320;
+    return (w * h) / 10000;
+  }
+
   /**
    * Classe no ponto, ou NO_DATA (-1) fora da grelha ou se a grelha não carregou.
    * `radius` em células: devolve o máximo à volta (tolerância ao toque).

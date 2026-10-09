@@ -1,15 +1,29 @@
-// Explorar: ler os dados de um ponto ou de uma área em círculo, a qualquer momento da visita.
-// O mesmo ponteiro serve para as duas coisas: tocar = ponto; carregar sem largar e arrastar = círculo.
-// Arrastar sem carregar primeiro continua a mexer o mapa. Alternativa por teclado: ler o centro do mapa.
+// Explorar: ler os dados de um ponto, de uma área em círculo, do concelho todo ou de uma ou várias freguesias,
+// a qualquer momento da visita. No modo "Ponto ou círculo" o mesmo ponteiro serve para as duas coisas:
+// tocar = ponto; carregar sem largar e arrastar = círculo. Arrastar sem carregar primeiro continua a mexer o mapa.
+// No modo "Freguesias", tocar no mapa junta ou tira a freguesia desse sítio. Alternativas por teclado em todos.
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer.js";
 import Graphic from "@arcgis/core/Graphic.js";
 import Point from "@arcgis/core/geometry/Point.js";
 import Circle from "@arcgis/core/geometry/Circle.js";
+import Polygon from "@arcgis/core/geometry/Polygon.js";
+import type Geometry from "@arcgis/core/geometry/Geometry.js";
 import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol.js";
 import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D.js";
 import IconSymbol3DLayer from "@arcgis/core/symbols/IconSymbol3DLayer.js";
 import type { Alijo3DManager } from "../alijo3d/alijoScene";
 import { VISIT_LAYERS, type LegendItem } from "./layers";
+
+type Scope = "local" | "concelho" | "freguesias";
+type Rings = number[][][];
+type Histogram = { counts: number[]; total: number } | null;
+
+interface Parish {
+  id: string;
+  name: string;
+  short: string;
+  rings: Rings;
+}
 
 const MIN_R = 25;
 const MAX_R = 3000;
@@ -26,19 +40,21 @@ interface Row {
 const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0);
 const sum = (counts: number[], classes: number[]) => classes.reduce((s, c) => s + counts[c], 0);
 
-function mostCommon(counts: number[], words: string[]): string | null {
+/** Classe mais comum entre as zonas com dados; diz também quanto ficou sem dados (aldeias, rio). */
+function mostCommon(counts: number[], total: number, words: string[]): string | null {
   const inside = sum(counts, [1, 2, 3, 4, 5]);
-  if (!inside) return null;
+  if (!inside) return "Sem dados nesta área.";
   let best = 1;
   for (let c = 2; c <= 5; c++) if (counts[c] > counts[best]) best = c;
-  const high = pct(sum(counts, [4, 5]), inside);
-  return `Mais comum: ${best} · ${words[best - 1]} (${pct(counts[best], inside)} %). Alto ou muito alto: ${high} %.`;
+  const high = pct(sum(counts, [4, 5]), total);
+  const none = pct(total - inside, total);
+  return `Mais comum: ${best} · ${words[best - 1]}. Alto ou muito alto: ${high} % da área.${none >= 5 ? ` Sem dados: ${none} % (aldeias, rio).` : ""}`;
 }
 
 const RISK_WORDS = ["muito baixo", "baixo", "médio", "alto", "muito alto"];
 const ROWS: Row[] = [
-  { key: "risco_2025", title: "Risco de incêndio", area: (c) => mostCommon(c, RISK_WORDS) },
-  { key: "icnf_estrutural", title: "Perigo no mapa oficial (ICNF)", area: (c) => mostCommon(c, RISK_WORDS) },
+  { key: "risco_2025", title: "Risco de incêndio", area: (c, t) => mostCommon(c, t, RISK_WORDS) },
+  { key: "icnf_estrutural", title: "Perigo no mapa oficial (ICNF)", area: (c, t) => mostCommon(c, t, RISK_WORDS) },
   {
     key: "recorrencia_a11y",
     title: "Quantas vezes ardeu (1990–2025)",
@@ -71,8 +87,30 @@ function fmtM(m: number): string {
   return m >= 1000 ? `${(m / 1000).toLocaleString("pt-PT", { maximumFractionDigits: 1 })} km` : `${Math.round(m / 5) * 5} m`;
 }
 
+function fmtHa(ha: number): string {
+  const fields = Math.round(ha / HA_PER_FIELD);
+  const area = ha >= 1000 ? `${(ha / 100).toLocaleString("pt-PT", { maximumFractionDigits: 1 })} km²` : `${Math.round(ha).toLocaleString("pt-PT")} ha`;
+  return `${area}, o mesmo que ${fields.toLocaleString("pt-PT")} ${fields === 1 ? "campo" : "campos"} de futebol`;
+}
+
 function legendItemFor(legend: LegendItem[], cls: number): LegendItem | undefined {
   return legend.find((it) => it.classes.includes(cls));
+}
+
+/** Ponto dentro de um polígono com buracos (regra par-ímpar sobre todos os anéis). */
+function inRings(lon: number, lat: number, rings: Rings): boolean {
+  let inside = false;
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function esc(t: string): string {
+  return t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 }
 
 const $ = (id: string) => document.getElementById(id);
@@ -80,6 +118,7 @@ const $ = (id: string) => document.getElementById(id);
 export class Probe {
   active = false;
   private layer = new GraphicsLayer({ title: "Explorar", listMode: "hide" });
+  private scope: Scope = "local";
   /** raio escolhido nos botões (0 = ponto) */
   private chipRadius = 0;
   private sel: { lon: number; lat: number; r: number } | null = null;
@@ -87,6 +126,10 @@ export class Probe {
   private seq = 0;
   private uiRight = 16;
   private holdEndedAt = 0;
+  private concelho: Rings | null = null;
+  private parishes: Parish[] = [];
+  private picked = new Set<string>();
+  private boundaries: Promise<void> | null = null;
 
   constructor(
     private manager: Alijo3DManager,
@@ -116,10 +159,21 @@ export class Probe {
         if (this.sel) void this.select(this.sel.lon, this.sel.lat, this.chipRadius);
       }),
     );
+    document.querySelectorAll<HTMLButtonElement>("[data-probe-scope]").forEach((b) =>
+      b.addEventListener("click", () => void this.setScope(b.dataset.probeScope as Scope)),
+    );
+    $("probe-all")?.addEventListener("click", () => {
+      this.parishes.forEach((p) => this.picked.add(p.id));
+      void this.readParishes();
+    });
+    $("probe-none")?.addEventListener("click", () => {
+      this.picked.clear();
+      void this.readParishes();
+    });
 
     // carregar sem largar: começa um círculo nesse ponto
     view.on("hold", (e) => {
-      if (!this.active || !e.mapPoint) return;
+      if (!this.active || this.scope !== "local" || !e.mapPoint) return;
       e.stopPropagation();
       const r = Math.max(this.chipRadius, 100);
       this.holding = { lon: e.mapPoint.longitude ?? 0, lat: e.mapPoint.latitude ?? 0, r };
@@ -145,10 +199,16 @@ export class Probe {
     });
   }
 
-  /** Toque no mapa com o Explorar ligado: lê o ponto (ou o círculo do raio escolhido). */
+  /** Toque no mapa com o Explorar ligado. */
   handleClick(lon: number, lat: number): void {
     // o toque que termina um "carregar sem largar" não conta como ponto
     if (performance.now() - this.holdEndedAt < 500) return;
+    if (this.scope === "freguesias") {
+      void this.toggleParishAt(lon, lat);
+      return;
+    }
+    // no concelho todo, tocar num sítio volta a ler pontos
+    if (this.scope === "concelho") void this.setScope("local", false);
     void this.select(lon, lat, this.chipRadius);
   }
 
@@ -174,7 +234,7 @@ export class Probe {
     }
     if (on) {
       this.onToggle(true);
-      this.setHint("Toca num ponto do mapa. Para uma área, carrega sem largar e arrasta.");
+      void this.setScope(this.scope, false);
       $("probe-title")?.focus({ preventScroll: true });
     } else {
       this.seq++;
@@ -187,12 +247,140 @@ export class Probe {
     }
   }
 
+  // ------------------------------------------------------------------ escala: ponto/círculo, concelho, freguesias
+  private async setScope(scope: Scope, read = true): Promise<void> {
+    this.scope = scope;
+    this.holding = null;
+    document.querySelectorAll<HTMLButtonElement>("[data-probe-scope]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.probeScope === scope)));
+    const local = $("probe-local");
+    const parishes = $("probe-parishes");
+    if (local) local.hidden = scope !== "local";
+    if (parishes) parishes.hidden = scope !== "freguesias";
+    if (scope === "local") {
+      // volta à última leitura de ponto ou círculo (ou a nada)
+      this.seq++;
+      this.layer.removeAll();
+      if (this.sel && read) void this.select(this.sel.lon, this.sel.lat, this.sel.r);
+      else {
+        if (this.sel) this.drawSelection(this.sel.lon, this.sel.lat, this.sel.r);
+        const body = $("probe-body");
+        if (body && !this.sel) body.innerHTML = "";
+      }
+      this.setHint("Toca num ponto do mapa. Para uma área, carrega sem largar e arrasta.");
+      return;
+    }
+    try {
+      await this.loadBoundaries();
+    } catch {
+      this.setHint("Não foi possível ler os limites. Tenta outra vez.");
+      return;
+    }
+    if (this.scope !== scope) return;
+    if (scope === "concelho") await this.readConcelho();
+    else {
+      this.renderParishList();
+      await this.readParishes();
+    }
+  }
+
+  private loadBoundaries(): Promise<void> {
+    if (!this.boundaries) {
+      this.boundaries = (async () => {
+        const [c, f] = await Promise.all([
+          fetch("/data/alijo-concelho.geojson").then((r) => r.json()),
+          fetch("/data/alijo-freguesias.geojson").then((r) => r.json()),
+        ]);
+        const ringsOf = (g: any): Rings => (g.type === "MultiPolygon" ? g.coordinates.flat() : g.coordinates);
+        this.concelho = ringsOf(c.features[0].geometry);
+        this.parishes = f.features
+          .map((ft: any) => {
+            const name = String(ft.properties.nome_freguesia);
+            return { id: String(ft.properties.id_freguesia), name, short: name.replace(/^União das freguesias de /, ""), rings: ringsOf(ft.geometry) };
+          })
+          .sort((a: Parish, b: Parish) => a.short.localeCompare(b.short, "pt"));
+      })().catch((err) => {
+        this.boundaries = null;
+        throw err;
+      });
+    }
+    return this.boundaries;
+  }
+
+  private renderParishList(): void {
+    const list = $("probe-parish-list");
+    if (!list || list.childElementCount === this.parishes.length) {
+      this.syncParishList();
+      return;
+    }
+    list.innerHTML = this.parishes
+      .map((p) => `<button type="button" class="chip parish" data-parish="${p.id}" aria-pressed="false" title="${esc(p.name)}">${esc(p.short)}</button>`)
+      .join("");
+    list.querySelectorAll<HTMLButtonElement>("[data-parish]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const id = b.dataset.parish!;
+        if (this.picked.has(id)) this.picked.delete(id);
+        else this.picked.add(id);
+        void this.readParishes();
+      }),
+    );
+    this.syncParishList();
+  }
+
+  private syncParishList(): void {
+    document.querySelectorAll<HTMLButtonElement>("[data-parish]").forEach((b) => b.setAttribute("aria-pressed", String(this.picked.has(b.dataset.parish!))));
+  }
+
+  private async toggleParishAt(lon: number, lat: number): Promise<void> {
+    await this.loadBoundaries();
+    const p = this.parishes.find((x) => inRings(lon, lat, x.rings));
+    if (!p) {
+      this.setHint("Aqui não há freguesia do concelho de Alijó. Toca dentro do concelho.");
+      return;
+    }
+    if (this.picked.has(p.id)) this.picked.delete(p.id);
+    else this.picked.add(p.id);
+    await this.readParishes();
+  }
+
+  private async readConcelho(): Promise<void> {
+    const rings = this.concelho;
+    if (!rings) return;
+    const seq = ++this.seq;
+    this.drawPolygons([rings], 0.08);
+    this.setHint("A ler o concelho todo…");
+    const html = await this.regionHtml("Concelho de Alijó", "concelho", [rings]);
+    if (seq !== this.seq) return;
+    const body = $("probe-body");
+    if (body) body.innerHTML = html;
+    this.setHint("Para ler um ponto, toca no mapa.");
+  }
+
+  private async readParishes(): Promise<void> {
+    this.syncParishList();
+    const chosen = this.parishes.filter((p) => this.picked.has(p.id));
+    const seq = ++this.seq;
+    const body = $("probe-body");
+    this.drawPolygons(chosen.map((p) => p.rings), 0.18);
+    if (!chosen.length) {
+      if (body) body.innerHTML = "";
+      this.setHint("Toca numa freguesia no mapa, ou escolhe na lista. Podes juntar várias.");
+      return;
+    }
+    this.setHint(`A ler ${chosen.length === 1 ? "a freguesia" : `${chosen.length} freguesias`}…`);
+    const title = chosen.length === 1 ? chosen[0].name : chosen.length === this.parishes.length ? "Todas as freguesias" : `${chosen.length} freguesias`;
+    const key = `f:${chosen.map((p) => p.id).join(",")}`;
+    const html = await this.regionHtml(title, key, chosen.map((p) => p.rings), chosen.length > 1 && chosen.length < this.parishes.length ? chosen.map((p) => p.short) : null);
+    if (seq !== this.seq) return;
+    if (body) body.innerHTML = html;
+    this.setHint("Toca noutra freguesia para a juntar ou tirar.");
+  }
+
+  // ------------------------------------------------------------------ ponto e círculo
   private finishHold(): void {
     const h = this.holding;
     this.holding = null;
     if (!h) return;
     this.holdEndedAt = performance.now();
-    this.syncChips(-1);
     void this.select(h.lon, h.lat, h.r);
   }
 
@@ -224,6 +412,18 @@ export class Probe {
     );
   }
 
+  private drawPolygons(polys: Rings[], fill: number): void {
+    this.layer.removeAll();
+    for (const rings of polys) {
+      this.layer.add(
+        new Graphic({
+          geometry: new Polygon({ rings, spatialReference: { wkid: 4326 } }),
+          symbol: new SimpleFillSymbol({ color: [...PROBE_RGB, fill], outline: { color: [...PROBE_RGB, 1], width: 3 } }),
+        }),
+      );
+    }
+  }
+
   private async select(lon: number, lat: number, r: number): Promise<void> {
     if (!this.active) return;
     const seq = ++this.seq;
@@ -232,7 +432,7 @@ export class Probe {
     const body = $("probe-body");
     if (!body) return;
     this.setHint(r > 0 ? "A ler a área…" : "A ler o ponto…");
-    const html = r > 0 ? await this.areaHtml(lon, lat, r) : await this.pointHtml(lon, lat);
+    const html = r > 0 ? await this.circleHtml(lon, lat, r) : await this.pointHtml(lon, lat);
     if (seq !== this.seq) return;
     body.innerHTML = html;
     this.setHint(r > 0 ? "Carrega sem largar e arrasta para outro círculo, ou toca num ponto." : "Toca noutro ponto, ou carrega sem largar e arrasta para uma área.");
@@ -256,7 +456,9 @@ export class Probe {
   private async pointHtml(lon: number, lat: number): Promise<string> {
     const inside = await VISIT_LAYERS.risco_2025.grid.sample(lon, lat, 0);
     const alt = await this.altitude(lon, lat);
-    const head = `<p class="probe-head"><strong>Ponto</strong>${alt != null ? ` · ${alt} m de altitude` : ""}<br /><span>${this.coords(lon, lat)}</span></p>`;
+    await this.loadBoundaries().catch(() => undefined);
+    const parish = this.parishes.find((p) => inRings(lon, lat, p.rings));
+    const head = `<p class="probe-head"><strong>Ponto</strong>${alt != null ? ` · ${alt} m de altitude` : ""}<br /><span>${parish ? `${esc(parish.name)} · ` : ""}${this.coords(lon, lat)}</span></p>`;
     if (inside <= 0) return `${head}<p class="probe-out">Fora do concelho de Alijó: aqui não há dados.</p>`;
     const items: string[] = [];
     for (const row of ROWS) {
@@ -273,43 +475,65 @@ export class Probe {
     return `${head}<ul class="probe-list">${items.join("")}</ul>`;
   }
 
-  private async areaHtml(lon: number, lat: number, r: number): Promise<string> {
+  /** Uma linha por tema: barra empilhada com as cores da legenda e a mesma informação por palavras. */
+  private rowsHtml(hist: (key: string) => Promise<Histogram>): Promise<string> {
+    return (async () => {
+      const items: string[] = [];
+      for (const row of ROWS) {
+        const layer = VISIT_LAYERS[row.key];
+        if (!layer) continue;
+        const h = await hist(row.key);
+        if (!h || !h.total) continue;
+        const segs = layer.legend
+          .map((it) => ({ it, n: sum(h.counts, it.classes) }))
+          .filter((s) => s.n > 0)
+          .map((s) => `<i style="width:${((s.n / h.total) * 100).toFixed(1)}%;background:${s.it.color}" title="${s.it.label}: ${pct(s.n, h.total)} %"></i>`)
+          .join("");
+        const txt = row.area(h.counts, h.total) ?? "";
+        items.push(`<li class="area"><strong>${row.title}</strong><span class="probe-bar" aria-hidden="true">${segs}</span><span>${txt}</span></li>`);
+      }
+      return `<ul class="probe-list">${items.join("")}</ul>`;
+    })();
+  }
+
+  private housesHtml(n: number | null, where: string): string {
+    return n == null ? "" : `<p class="probe-houses"><strong>${n.toLocaleString("pt-PT")}</strong> ${n === 1 ? "casa ou edifício" : "casas e edifícios"} ${where}.</p>`;
+  }
+
+  private async circleHtml(lon: number, lat: number, r: number): Promise<string> {
     const ha = (Math.PI * r * r) / 10000;
-    const fields = Math.round(ha / HA_PER_FIELD);
-    const head = `<p class="probe-head"><strong>Círculo de ${fmtM(r)} de raio</strong><br /><span>${Math.round(ha).toLocaleString("pt-PT")} ha, o mesmo que ${fields.toLocaleString("pt-PT")} ${fields === 1 ? "campo" : "campos"} de futebol</span></p>`;
+    const head = `<p class="probe-head"><strong>Círculo de ${fmtM(r)} de raio</strong><br /><span>${fmtHa(ha)}</span></p>`;
     const risk = await VISIT_LAYERS.risco_2025.grid.histogram(lon, lat, r);
     const insideCells = risk ? sum(risk.counts, [1, 2, 3, 4, 5]) : 0;
     if (!risk || !insideCells) return `${head}<p class="probe-out">Fora do concelho de Alijó: aqui não há dados.</p>`;
     const share = pct(insideCells, risk.total);
-    const parts: string[] = [];
-    if (share < 98) parts.push(`<p class="hint">${share} % do círculo está dentro do concelho.</p>`);
-    const houses = await this.countHouses(lon, lat, r);
-    if (houses != null) parts.push(`<p class="probe-houses"><strong>${houses.toLocaleString("pt-PT")}</strong> ${houses === 1 ? "casa ou edifício" : "casas e edifícios"} dentro do círculo.</p>`);
-    const items: string[] = [];
-    for (const row of ROWS) {
-      const layer = VISIT_LAYERS[row.key];
-      if (!layer) continue;
-      const h = await layer.grid.histogram(lon, lat, r);
-      if (!h || !h.total) continue;
-      // barra empilhada com as cores da legenda (o texto ao lado diz o mesmo por palavras)
-      const segs = layer.legend
-        .map((it) => ({ it, n: sum(h.counts, it.classes) }))
-        .filter((s) => s.n > 0)
-        .map((s) => `<i style="width:${((s.n / h.total) * 100).toFixed(1)}%;background:${s.it.color}" title="${s.it.label}: ${pct(s.n, h.total)} %"></i>`)
-        .join("");
-      const txt = row.area(h.counts, h.total) ?? "";
-      items.push(`<li class="area"><strong>${row.title}</strong><span class="probe-bar" aria-hidden="true">${segs}</span><span>${txt}</span></li>`);
-    }
-    return `${head}${parts.join("")}<ul class="probe-list">${items.join("")}</ul>`;
+    const note = share < 98 ? `<p class="hint">${share} % do círculo está dentro do concelho.</p>` : "";
+    const circle = new Circle({ center: new Point({ longitude: lon, latitude: lat }), radius: r, radiusUnit: "meters", geodesic: true, numberOfPoints: 64 });
+    const houses = this.housesHtml(await this.countHouses(circle), "dentro do círculo");
+    const rows = await this.rowsHtml((key) => VISIT_LAYERS[key].grid.histogram(lon, lat, r));
+    return `${head}${note}${houses}${rows}`;
   }
 
-  private async countHouses(lon: number, lat: number, r: number): Promise<number | null> {
+  /** Concelho ou freguesias: as mesmas linhas, contadas dentro dos polígonos. */
+  private async regionHtml(title: string, key: string, polys: Rings[], names: string[] | null = null): Promise<string> {
+    const grid = VISIT_LAYERS.risco_2025.grid;
+    const risk = await grid.histogramPolygons(key, polys);
+    const lat = polys[0][0].reduce((s, p) => s + p[1], 0) / polys[0][0].length;
+    const ha = risk ? risk.total * grid.cellHa(lat) : 0;
+    const list = names ? `<br /><span>${names.map(esc).join(", ")}</span>` : "";
+    const head = `<p class="probe-head"><strong>${esc(title)}</strong><br /><span>${fmtHa(ha)}</span>${list}</p>`;
+    const geom = new Polygon({ rings: polys.flat(), spatialReference: { wkid: 4326 } });
+    const houses = this.housesHtml(await this.countHouses(geom), "na área escolhida");
+    const rows = await this.rowsHtml((k) => VISIT_LAYERS[k].grid.histogramPolygons(key, polys));
+    return `${head}${houses}${rows}`;
+  }
+
+  private async countHouses(geometry: Geometry): Promise<number | null> {
     const layer = this.manager.sanfinsBuildingsLayer;
     if (!layer) return null;
     try {
       await layer.load();
-      const circle = new Circle({ center: new Point({ longitude: lon, latitude: lat }), radius: r, radiusUnit: "meters", geodesic: true, numberOfPoints: 64 });
-      return await layer.queryFeatureCount({ geometry: circle, spatialRelationship: "intersects" });
+      return await layer.queryFeatureCount({ geometry, spatialRelationship: "intersects" });
     } catch {
       return null;
     }

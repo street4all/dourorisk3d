@@ -471,7 +471,7 @@
             <li>Afasta ou junta dois dedos para aproximar ou afastar.</li>
             <li>Com o rato: botão direito e arrastar para rodar.</li>
             <li>Teclas 1 a 5 abrem os passos. A tecla Esc fecha a janela.</li>
-            <li><strong>Explorar</strong> (botão com a mira, em cima): toca num ponto para ver os dados dele. Para uma área, carrega sem largar e arrasta: o círculo cresce com o dedo.</li>
+            <li><strong>Explorar</strong> (botão com a mira, em cima): toca num ponto para ver os dados dele. Para uma área, carrega sem largar e arrasta: o círculo cresce com o dedo. Também dá os dados do concelho todo ou de uma ou várias freguesias.</li>
           </ul>
         </div>
         <div>
@@ -510,15 +510,31 @@
         <h2 id="probe-title" tabindex="-1">Explorar o mapa</h2>
         <button type="button" class="pop-close" id="probe-close" aria-label="Fechar o Explorar">×</button>
       </header>
-      <p class="probe-hint" id="probe-hint" role="status" aria-live="polite"></p>
-      <div class="probe-modes" role="group" aria-label="Tamanho a ler">
-        <button type="button" class="chip" data-probe-r="0" aria-pressed="true">Ponto</button>
-        <button type="button" class="chip" data-probe-r="100" aria-pressed="false">100 m</button>
-        <button type="button" class="chip" data-probe-r="250" aria-pressed="false">250 m</button>
-        <button type="button" class="chip" data-probe-r="500" aria-pressed="false">500 m</button>
-        <button type="button" class="chip" data-probe-r="1000" aria-pressed="false">1 km</button>
+      <div class="probe-scope" role="group" aria-label="O que ler">
+        <button type="button" data-probe-scope="local" aria-pressed="true">Ponto ou círculo</button>
+        <button type="button" data-probe-scope="freguesias" aria-pressed="false">Freguesias</button>
+        <button type="button" data-probe-scope="concelho" aria-pressed="false">Concelho</button>
       </div>
-      <button type="button" class="big-btn wide" id="probe-center">Ler o centro do mapa</button>
+      <p class="probe-hint" id="probe-hint" role="status" aria-live="polite"></p>
+      <div class="probe-local" id="probe-local">
+        <p class="probe-label" id="probe-modes-label">Ao tocar, ler:</p>
+        <div class="probe-modes" role="group" aria-labelledby="probe-modes-label">
+          <button type="button" class="chip" data-probe-r="0" aria-pressed="true">Ponto</button>
+          <button type="button" class="chip" data-probe-r="100" aria-pressed="false">100 m</button>
+          <button type="button" class="chip" data-probe-r="250" aria-pressed="false">250 m</button>
+          <button type="button" class="chip" data-probe-r="500" aria-pressed="false">500 m</button>
+          <button type="button" class="chip" data-probe-r="1000" aria-pressed="false">1 km</button>
+        </div>
+        <button type="button" class="big-btn wide" id="probe-center">Ler o centro do mapa</button>
+      </div>
+      <div class="probe-parishes" id="probe-parishes" hidden>
+        <p class="probe-label" id="probe-parish-label">Freguesias (escolhe uma ou várias):</p>
+        <div class="probe-parish-list" id="probe-parish-list" role="group" aria-labelledby="probe-parish-label"></div>
+        <div class="row-btns two">
+          <button type="button" class="big-btn" id="probe-all">Todas</button>
+          <button type="button" class="big-btn" id="probe-none">Nenhuma</button>
+        </div>
+      </div>
       <div class="probe-body" id="probe-body" aria-live="polite"></div>
     </aside>
 
