@@ -17,6 +17,7 @@ import { CanvasOverlay } from "./overlay";
 import { COUNT_COLORS, cuesAt, renderCueCount } from "./cues";
 import { loadStack } from "./stack";
 import { Probe } from "./probe";
+import { MapsPanel, loadImage } from "./maps";
 import { HA_PER_CELL, HA_PER_FIELD, renderSpread, simulateSpread, type SpreadResult } from "./spread";
 
 type PopName = "olha" | "escolhe" | "guarda" | "compara" | "protege" | "mais" | "ajuda";
@@ -142,11 +143,15 @@ export class VisitMode {
 
   // Explorar: ponto ou círculo, a qualquer momento
   private probe: Probe;
+  // Mapas de risco: escolher, ver e comparar
+  private maps: MapsPanel | null = null;
 
   constructor(private manager: Alijo3DManager) {
     // em ecrãs estreitos o cartão do Explorar e a janela do passo não cabem os dois
     this.probe = new Probe(manager, (on) => {
-      if (on && !matchMedia("(min-width: 900px)").matches) this.close();
+      if (!on) return;
+      this.maps?.setOpen(false); // os dois cartões ocupam o mesmo lugar
+      if (!matchMedia("(min-width: 900px)").matches) this.close();
     });
   }
 
@@ -175,6 +180,20 @@ export class VisitMode {
       view.on("click", (e) => void this.onMapClick(e).catch(() => this.say("Não foi possível ler o mapa. Toca outra vez.")));
       this.wireDrag();
       this.probe.init();
+      this.maps = new MapsPanel(map, {
+        current: () => this.visibleKey,
+        show: (key, opacity) => this.setVisibleLayer(key, opacity),
+        opened: () => {
+          this.probe.setActive(false);
+          if (!matchMedia("(min-width: 900px)").matches) this.close();
+        },
+        imageChanged: (key) => {
+          if (key === BURNED) this.burnedFull = null;
+          // a camada à vista num passo também passa a usar a imagem nova
+          if (key === this.visibleKey && !this.maps?.open) this.manager.setDouroRiskModel(key);
+        },
+      });
+      this.maps.init();
     }
     if (reduceMotion()) {
       this.manager.setWindVisible(false);
@@ -245,6 +264,10 @@ export class VisitMode {
         this.probe.setActive(false);
         return;
       }
+      if (e.key === "Escape" && this.maps?.open) {
+        this.maps.setOpen(false);
+        return;
+      }
       // atalhos 1 a 5: só com o foco na barra dos passos ou fora de qualquer controlo
       const a = document.activeElement as HTMLElement | null;
       const onDock = !!a?.closest?.(".dock");
@@ -257,7 +280,10 @@ export class VisitMode {
 
   open(name: PopName, opener?: HTMLElement): void {
     if (this.current && this.current !== name) this.hide(this.current);
-    if (this.probe.active && !matchMedia("(min-width: 900px)").matches) this.probe.setActive(false);
+    if (!matchMedia("(min-width: 900px)").matches) {
+      this.probe.setActive(false);
+      this.maps?.setOpen(false);
+    }
     const pop = $(`pop-${name}`);
     if (!pop) return;
     pop.hidden = false;
@@ -378,6 +404,7 @@ export class VisitMode {
     if (sel && key) sel.value = key;
     if (tog) tog.checked = !!key;
     renderLegend($("dourorisk-stats-items"), key || sel?.value || RISK);
+    this.maps?.external(key);
     // sem janela aberta, a cor no mapa nunca fica sem legenda
     if (this.mapLegend) {
       const cues = !key && this.cueKeys.size > 0 && !!this.cueOverlay?.visible;
@@ -860,9 +887,7 @@ export class VisitMode {
 
   private async loadBurnedImage(): Promise<ImageData> {
     if (this.burnedFull) return this.burnedFull;
-    const img = new Image();
-    img.src = DOURORISK_MODELS[BURNED].image;
-    await img.decode();
+    const img = await loadImage(DOURORISK_MODELS[BURNED].image);
     const c = document.createElement("canvas");
     c.width = img.naturalWidth;
     c.height = img.naturalHeight;
@@ -1343,6 +1368,7 @@ export class VisitMode {
   private resetVisit(): void {
     this.close();
     this.probe.setActive(false);
+    this.maps?.setOpen(false);
     this.resetGuess();
     this.visited.clear();
     this.clearCues();

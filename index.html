@@ -23,10 +23,19 @@
       <p>Onde pode arder? · BVSD · Alijó</p>
     </header>
 
+    <!-- Entidades financiadoras: sempre à vista no ecrã principal -->
+    <aside class="hud hud-apoio" aria-label="Com o apoio de">
+      <span>Com o apoio de</span>
+      <img src="/images/logos/logo_fct_bpi_lacaixa.png" alt="Fundação para a Ciência e a Tecnologia, BPI e Fundação la Caixa" />
+    </aside>
+
     <!-- Opções de leitura -->
     <div class="hud hud-tools" role="group" aria-label="Ferramentas e opções de leitura">
       <button type="button" class="tool-btn tool-probe" id="btn-probe" aria-pressed="false" aria-controls="probe-card" title="Explorar: dados de um ponto ou de uma área" aria-label="Explorar: dados de um ponto ou de uma área">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+      </button>
+      <button type="button" class="tool-btn tool-maps" id="btn-maps" aria-pressed="false" aria-controls="maps-card" title="Mapas de risco" aria-label="Mapas de risco">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5z"/><path d="m2 12 10 5 10-5"/><path d="m2 16 10 5 10-5"/></svg>
       </button>
       <button type="button" class="tool-btn" id="btn-font" title="Letra maior" aria-label="Letra maior">
         <span aria-hidden="true">A<sup>+</sup></span>
@@ -335,6 +344,10 @@
           <img src="/images/logos/logo_ahbv_brasao.png" alt="" />
           <p><strong>Vida por Vida</strong><br />Bombeiros Voluntários de Sanfins do Douro</p>
         </div>
+        <div class="apoio">
+          <p>Com o apoio de</p>
+          <img src="/images/logos/logo_fct_bpi_lacaixa.png" alt="Fundação para a Ciência e a Tecnologia, BPI e Fundação la Caixa" />
+        </div>
       </div>
     </section>
 
@@ -472,6 +485,7 @@
             <li>Com o rato: botão direito e arrastar para rodar.</li>
             <li>Teclas 1 a 5 abrem os passos. A tecla Esc fecha a janela.</li>
             <li><strong>Explorar</strong> (botão com a mira, em cima): toca num ponto para ver os dados dele. Para uma área, carrega sem largar e arrasta: o círculo cresce com o dedo. Também dá os dados do concelho todo ou de uma ou várias freguesias.</li>
+            <li><strong>Mapas</strong> (botão com as camadas, em cima): escolhe o mapa de risco a ver e a força da cor, e compara dois mapas com uma cortina.</li>
           </ul>
         </div>
         <div>
@@ -486,6 +500,7 @@
           <div class="partners">
             <img class="logo-selo" src="/images/logos/logo_ahbv_selo.png" alt="Associação Humanitária dos Bombeiros Voluntários de Sanfins do Douro" />
             <img class="logo-utad" src="/images/logos/logo_utad.png" alt="UTAD, Universidade de Trás-os-Montes e Alto Douro" />
+            <p class="partners-label">Com o apoio de</p>
             <img class="logo-strip" src="/images/logos/logo_fct_bpi_lacaixa.png" alt="Fundação para a Ciência e a Tecnologia, BPI e Fundação la Caixa" />
           </div>
         </div>
@@ -536,6 +551,36 @@
         </div>
       </div>
       <div class="probe-body" id="probe-body" aria-live="polite"></div>
+    </aside>
+
+    <!-- Mapas de risco: escolher, ver e comparar -->
+    <aside class="hud probe-card maps-card" id="maps-card" aria-labelledby="maps-title" hidden>
+      <header class="probe-top">
+        <svg class="probe-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5z"/><path d="m2 12 10 5 10-5"/><path d="m2 16 10 5 10-5"/></svg>
+        <h2 id="maps-title" tabindex="-1">Mapas de risco</h2>
+        <button type="button" class="pop-close" id="maps-close" aria-label="Fechar os mapas">×</button>
+      </header>
+      <p class="probe-hint" id="maps-about" role="status" aria-live="polite"></p>
+      <div class="legend" id="maps-legend"></div>
+      <label class="check-row"><input type="checkbox" id="maps-clip" checked /> Mostrar só o concelho de Alijó</label>
+      <label class="curtain">Força da cor: <span id="maps-opacity-label">80 %</span>
+        <input type="range" id="maps-opacity" min="10" max="100" step="5" value="80" />
+      </label>
+      <p class="probe-label" id="maps-risco-label">Risco e perigo</p>
+      <div class="map-grid" id="maps-risco" role="group" aria-labelledby="maps-risco-label"></div>
+      <p class="probe-label" id="maps-pistas-label">O que ajuda o fogo</p>
+      <div class="map-grid" id="maps-pistas" role="group" aria-labelledby="maps-pistas-label"></div>
+      <button type="button" class="big-btn wide" id="maps-none">Sem mapa (só a paisagem)</button>
+      <label class="curtain">Comparar com outro mapa
+        <select id="maps-compare" class="maps-select"></select>
+      </label>
+      <div id="maps-curtain-box" hidden>
+        <p class="probe-hint" id="maps-curtain-label"></p>
+        <label class="curtain">Mexe a cortina
+          <input type="range" id="maps-curtain" min="0" max="100" step="1" value="50" />
+        </label>
+        <div class="legend" id="maps-legend-b"></div>
+      </div>
     </aside>
 
     <!-- termómetro da ficha (ao arrastar ou pôr) -->

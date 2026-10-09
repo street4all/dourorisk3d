@@ -1643,3 +1643,140 @@ body.probing #alijo-scene-container {
     order: 2;
   }
 }
+
+/* entidades financiadoras: faixa branca (os logótipos precisam de fundo claro) */
+.hud-apoio {
+  left: 16px;
+  bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: #fff;
+  color: #1c1c1c;
+  font-size: 0.8em;
+  font-weight: 700;
+  pointer-events: none;
+}
+.hud-apoio img {
+  height: 30px;
+  width: auto;
+}
+/* só onde há espaço ao lado da barra dos passos; nos outros ecrãs aparece na Ajuda e no passo 5 */
+@media (max-width: 1279px), (max-height: 620px) {
+  .hud-apoio {
+    display: none;
+  }
+}
+/* com uma legenda sobre o mapa, a legenda fica por cima da faixa */
+.apoio {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #fff;
+  color: #1c1c1c;
+}
+.apoio p {
+  margin: 0 0 6px !important;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+.apoio img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.partners-label {
+  flex-basis: 100%;
+  margin: 6px 0 -6px !important;
+  color: #1c1c1c;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+
+/* Mapas de risco: cartões com miniatura */
+.tool-maps svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+}
+.tool-maps[aria-pressed="true"] {
+  background: #fe9900;
+  color: #121417;
+}
+.maps-card {
+  border-color: #fe9900;
+}
+.maps-card .probe-ico {
+  color: #fe9900;
+}
+.maps-card .probe-label {
+  margin-top: 12px;
+}
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+}
+.map-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px 8px;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: var(--soft);
+  color: var(--fg);
+  font: 700 0.82em/1.15 var(--font);
+  text-align: center;
+  cursor: pointer;
+}
+.map-card img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+.map-card[aria-pressed="true"] {
+  border: 4px solid #fe9900;
+  background: color-mix(in srgb, #fe9900 25%, transparent);
+}
+.maps-select {
+  min-height: 46px;
+  padding: 0 10px;
+  border-radius: 12px;
+  border: 2px solid var(--fg-2);
+  background: var(--hud-solid);
+  color: var(--fg);
+  font: 700 1em var(--font);
+}
+
+/* caixa "só o concelho" */
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.check-row input {
+  width: 24px;
+  height: 24px;
+  accent-color: #fe9900;
+  flex: none;
+}
+.maps-card .legend {
+  margin-top: 8px;
+}
+/* em ecrãs estreitos o painel dos Mapas também esconde a regra 30-30-30 */
+@media (max-width: 899px) {
+  body.maps-open .hud-30 {
+    display: none;
+  }
+}

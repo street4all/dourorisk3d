@@ -50,6 +50,11 @@ export class CanvasOverlay {
       });
   }
 
+  /** Muda a extensão das próximas imagens (para mapas com extensões diferentes na mesma camada). */
+  setExtent(extent: Extent4326): void {
+    this.extent = extent;
+  }
+
   /** Há uma imagem a preparar? (as animações esperam por ela antes de mandar a seguinte) */
   get busy(): boolean {
     return this.seq !== this.shown;
