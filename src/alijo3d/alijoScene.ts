@@ -127,7 +127,7 @@ export class Alijo3DManager {
     elevationMode: "relative-to-ground",
     elevationOffset: 1400,
     showBuildings: true,
-    showTrees: true,
+    showTrees: false,
     solarHour: 17.33, // 17:20 golden hour
     heading: 42,
     tilt: 64,
@@ -425,77 +425,7 @@ export class Alijo3DManager {
       },
     });
 
-    // 8. 3D Vegetation Layer (Oliveiras Centenárias e Ciprestes Monumentais)
-    const cypressSymbol = new PointSymbol3D({
-      symbolLayers: [
-        new ObjectSymbol3DLayer({
-          resource: { primitive: "cone" },
-          height: 10,
-          width: 2.2,
-          depth: 2.2,
-          material: { color: [30, 65, 34, 0.95] },
-        }),
-      ],
-    });
-
-    const oliveSymbol = new PointSymbol3D({
-      symbolLayers: [
-        new ObjectSymbol3DLayer({
-          resource: { primitive: "cylinder" },
-          height: 2.2,
-          width: 0.7,
-          depth: 0.7,
-          anchor: "bottom",
-          material: { color: [90, 65, 48, 1.0] },
-        }),
-        new ObjectSymbol3DLayer({
-          resource: { primitive: "sphere" },
-          height: 4.8,
-          width: 5.2,
-          depth: 5.2,
-          anchor: "center",
-          material: { color: [76, 116, 60, 0.95] },
-        }),
-      ],
-    });
-
-    const treesRenderer = new UniqueValueRenderer({
-      field: "style",
-      defaultSymbol: oliveSymbol,
-      uniqueValueInfos: [
-        {
-          value: "cypress",
-          symbol: cypressSymbol,
-          label: "Cipreste Monumental (Alameda do Santuário)",
-        },
-        {
-          value: "olive",
-          symbol: oliveSymbol,
-          label: "Oliveira Centenária Duriense (Olea europaea)",
-        },
-      ],
-    });
-
-    this.sanfinsTreesLayer = new GeoJSONLayer({
-      url: "/data/sanfins-trees.geojson",
-      title: "Vegetação Duriense 3D (Sanfins do Douro)",
-      renderer: treesRenderer,
-      elevationInfo: {
-        mode: "on-the-ground",
-      },
-      popupTemplate: {
-        title: "🌿 {type}",
-        content: `
-          <div style="font-size: 13px; line-height: 1.5;">
-            <p><strong>Espécie Botânica:</strong> <em>{species}</em></p>
-            <p><strong>Porte Estimado:</strong> {height} m de altura</p>
-            <p style="font-size: 11px; color: #888;">Elemento vegetal característico da paisagem duriense de Sanfins do Douro.</p>
-          </div>
-        `,
-      },
-    });
-
-    // 9. Dedicated Monument Layer for the 3D Architectural Church Model
+    // 8. Dedicated Monument Layer for the 3D Architectural Church Model
     this.churchLayer = new GraphicsLayer({
       title: "Património & Monumentos 3D (Sanfins do Douro)",
       elevationInfo: {
@@ -531,7 +461,6 @@ export class Alijo3DManager {
     map.add(this.douroRiskLayer);
     map.add(this.sanfinsBuildingsLayer);
     map.add(this.sanfinsRoofsLayer);
-    map.add(this.sanfinsTreesLayer);
     map.add(this.windLayer);
     map.add(this.stationLayer);
     map.add(this.churchLayer);

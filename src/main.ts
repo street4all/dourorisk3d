@@ -247,15 +247,10 @@ function setup3DControls(manager: Alijo3DManager) {
     manager.setConcelhoVisible(concelhoToggle.checked);
   });
 
-  // 3D Buildings & Trees Toggles
+  // 3D Buildings Toggle
   const buildingsToggle = document.getElementById("buildings-toggle") as any;
   buildingsToggle?.addEventListener("calciteSwitchChange", () => {
     manager.setSanfinsBuildingsVisible(buildingsToggle.checked);
-  });
-
-  const treesToggle = document.getElementById("trees-toggle") as any;
-  treesToggle?.addEventListener("calciteSwitchChange", () => {
-    manager.setSanfinsTreesVisible(treesToggle.checked);
   });
 
   // Solar Time & Cast Shadows Slider
