@@ -44,11 +44,11 @@ function riskLayer(key: string, title: string, noun: string, image: string, clas
   return {
     key,
     title,
-    question: `${noun[0].toUpperCase()}${noun.slice(1)} de fogo, de 1 a 5`,
+    question: `${noun[0].toUpperCase()}${noun.slice(1)} de incêndio, de 1 a 5`,
     legend: riskLegend(),
     grid: new ClassGrid(classes, extent),
     empty: "Aqui não há dados.",
-    describe: (c) => `Aqui o ${noun} de fogo é ${c}: ${RISK_WORDS[c - 1]}.`,
+    describe: (c) => `Aqui o ${noun} de incêndio é ${c}: ${RISK_WORDS[c - 1]}.`,
   };
 }
 
@@ -57,8 +57,8 @@ export const VISIT_LAYERS: Record<string, VisitLayer> = {};
 /** Substitui as imagens DouroRisk pelas versões acessíveis e junta as camadas novas. Chamar antes de inicializar a cena. */
 export function applyAccessibleLayers(): void {
   const add = (l: VisitLayer) => (VISIT_LAYERS[l.key] = l);
-  add(riskLayer("risco_2025", "Risco de fogo (tese, 2025)", "risco", `${A11Y}/risco_2025.png`, `${A11Y}/risco_2025_classes.png`, EXT_10M_RISCO));
-  add(riskLayer("perigosidade_2025", "Perigo de fogo (tese, 2025)", "perigo", `${A11Y}/perigosidade_2025.png`, `${A11Y}/perigosidade_2025_classes.png`, EXT_10M_PERIG));
+  add(riskLayer("risco_2025", "Risco de incêndio (tese, 2025)", "risco", `${A11Y}/risco_2025.png`, `${A11Y}/risco_2025_classes.png`, EXT_10M_RISCO));
+  add(riskLayer("perigosidade_2025", "Perigo de incêndio (tese, 2025)", "perigo", `${A11Y}/perigosidade_2025.png`, `${A11Y}/perigosidade_2025_classes.png`, EXT_10M_PERIG));
   add(riskLayer("icnf_conjuntural", "Perigo oficial ICNF (2025)", "perigo", `${A11Y}/icnf_conjuntural.png`, `${A11Y}/icnf_conjuntural_classes.png`, EXT_25M));
   add(riskLayer("icnf_estrutural", "Perigo oficial ICNF (2020–2030)", "perigo", `${A11Y}/icnf_estrutural.png`, `${A11Y}/icnf_estrutural_classes.png`, EXT_25M));
 

@@ -117,12 +117,12 @@
     <section class="pop" id="pop-escolhe" data-station="2" role="dialog" aria-modal="false" aria-labelledby="pop-escolhe-q" hidden>
       <header class="pop-head">
         <div class="pop-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><polygon points="24,3 46,42 2,42"/><text x="24" y="37">2</text></svg><span>Escolhe</span></div>
-        <h2 id="pop-escolhe-q" class="pop-q">Onde achas que o fogo pode chegar?</h2>
+        <h2 id="pop-escolhe-q" class="pop-q">Onde achas que o incêndio pode chegar/propagar?</h2>
         <button type="button" class="pop-close" aria-label="Fechar">×</button>
       </header>
       <div class="pop-body">
         <p class="pop-status" role="status" aria-live="polite"></p>
-        <p class="lead">Toca no mapa para pôr 3 fichas onde achas que o fogo pode chegar.</p>
+        <p class="lead">Toca no mapa para pôr 3 fichas onde achas que o incêndio pode chegar/propagar.</p>
         <div class="tokens" aria-live="polite">
           <div class="token-slots" id="token-slots" aria-hidden="true"></div>
           <p id="token-count">Fichas no mapa: 0 de 3</p>
@@ -263,7 +263,7 @@
         <p class="pop-status" role="status" aria-live="polite"></p>
         <p class="lead">Escolhe uma ação para proteger as casas, as pessoas e o monte.</p>
         <button type="button" class="big-btn primary wide" id="btn-see-sanfins">Ver Sanfins de perto</button>
-        <p class="hint">Toca no mapa para saber o risco de fogo nesse sítio.</p>
+        <p class="hint">Toca no mapa para saber o risco de incêndio nesse sítio.</p>
         <p class="answer" id="risk-point" role="status" aria-live="polite"></p>
         <button type="button" class="big-btn" id="btn-read-risk">Ler o centro do mapa</button>
         <div class="legend" id="risk-legend"></div>
@@ -307,8 +307,8 @@
           <calcite-label layout="inline" scale="l"><calcite-switch id="dourorisk-toggle" scale="l"></calcite-switch>Mostrar camada</calcite-label>
           <calcite-label scale="l">Camada
             <calcite-select id="dourorisk-model-select" label="Camada de perigo" scale="l">
-              <calcite-option value="risco_2025" selected>Risco de fogo (tese, 2025)</calcite-option>
-              <calcite-option value="perigosidade_2025">Perigo de fogo (tese, 2025)</calcite-option>
+              <calcite-option value="risco_2025" selected>Risco de incêndio (tese, 2025)</calcite-option>
+              <calcite-option value="perigosidade_2025">Perigo de incêndio (tese, 2025)</calcite-option>
               <calcite-option value="icnf_conjuntural">Perigo oficial ICNF (2025)</calcite-option>
               <calcite-option value="icnf_estrutural">Perigo oficial ICNF (2020–2030)</calcite-option>
               <calcite-option value="recorrencia_a11y">Quantas vezes ardeu (1990–2025)</calcite-option>

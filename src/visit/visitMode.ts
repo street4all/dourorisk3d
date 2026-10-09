@@ -642,7 +642,7 @@ export class VisitMode {
     if (list) {
       list.innerHTML =
         rules.map((r) => `<li class="${r.has && r.on ? "on" : ""}"><span class="mark" aria-hidden="true">${r.has && r.on ? "!" : "–"}</span>${r.text}</li>`).join("") +
-        `<li class="sum">${missing ? "Faltam dados para saber se hoje cumpre a regra 30-30-30." : all ? "Hoje cumpre a regra 30-30-30: é um dia muito perigoso para o fogo." : "Hoje não cumpre a regra 30-30-30."}</li>`;
+        `<li class="sum">${missing ? "Faltam dados para saber se hoje cumpre a regra 30-30-30." : all ? "Hoje cumpre a regra 30-30-30: é um dia muito perigoso para incêndios." : "Hoje não cumpre a regra 30-30-30."}</li>`;
     }
   }
 
@@ -655,7 +655,7 @@ export class VisitMode {
       const bt = $("buildings-toggle") as any;
       if (bt) bt.checked = true;
       this.setVisibleLayer(RISK, 0.7);
-      this.text($("risk-point"), "Toca no mapa para saber o risco de fogo nesse sítio.");
+      this.text($("risk-point"), "Toca no mapa para saber o risco de incêndio nesse sítio.");
     });
     $("btn-read-risk")?.addEventListener("click", () => void this.readCenter("protege"));
     document.querySelectorAll<HTMLButtonElement>(".regrow .chip").forEach((b) =>
