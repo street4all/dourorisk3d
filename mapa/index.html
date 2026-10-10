@@ -119,6 +119,7 @@
         <div class="switch-list">
           <calcite-label layout="inline" scale="l"><calcite-switch id="buildings-toggle" checked scale="l"></calcite-switch>Casas em 3D</calcite-label>
           <calcite-label layout="inline" scale="l"><calcite-switch id="parishes-toggle" checked scale="l"></calcite-switch>Nomes das terras</calcite-label>
+          <calcite-label layout="inline" scale="l"><calcite-switch id="roads-toggle" checked scale="l"></calcite-switch>Rede de estradas e acessos</calcite-label>
         </div>
         <button type="button" class="big-btn wide" id="btn-toggle-orbit" aria-pressed="false"><span aria-hidden="true">↻ </span>Dar a volta</button>
         <button type="button" class="big-btn primary wide next-btn" data-goto="escolhe">Seguinte: 2 · Escolhe</button>
@@ -388,7 +389,7 @@
           <h3>Mapa</h3>
           <div class="switch-list">
             <calcite-label layout="inline" scale="l"><calcite-switch id="concelho-toggle" checked scale="l"></calcite-switch>Limite do concelho</calcite-label>
-            <calcite-label layout="inline" scale="l"><calcite-switch id="roads-toggle" checked scale="l"></calcite-switch>Rede de estradas e acessos</calcite-label>
+            <calcite-label layout="inline" scale="l"><calcite-switch id="roads-toggle-mais" checked scale="l"></calcite-switch>Rede de estradas e acessos</calcite-label>
           </div>
           <div class="row-btns">
             <button type="button" class="big-btn" id="header-preset-igreja">Igreja Matriz</button>
@@ -574,7 +575,10 @@
       </header>
       <p class="probe-hint" id="maps-about" role="status" aria-live="polite"></p>
       <div class="legend" id="maps-legend"></div>
-      <label class="check-row"><input type="checkbox" id="maps-clip" checked /> Mostrar só o concelho de Alijó</label>
+      <div style="display: flex; flex-direction: column; gap: 6px; margin: 8px 0;">
+        <label class="check-row"><input type="checkbox" id="maps-clip" checked /> Mostrar só o concelho de Alijó</label>
+        <label class="check-row"><input type="checkbox" id="maps-roads" checked /> Rede de estradas e acessos</label>
+      </div>
       <label class="curtain">Força da cor: <span id="maps-opacity-label">80 %</span>
         <input type="range" id="maps-opacity" min="10" max="100" step="5" value="80" />
       </label>

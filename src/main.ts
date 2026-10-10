@@ -252,9 +252,19 @@ function setup3DControls(manager: Alijo3DManager) {
   });
 
   const roadsToggle = document.getElementById("roads-toggle") as any;
-  roadsToggle?.addEventListener("calciteSwitchChange", () => {
-    manager.setRoadsVisible(roadsToggle.checked);
-  });
+  const roadsToggleMais = document.getElementById("roads-toggle-mais") as any;
+  const mapsRoads = document.getElementById("maps-roads") as HTMLInputElement | null;
+
+  const updateRoads = (visible: boolean) => {
+    manager.setRoadsVisible(visible);
+    if (roadsToggle && roadsToggle.checked !== visible) roadsToggle.checked = visible;
+    if (roadsToggleMais && roadsToggleMais.checked !== visible) roadsToggleMais.checked = visible;
+    if (mapsRoads && mapsRoads.checked !== visible) mapsRoads.checked = visible;
+  };
+
+  roadsToggle?.addEventListener("calciteSwitchChange", () => updateRoads(roadsToggle.checked));
+  roadsToggleMais?.addEventListener("calciteSwitchChange", () => updateRoads(roadsToggleMais.checked));
+  mapsRoads?.addEventListener("change", () => updateRoads(mapsRoads.checked));
 
   // 3D Buildings Toggle
   const buildingsToggle = document.getElementById("buildings-toggle") as any;

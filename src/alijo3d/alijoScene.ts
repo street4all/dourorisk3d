@@ -293,6 +293,7 @@ export class Alijo3DManager {
     this.alijoRoadsLayer = new GeoJSONLayer({
       url: "/data/alijo-estradas.geojson",
       title: "Rede Viária e Caminhos de Alijó",
+      outFields: ["*"],
       elevationInfo: {
         mode: "on-the-ground",
       },
@@ -646,6 +647,52 @@ export class Alijo3DManager {
         }
       }
     );
+
+    // 10b. Interação ao clicar em estradas e monumentos na cena 3D
+    this.view.on("click", async (event) => {
+      if (!this.view) return;
+
+      const layersToHit: any[] = [];
+      if (this.alijoRoadsLayer && this.alijoRoadsLayer.visible) layersToHit.push(this.alijoRoadsLayer);
+      if (this.churchLayer && this.churchLayer.visible) layersToHit.push(this.churchLayer);
+      if (this.stationLayer && this.stationLayer.visible) layersToHit.push(this.stationLayer);
+
+      try {
+        if (layersToHit.length > 0) {
+          const response = await this.view.hitTest(event, { include: layersToHit });
+          const hitGraphic = response.results.find((r) => r.type === "graphic")?.graphic;
+
+          if (hitGraphic && hitGraphic.popupTemplate) {
+            this.view.openPopup({
+              location: event.mapPoint,
+              features: [hitGraphic],
+            });
+            return;
+          }
+        }
+
+        // Se o clique foi numa estrada (linhas 3D podem falhar hitTest direto por escassos píxeis):
+        // Procurar via espacial num raio de 40 metros do ponto clicado
+        if (this.alijoRoadsLayer && this.alijoRoadsLayer.visible && event.mapPoint) {
+          const q = this.alijoRoadsLayer.createQuery();
+          q.geometry = event.mapPoint;
+          q.distance = 40;
+          q.units = "meters";
+          q.returnGeometry = true;
+          q.outFields = ["*"];
+          const roadResults = await this.alijoRoadsLayer.queryFeatures(q);
+
+          if (roadResults.features && roadResults.features.length > 0) {
+            this.view.openPopup({
+              location: event.mapPoint,
+              features: [roadResults.features[0]],
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("Erro ao identificar elemento no clique:", err);
+      }
+    });
 
     // 11. Apply initial Weather
     this.applyWeather();
