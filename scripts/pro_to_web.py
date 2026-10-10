@@ -7,15 +7,25 @@ nunca cores de PNG antigos, e escreve:
   a) public/data/dourorisk/a11y/*_classes.png   grelhas de classes (PNG L, valor = classe, 0 = sem dados)
   b) public/data/dourorisk/a11y/*.png            imagens de visualização (RGBA) pintadas a partir das classes
   c) public/data/dourorisk/valores/              grelhas de valores exatos (PNG L, 255 = sem dados),
-                                                 mdt.bin (Int16 LE) e máscara concelho_25m.png
-  d) src/data/dourorisk-grids.json               manifest importado pela app (grelhas 3763, codificações, sha256)
+                                                 mdt.bin (Int16 LE), máscara concelho_25m.png e
+                                                 rio_douro_25m.png (1 = superfície do rio Douro no MDT)
+  d) src/data/dourorisk-grids.json               manifest importado pela app (version 2: grelhas 3763,
+                                                 codificações, sha256, layers.*.about = «Como sabemos?»
+                                                 e bloco "concelho" com as contagens exatas do concelho)
      public/data/dourorisk/a11y/README.json
 
 Cada PNG tem as MESMAS dimensões da grelha nativa: píxel (coluna, linha) = célula (coluna, linha),
 linha 0 a norte. A georreferenciação está no manifest (x0 = xmin, y0 = ymax, cell em metros, EPSG:3763).
 
+Bloco "concelho" do manifest: contagens por classe/valor dentro do concelho (centro da célula dentro do
+limite projetado para 3763, uma máscara por grelha: g25, g10_risco e g10_perigosidade), contadas sobre os
+arrays nativos (não sobre os PNG); área = células × lado², percentagens com 4 casas decimais.
+Os textos de proveniência (SOBRE) são verificados nos rasters (verificar_dados): um texto que deixe de
+ser verdade faz o script parar.
+
 Idempotente: correr duas vezes dá ficheiros byte-idênticos (PNG sem metadados de data; JSON com chaves
-ordenadas e "generated" = data de modificação mais recente dos rasters de origem, não o relógio).
+ordenadas e "generated" = data de modificação mais recente dos rasters de origem, sem as tabelas VAT_,
+que são derivadas; não o relógio).
 Só reescreve um ficheiro quando o conteúdo muda.
 
 Uso (Python do ArcGIS Pro):
@@ -36,6 +46,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import sys
 
 import numpy as np
@@ -138,6 +149,79 @@ EXPOSICAO_PASSO = 2             # exposicao.png: graus / 2 arredondado (0..179, 
 EXPOSICAO_PLANO = 254           # exposicao.png: exposição < 0 (plano); não ocorre neste raster
 MDT_SEM_DADOS = -32768          # mdt.bin: Int16 little-endian; o raster não tem NoData
 
+# Rio Douro no MDT: células planas (declive 0, exposição sem dados) a esta altitude ou menos (a albufeira está a 78–81 m).
+RIO_MAX_M = 90
+
+# ---------------------------------------------------------------------------
+# «Como sabemos?»: proveniência de cada camada, em Leitura Fácil (pt-PT). É escrita em layers.<chave>.about.
+# "ano": "AAAA", "AAAA–AAAA" (travessão U+2013) ou None (terreno, limite). {max_t_ha} e {rio_m} vêm dos dados
+# (verificar_dados e o rio, em main). camada() confirma que cada ano está no nome do raster e que nenhuma
+# frase de "metodo" ou "nota" passa de 15 palavras; verificar_dados() confirma nos rasters o que os textos
+# afirmam (mato só função dos anos sem arder, mato sem dados = nunca ardeu ou ardeu no último ano, exposição
+# sem dados = plano, ICNF 2025 mais baixo onde ardeu em 2022 e 2024, último ano = 2025).
+# ---------------------------------------------------------------------------
+ESTUDO = "estudo DouroRisk"
+TERRENO = "terreno do estudo DouroRisk"
+OFICIAL = "mapa oficial do ICNF"
+CENARIO = "É um cenário para 2025, feito com os fogos do passado. Não é uma medição nem uma previsão."
+SEM_NUMERO = "Não dá número a alguns sítios, por exemplo zonas com casas e o rio."
+SOBRE = {
+    "risco": dict(titulo="Risco de fogo", fonte=ESTUDO, fonte_curta="estudo, 2025", ano="2025",
+                  metodo="Junta o perigo de fogo com o que se pode perder.", nota=CENARIO),
+    "perigosidade": dict(titulo="Perigo de fogo (estudo)", fonte=ESTUDO, fonte_curta="estudo, 2025", ano="2025",
+                         metodo="Um cálculo mostra onde é mais provável arder.", nota=CENARIO),
+    "icnf_conjuntural": dict(titulo="Perigo oficial de 2025", fonte=OFICIAL, fonte_curta="ICNF, 2025", ano="2025",
+                             metodo="O ICNF faz este mapa todos os anos. Usa o mapa de 2020 a 2030. "
+                                    "Onde ardeu de 2022 a 2024, o perigo é mais baixo.",
+                             nota=SEM_NUMERO),
+    "icnf_estrutural": dict(titulo="Perigo oficial de 2020 a 2030", fonte=OFICIAL, fonte_curta="ICNF, 2020–2030", ano="2020–2030",
+                            metodo="Junta os fogos do passado, a inclinação e o que cobre o terreno.", nota=SEM_NUMERO),
+    "recorrencia": dict(titulo="Quantas vezes ardeu", fonte=ESTUDO, fonte_curta="estudo, 1990–2025", ano="1990–2025",
+                        metodo="Junta os mapas do que ardeu em cada ano. Depois conta as vezes em cada sítio.",
+                        nota="Antes de 1990 não há dados."),
+    "ultimo_ano": dict(titulo="Último fogo", fonte=ESTUDO, fonte_curta="estudo, 1990–2025", ano="1990–2025",
+                       metodo="Guarda o ano do último fogo em cada sítio.", nota="Antes de 1990 não há dados."),
+    "tempo_pos_fogo": dict(titulo="Anos sem arder", fonte=ESTUDO, fonte_curta="estudo, até 2025", ano="1990–2025",
+                           metodo="Conta os anos entre o último fogo e 2025.", nota="Onde não ardeu de 1990 a 2025, não há valor."),
+    "biomassa": dict(titulo="Quanto mato há", fonte=ESTUDO + " (estimativa)", fonte_curta="estimativa, 2025", ano="2025",
+                     metodo="Não é uma medição. Conta os anos desde o último fogo e estima quanto mato voltou a crescer.",
+                     nota="Só há número onde o último fogo foi de 1990 a 2024. "
+                          "O máximo do cálculo é {max_t_ha} toneladas por hectare. 1 hectare é um quadrado com 100 metros de lado."),
+    "declive": dict(titulo="Inclinação da encosta", fonte=TERRENO, fonte_curta="estudo, terreno", ano=None,
+                    metodo="Mede quantos metros o terreno sobe em cada 100 metros.", nota="O terreno muda muito pouco com os anos."),
+    "exposicao": dict(titulo="Para onde está virada a encosta", fonte=TERRENO, fonte_curta="estudo, terreno", ano=None,
+                      metodo="Vê para que lado o terreno desce: por exemplo, norte, nascente, sul ou poente.",
+                      nota="Virada ao sol quer dizer virada entre sudeste e poente. Essas encostas apanham mais sol. "
+                           "Nos sítios planos não há lado."),
+    "mdt": dict(titulo="Altitude", fonte=TERRENO, fonte_curta="estudo, terreno", ano=None,
+                metodo="Dá a altura do chão acima do nível do mar.",
+                nota="Na ficha, a altitude vai arredondada a 5 metros. O mapa 3D usa outro terreno. "
+                     "Pode haver alguns metros de diferença."),
+    "rio": dict(titulo="Rio Douro", fonte=TERRENO, fonte_curta="estudo, terreno", ano=None,
+                metodo="É a parte plana mais baixa do terreno, a cerca de {rio_m} metros.",
+                nota="Junto às margens, o rio pode não ser reconhecido."),
+    "concelho": dict(titulo="Limite do concelho", fonte="Carta Administrativa Oficial de Portugal", fonte_curta="limite oficial", ano=None,
+                     metodo="Um quadrado conta como dentro se o seu centro estiver dentro do limite.",
+                     nota="O limite é aproximado. Junto à linha, um ponto pode ficar do lado errado."),
+}
+
+# Bloco "concelho" do manifest: textos fixos para quem mantém os dados (não são mostrados na app).
+CONCELHO_LIMITE = {
+    "fonte": CONCELHO_GEOJSON.replace(os.sep, "/"),
+    "origem": "CAOP (DGT), via github.com/nmota/caop_GeoJSON (coordenadas com 4 casas decimais)",
+    "regra": "uma célula conta como dentro se o centro estiver dentro do limite (par-ímpar); "
+             "limite projetado para EPSG:3763 com arcpy, sem transformação de datum",
+}
+CONCELHO_NOTAS = {
+    "altitude_m": "min = cova do MDT junto à foz do Tua (vizinhos de 39 a 81 m), não é o rio: não publicar; "
+                  "rio = mediana (inferior) do MDT nas células de rio_douro_25m dentro do concelho",
+    "ha": "ha = células × lado² / 10 000 (plano PT-TM06), sem arredondar; % com 4 casas decimais",
+    "ha_por_ultimo_ano": "área cujo ÚLTIMO fogo foi nesse ano: é um mínimo da área ardida nesse ano, exceto no último ano (exato)",
+}
+# Área do concelho: a soma das células (base de todas as percentagens) tem de bater com a área do polígono
+# (plano PT-TM06) a menos desta fração (hoje 29 758,75 ha contra 29 760,65 ha: 0,006 %).
+AREA_TOLERANCIA = 0.0005
+
 
 # ---------------------------------------------------------------------------
 # Leitura
@@ -188,7 +272,10 @@ def _num(x):
 
 def datas_modificacao(gdb, nomes):
     """Data de modificação de cada raster: a mais recente dos ficheiros das suas tabelas na gdb
-    (o raster, fras_ras_/aux_/blk_/bnd_ e VAT_), via GDB_SystemCatalog (linha N -> aNNNNNNNN.*)."""
+    (o raster e fras_ras_/aux_/blk_/bnd_), via GDB_SystemCatalog (linha N -> aNNNNNNNN.*).
+
+    A tabela de atributos (VAT_) não conta: é derivada dos píxeis e o Pro cria-a ou refá-la sem mudar
+    os dados (TabulateArea, BuildRasterAttributeTable…); com ela, uma operação dessas mudava o manifest."""
     ficheiros = os.listdir(gdb)
     ids = {}
     with arcpy.da.SearchCursor(os.path.join(gdb, "GDB_SystemCatalog"), ["ID", "Name"]) as cur:
@@ -196,12 +283,40 @@ def datas_modificacao(gdb, nomes):
             ids.setdefault(n.lower(), int(i))
     datas = {}
     for nome in nomes:
-        tabelas = [nome] + [p + nome for p in ("fras_ras_", "fras_aux_", "fras_blk_", "fras_bnd_", "VAT_")]
+        tabelas = [nome] + [p + nome for p in ("fras_ras_", "fras_aux_", "fras_blk_", "fras_bnd_")]
         prefixos = ["a%08x." % ids[t.lower()] for t in tabelas if t.lower() in ids]
         assert prefixos, f"{nome}: não encontrei as tabelas na gdb"
         t = max(os.path.getmtime(os.path.join(gdb, f)) for f in ficheiros if any(f.lower().startswith(p) for p in prefixos) and not f.endswith(".lock"))
         datas[nome] = datetime.datetime.fromtimestamp(int(t), datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     return datas
+
+
+def verificar_dados(dados, nodata):
+    """Confirma nos rasters o que os textos de SOBRE afirmam. Devolve os números que entram nos textos
+    e o último ano dos dados (o fim do período, lido no raster e não nas contagens do concelho)."""
+    bio, bio_nd = dados[R_BIOMASSA], nodata[R_BIOMASSA]
+    tpf = dados[R_TEMPO_POS_FOGO]
+    rec = dados[R_RECORRENCIA]
+    ua, ua_nd = dados[R_ULTIMO_ANO], nodata[R_ULTIMO_ANO]
+    assert np.array_equal(rec > 0, ~ua_nd), "recorrência > 0 tem de ter último ano"
+    ano_fim = int(ua[~ua_nd].max())
+    assert ano_fim == 2025, f"o último ano é {ano_fim}: atualiza os textos de SOBRE (dizem 2025)"
+    ok = ~bio_nd
+    for t in np.unique(tpf[ok]):   # o mato depende só dos anos desde o último fogo
+        assert np.unique(bio[ok & (tpf == t)]).size == 1, f"biomassa: mais de um valor com {t} anos sem arder"
+    assert np.array_equal(bio_nd, (rec == 0) | (~ua_nd & (ua == ano_fim))), "mato sem dados tem de ser: nunca ardeu ou ardeu no último ano"
+    dec, dec_nd = dados[R_DECLIVE], nodata[R_DECLIVE]
+    assert np.array_equal(nodata[R_EXPOSICAO], (dec == 0) & ~dec_nd), "exposição sem dados tem de ser declive 0 (plano)"
+    cj, es, es_nd = dados[R_ICNF_CONJ], dados[R_ICNF_ESTR], nodata[R_ICNF_ESTR]
+    assert not nodata[R_ICNF_CONJ].any() and np.array_equal(cj == 0, es_nd), "ICNF 2025 = 0 tem de ser ICNF 2020-2030 sem dados"
+    assert (cj[~es_nd] <= es[~es_nd]).all(), "ICNF 2025 tem de ser <= ICNF 2020-2030"
+    baixou = ~es_nd & (cj < es)
+    for anos, lo, hi in (((2022,), 0.95, 1.0), ((2024,), 0.95, 1.0), (tuple(range(1990, 2022)), 0.0, 0.01)):
+        m = ~es_nd & ~ua_nd & np.isin(ua, anos)
+        f = float(baixou[m].mean())
+        assert lo <= f <= hi, f"ICNF: fração que baixou com último fogo em {anos[0]}-{anos[-1]} = {f:.4f}"
+        print(f"  ICNF 2025 mais baixo onde o último fogo foi em {anos[0]}-{anos[-1]}: {f:.4f}", flush=True)
+    return {"max_t_ha": f"{float(bio[ok].max()):g}"}, ano_fim
 
 
 # ---------------------------------------------------------------------------
@@ -223,9 +338,9 @@ def cantos_wgs84(g):
     return out
 
 
-def mascara_concelho(geojson, g):
-    """1 = centro da célula dentro do limite do concelho (GeoJSON lon/lat projetado para 3763 com arcpy).
-    Ponto-no-polígono par-ímpar, linha a linha: cruzamentos da horizontal do centro com as arestas."""
+def aneis_tm06(geojson):
+    """Anéis do limite (GeoJSON lon/lat) projetados vértice a vértice para 3763 com arcpy (sem transformação):
+    lista de arrays (n, 2) em metros."""
     with open(geojson, encoding="utf-8") as f:
         fc = json.load(f)
     aneis = []
@@ -239,6 +354,22 @@ def mascara_concelho(geojson, g):
                     p = arcpy.PointGeometry(arcpy.Point(lon, lat), SR_WGS84).projectAs(SR_TM06).firstPoint
                     xy.append((p.X, p.Y))
                 aneis.append(np.array(xy, dtype=np.float64))
+    return aneis
+
+
+def area_poligono_ha(geojson):
+    """Área planar PT-TM06 do limite (fórmula do laço: |soma das áreas com sinal dos anéis|), em hectares."""
+    s = 0.0
+    for a in aneis_tm06(geojson):
+        x, y = a[:, 0], a[:, 1]
+        s += 0.5 * float(np.sum(x * np.roll(y, -1) - np.roll(x, -1) * y))
+    return abs(s) / 1e4
+
+
+def mascara_concelho(geojson, g):
+    """1 = centro da célula dentro do limite do concelho (GeoJSON lon/lat projetado para 3763 com arcpy).
+    Ponto-no-polígono par-ímpar, linha a linha: cruzamentos da horizontal do centro com as arestas."""
+    aneis = aneis_tm06(geojson)
     xa = np.concatenate([a[:, 0] for a in aneis])
     ya = np.concatenate([a[:, 1] for a in aneis])
     xb = np.concatenate([np.roll(a[:, 0], -1) for a in aneis])
@@ -302,8 +433,10 @@ def valores_tempo(v, nd, rec):
 
 
 def valores_declive(v, nd):
-    out = np.floor(v.astype(np.float64) + 0.5)  # inteiro mais próximo, 0,5 para cima
+    out = np.floor(v.astype(np.float64))      # truncar: "N %" quer dizer de N a N+1 (14,99 -> 14)
     assert out[~nd].max() < SEM_DADOS
+    assert np.array_equal(classes_por_limiares(out, nd, DECLIVE_LIMIARES), classes_por_limiares(v, nd, DECLIVE_LIMIARES)), \
+        "o declive truncado mudou de classe"
     out[nd] = SEM_DADOS
     return out.astype(np.uint8)
 
@@ -387,11 +520,36 @@ def main(argv=None):
         for n in ns[1:]:
             assert grelha(fontes[n]) == grids[gid], f"{n} não está na grelha {gid}"
 
+    # --- verificação dos textos, máscara do concelho e rio (antes de qualquer camada) -------
+    geo = os.path.join(args.repo, CONCELHO_GEOJSON)
+    conc = mascara_concelho(geo, grids["g25"])          # a mesma de sempre: concelho_25m.png não muda
+    rio = (nodata[R_EXPOSICAO] & (dados[R_DECLIVE] == 0) & ~nodata[R_DECLIVE] & ~nodata[R_MDT]
+           & (dados[R_MDT] <= RIO_MAX_M))
+    dentro = conc == 1
+    mdt_rio = dados[R_MDT][rio]
+    assert rio.any() and 70 <= mdt_rio.min() and mdt_rio.max() <= RIO_MAX_M, "rio: altitudes fora de 70-90 m"
+    rio_m = int(np.percentile(dados[R_MDT][rio & dentro], 50, method="lower"))
+    assert 70 <= rio_m <= 90, f"rio: mediana {rio_m} m"
+    icnf0 = float((dados[R_ICNF_CONJ][rio & dentro] == 0).mean())
+    assert icnf0 >= 0.99, f"rio: só {icnf0:.3f} sem número no ICNF 2025"
+    textos_dados, ano_fim = verificar_dados(dados, nodata)
+    textos = textos_dados | {"rio_m": str(rio_m)}
+    print(f"  rio: {int(rio.sum())} células na grelha, {int((rio & dentro).sum())} no concelho, a {rio_m} m", flush=True)
+
     a11y = os.path.join(PASTA, "a11y")
     val = os.path.join(PASTA, "valores")
     layers = {}
+    contaveis = {}      # chave da camada -> array (classes ou valores) para as contagens do concelho
 
-    def camada(chave, grid, fonte, files, encoding, classes=()):
+    def camada(chave, grid, fonte, files, encoding, classes=(), sobre=None):
+        assert sobre in SOBRE, f"{chave}: falta a entrada de SOBRE"
+        about = {k: (v.format(**textos) if isinstance(v, str) else v) for k, v in SOBRE[sobre].items()}
+        about["resolucao_m"] = grids[grid]["cell"]
+        for ano in re.findall(r"\d{4}", about["ano"] or ""):
+            assert ano in fonte, f"{chave}: o ano {ano} do texto não está no nome do raster {fonte}"
+        for campo in ("metodo", "nota"):
+            for frase in re.split(r"(?<=[.!?])\s+", (about[campo] or "").strip()):
+                assert len(frase.split()) <= 15, f"{chave}.{campo}: frase com mais de 15 palavras: {frase}"
         layers[chave] = {
             "grid": grid,
             "source": fonte,
@@ -399,6 +557,7 @@ def main(argv=None):
             "encoding": encoding,
             "classes": [{"value": k, "rule": r} for k, r in classes],
             "sha256": {w: esc.sha[w] for w in files.values() if w},
+            "about": about,
         }
 
     def cls_png(nome, cls):
@@ -410,41 +569,52 @@ def main(argv=None):
     enc_classes = {"format": "png-l8", "nodata": 0, "special": {"0": "sem dados"}}
 
     # --- a) + b) camadas de classes e imagens --------------------------------
+    sobre_risco = {"risco_2025": "risco", "perigosidade_2025": "perigosidade", "icnf_conjuntural": "icnf_conjuntural", "icnf_estrutural": "icnf_estrutural"}
     for chave, raster, grid in (("risco_2025", R_RISCO, "g10_risco"), ("perigosidade_2025", R_PERIGO, "g10_perigosidade"),
                                 ("icnf_conjuntural", R_ICNF_CONJ, "g25"), ("icnf_estrutural", R_ICNF_ESTR, "g25")):
         cls = classes_risco(dados[raster], nodata[raster])
+        contaveis[chave] = cls
         regras = [(k, f"{raster} = {k} ({PALAVRAS_RISCO[k - 1]})") for k in range(1, 6)]
         enc = dict(enc_classes)
         if chave == "icnf_conjuntural":
             enc["special"] = {"0": "sem dados (valor 0 no raster, fora da área classificada pelo ICNF)"}
-        camada(chave, grid, raster, {"classes": cls_png(chave, cls), "display": rgba_png(os.path.join(a11y, chave + ".png"), cls, cores["risco"])}, enc, regras)
+        camada(chave, grid, raster, {"classes": cls_png(chave, cls), "display": rgba_png(os.path.join(a11y, chave + ".png"), cls, cores["risco"])}, enc, regras,
+               sobre=sobre_risco[chave])
 
     cls = classes_recorrencia(dados[R_RECORRENCIA], nodata[R_RECORRENCIA])
+    contaveis["recorrencia_a11y"] = cls
     regras = [(k, f"{R_RECORRENCIA} = {k}") for k in range(1, RECORRENCIA_MAX)] + [(RECORRENCIA_MAX, f"{R_RECORRENCIA} >= {RECORRENCIA_MAX}")]
     camada("recorrencia_a11y", "g25", R_RECORRENCIA,
            {"classes": cls_png("recorrencia", cls), "display": rgba_png(os.path.join(a11y, "recorrencia.png"), cls, cores["recorrencia"])},
-           {"format": "png-l8", "nodata": 0, "special": {"0": "nunca ardeu desde 1990 (o raster não tem NoData; inclui o exterior do concelho)"}}, regras)
+           {"format": "png-l8", "nodata": 0, "special": {"0": "nunca ardeu desde 1990 (o raster não tem NoData; inclui o exterior do concelho)"}}, regras,
+           sobre="recorrencia")
 
     cls = classes_por_limiares(dados[R_DECLIVE], nodata[R_DECLIVE], DECLIVE_LIMIARES)
+    contaveis["declive_a11y"] = cls
     lim = DECLIVE_LIMIARES
     regras = [(1, f"declive < {lim[0]:g} % ({PALAVRAS_DECLIVE[0]}; transparente)"), (2, f"{lim[0]:g} % <= declive < {lim[1]:g} % ({PALAVRAS_DECLIVE[1]})"),
               (3, f"{lim[1]:g} % <= declive < {lim[2]:g} % ({PALAVRAS_DECLIVE[2]})"), (4, f"declive >= {lim[2]:g} % ({PALAVRAS_DECLIVE[3]})")]
     camada("declive_a11y", "g25", R_DECLIVE,
-           {"classes": cls_png("declive", cls), "display": rgba_png(os.path.join(a11y, "declive.png"), cls, cores["declive"])}, dict(enc_classes), regras)
+           {"classes": cls_png("declive", cls), "display": rgba_png(os.path.join(a11y, "declive.png"), cls, cores["declive"])}, dict(enc_classes), regras,
+           sobre="declive")
 
     cls = classes_sol(dados[R_EXPOSICAO], nodata[R_EXPOSICAO])
+    contaveis["exposicao_sol"] = cls
     regras = [(1, f"{EXPOSICAO_SOL[0]:g}° <= exposição <= {EXPOSICAO_SOL[1]:g}° (virada ao sol: sueste a oeste)"),
               (2, "restantes exposições (virada à sombra)"), (3, "exposição < 0 (plano; não ocorre neste raster)")]
     camada("exposicao_sol", "g25", R_EXPOSICAO,
            {"classes": cls_png("exposicao_sol", cls), "display": rgba_png(os.path.join(a11y, "exposicao_sol.png"), cls, cores["sol"])},
-           {"format": "png-l8", "nodata": 0, "special": {"0": "sem dados (NoData no raster: exposição indefinida, sobretudo zonas planas)"}}, regras)
+           {"format": "png-l8", "nodata": 0, "special": {"0": "sem dados (NoData no raster: exposição indefinida, sobretudo zonas planas)"}}, regras,
+           sobre="exposicao")
 
     cls = classes_por_limiares(dados[R_BIOMASSA], nodata[R_BIOMASSA], BIOMASSA_LIMIARES)
+    contaveis["biomassa_2025"] = cls
     lim = BIOMASSA_LIMIARES
     regras = [(1, f"biomassa < {lim[0]:g} t/ha")] + [(k + 2, f"{lim[k]:g} t/ha <= biomassa < {lim[k + 1]:g} t/ha") for k in range(3)] + [(5, f"biomassa >= {lim[3]:g} t/ha")]
     camada("biomassa_2025", "g25", R_BIOMASSA,
            {"classes": cls_png("biomassa", cls), "display": rgba_png(os.path.join(a11y, "biomassa.png"), cls, cores["biomassa"])},
-           {"format": "png-l8", "nodata": 0, "special": {"0": "sem dados (NoData no raster: nunca ardeu desde 1990 ou ardeu em 2025)"}}, regras)
+           {"format": "png-l8", "nodata": 0, "special": {"0": "sem dados (NoData no raster: nunca ardeu desde 1990 ou ardeu em 2025)"}}, regras,
+           sobre="biomassa")
 
     # --- c) grelhas de valores exatos ----------------------------------------
     def val_png(nome, arr):
@@ -453,47 +623,131 @@ def main(argv=None):
 
     rec, rec_nd = dados[R_RECORRENCIA], nodata[R_RECORRENCIA]
     arr = np.where(rec_nd, SEM_DADOS, rec).astype(np.uint8)
+    contaveis["recorrencia_valor"] = arr
     camada("recorrencia_valor", "g25", R_RECORRENCIA, {"values": val_png("recorrencia", arr)},
            {"format": "png-l8", "nodata": SEM_DADOS, "scale": 1, "offset": 0, "unit": "vezes", "special": {"255": "sem dados"},
-            "note": "número de vezes que ardeu de 1990 a 2025 (0 = nunca; o raster não tem NoData e cobre também o exterior do concelho)"})
+            "note": "número de vezes que ardeu de 1990 a 2025 (0 = nunca; o raster não tem NoData e cobre também o exterior do concelho)"},
+           sobre="recorrencia")
 
     arr = valores_ultimo_ano(dados[R_ULTIMO_ANO], nodata[R_ULTIMO_ANO], rec)
+    contaveis["ultimo_ano"] = arr
     camada("ultimo_ano", "g25", R_ULTIMO_ANO, {"values": val_png("ultimo_ano", arr)},
            {"format": "png-l8", "nodata": SEM_DADOS, "scale": 1, "offset": ULTIMO_ANO_BASE, "unit": "ano",
-            "special": {"0": "nunca ardeu desde 1990", "255": "sem dados"}, "note": "ano = valor + 1989 (1990..2025)"})
+            "special": {"0": "nunca ardeu desde 1990", "255": "sem dados"}, "note": "ano = valor + 1989 (1990..2025)"},
+           sobre="ultimo_ano")
 
     arr = valores_tempo(dados[R_TEMPO_POS_FOGO], nodata[R_TEMPO_POS_FOGO], rec)
     camada("tempo_pos_fogo", "g25", R_TEMPO_POS_FOGO, {"values": val_png("tempo_pos_fogo", arr)},
            {"format": "png-l8", "nodata": SEM_DADOS, "scale": 1, "offset": 0, "unit": "anos",
             "special": {str(TEMPO_NUNCA): "nunca ardeu desde 1990 (NoData no raster, as mesmas células que recorrência 0)", "255": "sem dados"},
-            "note": "anos desde o último fogo em 2025 (0 = ardeu em 2025; = 2025 - último ano)"})
+            "note": "anos desde o último fogo em 2025 (0 = ardeu em 2025; = 2025 - último ano)"},
+           sobre="tempo_pos_fogo")
 
     arr = valores_declive(dados[R_DECLIVE], nodata[R_DECLIVE])
     camada("declive_pct", "g25", R_DECLIVE, {"values": val_png("declive_pct", arr)},
            {"format": "png-l8", "nodata": SEM_DADOS, "scale": 1, "offset": 0, "unit": "%", "special": {"255": "sem dados"},
-            "note": "declive arredondado ao inteiro mais próximo (0,5 para cima)"})
+            "note": "declive truncado ao inteiro (14,99 -> 14): N quer dizer de N a N+1; a classe de declive_a11y é a dos limiares (15, 30, 50) aplicados a N"},
+           sobre="declive")
 
     arr = valores_exposicao(dados[R_EXPOSICAO], nodata[R_EXPOSICAO])
     camada("exposicao_graus", "g25", R_EXPOSICAO, {"values": val_png("exposicao", arr)},
            {"format": "png-l8", "nodata": SEM_DADOS, "scale": EXPOSICAO_PASSO, "offset": 0, "unit": "graus",
             "special": {str(EXPOSICAO_PLANO): "plano (exposição < 0; não ocorre)", "255": "sem dados"},
-            "note": "graus = valor x 2 (0 = norte, sentido horário; arredondado, erro <= 1°; 360° volta a 0)"})
+            "note": "graus = valor x 2 (0 = norte, sentido horário; arredondado, erro <= 1°; 360° volta a 0)"},
+           sobre="exposicao")
 
     arr, lut = valores_biomassa(dados[R_BIOMASSA], nodata[R_BIOMASSA])
     camada("biomassa_t_ha", "g25", R_BIOMASSA, {"values": val_png("biomassa", arr)},
            {"format": "png-l8", "nodata": SEM_DADOS, "lut": lut, "unit": "t/ha", "special": {"255": "sem dados (nunca ardeu desde 1990 ou ardeu em 2025)"},
-            "note": "t/ha = lut[valor] (valores exatos do raster, float32 na representação mais curta)"})
+            "note": "t/ha = lut[valor] (valores exatos do raster, float32 na representação mais curta)"},
+           sobre="biomassa")
 
     mdt = np.where(nodata[R_MDT], MDT_SEM_DADOS, dados[R_MDT]).astype("<i2")
     rel = os.path.join(val, "mdt.bin")
     camada("mdt", "g25", R_MDT, {"values": esc.gravar(rel, mdt.tobytes(), web_de(rel))},
            {"format": "int16le", "nodata": MDT_SEM_DADOS, "scale": 1, "offset": 0, "unit": "m",
-            "note": "Int16 little-endian, width x height valores, linha a linha de norte para sul, de oeste para este"})
+            "note": "Int16 little-endian, width x height valores, linha a linha de norte para sul, de oeste para este"},
+           sobre="mdt")
 
-    conc = mascara_concelho(os.path.join(args.repo, CONCELHO_GEOJSON), grids["g25"])
     camada("concelho_25m", "g25", CONCELHO_GEOJSON.replace(os.sep, "/"), {"values": val_png("concelho_25m", conc)},
            {"format": "png-l8", "special": {"0": "fora do concelho", "1": "centro da célula dentro do concelho"},
-            "note": "limite do concelho (GeoJSON lon/lat) projetado para EPSG:3763 com arcpy, sem transformação de datum"})
+            "note": "limite do concelho (GeoJSON lon/lat) projetado para EPSG:3763 com arcpy, sem transformação de datum"},
+           sobre="concelho")
+
+    camada("rio_douro_25m", "g25", R_MDT, {"values": val_png("rio_douro_25m", rio.astype(np.uint8))},
+           {"format": "png-l8", "special": {"0": "não é rio", "1": "superfície do rio Douro no MDT"},
+            "note": f"células planas (declive 0, exposição sem dados) a {RIO_MAX_M} m ou menos: a albufeira do Douro no MDT (78-81 m); junto às margens pode falhar"},
+           sobre="rio")
+
+    # --- e) números do concelho (contagens exatas sobre os arrays nativos) ------------------
+    mascaras = {"g25": dentro,
+                "g10_risco": mascara_concelho(geo, grids["g10_risco"]) == 1,
+                "g10_perigosidade": mascara_concelho(geo, grids["g10_perigosidade"]) == 1}
+
+    def ha(n, gid="g25"):
+        return float(n) * grids[gid]["cell"] ** 2 / 10000     # exato na g25 (múltiplos de 0,0625)
+
+    def pct(n, total):
+        return round(100.0 * n / total, 4)
+
+    contagens = {}
+    for chave, arr in contaveis.items():
+        gid = layers[chave]["grid"]
+        m = mascaras[gid]
+        v = arr[m]
+        assert v.max() < SEM_DADOS, f"{chave}: 'sem dados' dentro do concelho"
+        lista = [int(n) for n in np.bincount(v.astype(np.int64))]          # denso: índice = valor do PNG
+        assert sum(lista) == int(m.sum())
+        contagens[chave] = {"grid": gid, "total": int(m.sum()), "contagem": lista}
+
+    rv = contagens["recorrencia_valor"]["contagem"]
+    ua = contagens["ultimo_ano"]["contagem"]
+    tot = int(dentro.sum())
+    assert rv[0] == contagens["recorrencia_a11y"]["contagem"][0] == ua[0], "nunca ardeu: recorrência e último ano não batem"
+    assert contagens["recorrencia_a11y"]["contagem"][RECORRENCIA_MAX] == sum(rv[RECORRENCIA_MAX:]), "recorrência: classe 5 != soma de 5 ou mais"
+    i_fim = ano_fim - ULTIMO_ANO_BASE           # índice do último ano dos dados (pode não ter fogo no concelho)
+    assert len(ua) - 1 <= i_fim, "último ano: o concelho tem um ano depois do fim dos dados"
+    ardeu_fim = ua[i_fim] if i_fim < len(ua) else 0
+    assert contagens["biomassa_2025"]["contagem"][0] == rv[0] + ardeu_fim, "mato sem dados != nunca ardeu + ardeu no último ano"
+    assert contagens["exposicao_sol"]["contagem"][0] == int(((dados[R_DECLIVE] == 0) & ~nodata[R_DECLIVE] & dentro).sum()), \
+        "exposição sem dados no concelho != células planas"
+    area_ha = ha(tot)
+    area_pol = area_poligono_ha(geo)
+    assert abs(area_ha - area_pol) / area_pol < AREA_TOLERANCIA, f"área: {area_ha} ha (células) contra {area_pol:.2f} ha (polígono)"
+    print(f"  concelho: {tot} células = {area_ha} ha (polígono: {area_pol:.2f} ha)", flush=True)
+
+    mdt_dentro = dados[R_MDT][dentro & ~nodata[R_MDT]]
+    i_min = np.flatnonzero((dentro & ~nodata[R_MDT]).ravel())[int(np.argmin(mdt_dentro))]
+    assert not rio.ravel()[i_min], "a altitude mínima do concelho é rio: rever a nota altitude_m"
+    ardeu = tot - rv[0]
+    maxv = max(i for i, n in enumerate(rv) if n)
+    fim = len(ua) - 1                           # último ano com fogo dentro do concelho
+    assert fim >= 1, "o concelho não tem nenhum fogo: rever ultimo_fogo_ano"
+    cj = contagens["icnf_conjuntural"]
+    r10 = contagens["risco_2025"]
+    concelho = {
+        "area_ha": area_ha,
+        "celulas": {gid: int(m.sum()) for gid, m in mascaras.items()},
+        "contagens": contagens,
+        "limite": CONCELHO_LIMITE,
+        "notas": CONCELHO_NOTAS,
+        "resumo": {
+            "altitude_m": {"max": int(mdt_dentro.max()), "min": int(mdt_dentro.min()), "rio": rio_m},
+            "ardeu_ha": ha(ardeu),
+            "ardeu_pct": pct(ardeu, tot),
+            "ardeu_5_ou_mais_ha": ha(sum(rv[5:])),
+            "ha_por_ultimo_ano": {str(ULTIMO_ANO_BASE + i): ha(n) for i, n in enumerate(ua) if i >= 1 and n > 0},
+            "icnf_sem_numero_ha": ha(cj["contagem"][0]),
+            "icnf_sem_numero_pct": pct(cj["contagem"][0], tot),
+            "mato_sem_estimativa_pct": pct(contagens["biomassa_2025"]["contagem"][0], tot),
+            "max_vezes": maxv,
+            "max_vezes_ha": ha(rv[maxv]),
+            "periodo": [ULTIMO_ANO_BASE + 1, ano_fim],
+            "rio_ha": ha(int((rio & dentro).sum())),
+            "risco_alto_pct": pct(sum(r10["contagem"][4:6]), r10["total"]),
+            "ultimo_fogo_ano": ULTIMO_ANO_BASE + fim,
+        },
+    }
 
     # --- d) manifest e README -------------------------------------------------
     casa = os.path.expanduser("~")
@@ -501,7 +755,7 @@ def main(argv=None):
     if gdb_txt.lower().startswith(casa.lower()):
         gdb_txt = "~" + gdb_txt[len(casa):]
     manifest = {
-        "version": 1,
+        "version": 2,
         "generated": max(f["modified"] for f in fontes.values()),
         "script": "scripts/pro_to_web.py",
         "palette": args.paleta,
@@ -509,6 +763,7 @@ def main(argv=None):
         "crs": {"wkid": WKID, "name": "ETRS89 / Portugal TM06"},
         "grids": grids,
         "layers": layers,
+        "concelho": concelho,
         "cornersWgs84": {gid: cantos_wgs84(g) for gid, g in grids.items()},
     }
     texto = json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n"

@@ -47,6 +47,19 @@ export interface ManifestGrid {
   cell: number;
 }
 
+/** «Como sabemos?»: proveniência da camada em Leitura Fácil (layers.<chave>.about, escrito pelo pipeline). */
+export interface LayerAbout {
+  titulo: string; fonte: string; fonte_curta: string;
+  /** "2025", "2020–2030", "1990–2025" ou null (terreno, limite) */
+  ano: string | null; metodo: string; nota: string | null; resolucao_m: number;
+}
+
+/** Como ler os bytes de uma camada: valor = lut[byte] ou byte × scale + offset; nodata e special = sem valor. */
+export interface LayerEncoding {
+  format: string; nodata?: number; scale?: number; offset?: number; unit?: string;
+  lut?: readonly number[]; special?: Readonly<Record<string, string>>; note?: string;
+}
+
 export interface ManifestLayer {
   /** id da grelha (GridId) */
   grid: string;
@@ -54,9 +67,10 @@ export interface ManifestLayer {
   source?: string;
   /** caminhos públicos ("/data/…") dos ficheiros desta camada */
   files: { classes?: string; display?: string; values?: string };
-  encoding?: object;
+  encoding?: LayerEncoding;
   classes?: readonly object[];
   sha256?: Readonly<Record<string, string>>;
+  about?: LayerAbout;
 }
 
 export interface GridManifest {
@@ -315,4 +329,29 @@ export function forEachCellInCircle(
 ): number {
   const [x, y] = toTM06(lon, lat);
   return forEachCellInCircleXY(g, x, y, radiusM, fn);
+}
+
+/**
+ * Quantas células da grelha `g`, prolongada para lá dos bordos, têm o centro a ≤ radiusM metros de
+ * (lon, lat): o círculo inteiro, também a parte que sai da grelha. É o denominador certo para dizer que
+ * parte de um círculo fica dentro de uma máscara da grelha (forEachCellInCircle só conta as que existem).
+ */
+export function cellsInCircle(g: GridGeo, lon: number, lat: number, radiusM: number): number {
+  if (!(radiusM >= 0)) return 0;
+  const [x, y] = toTM06(lon, lat);
+  const { x0, y0, cell } = g;
+  const r2 = radiusM * radiusM;
+  const c0 = Math.floor((x - radiusM - x0) / cell), c1 = Math.floor((x + radiusM - x0) / cell);
+  const r0 = Math.floor((y0 - (y + radiusM)) / cell), r1 = Math.floor((y0 - (y - radiusM)) / cell);
+  let n = 0;
+  for (let row = r0; row <= r1; row++) {
+    const dy = y0 - (row + 0.5) * cell - y;
+    const dy2 = dy * dy;
+    if (dy2 > r2) continue;
+    for (let col = c0; col <= c1; col++) {
+      const dx = x0 + (col + 0.5) * cell - x;
+      if (dx * dx + dy2 <= r2) n++; // a mesma conta de forEachCellInCircleXY
+    }
+  }
+  return n;
 }

@@ -75,6 +75,7 @@
         position: absolute;
         left: -9999px;
       }
+      .sr-only { position: absolute !important; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
       .skip:focus {
         left: 16px;
         top: 16px;
@@ -327,6 +328,7 @@
       .num span {
         color: var(--ink-2);
       }
+      .num strong span { color: inherit; }
       .ramp {
         display: flex;
         height: 10px;
@@ -568,7 +570,7 @@
             <li class="step" style="--st: var(--st4)">
               <svg viewBox="0 0 48 48" aria-hidden="true"><polygon class="shape" points="24,1 47,24 24,47 1,24" /><text x="24" y="32">4</text></svg>
               <h3>Compara</h3>
-              <p>A cortina revela onde ardeu desde 1990. Quantas fichas acertaram?</p>
+              <p>A cortina revela onde ardeu de <!--n:ano_inicio-->1990<!--/n--> a <!--n:ano_fim-->2025<!--/n-->. Quantas fichas acertaram?</p>
             </li>
             <li class="step" style="--st: var(--st5)">
               <svg viewBox="0 0 48 48" aria-hidden="true"><polygon class="shape" points="5,45 43,45 43,20 24,3 5,20" /><text x="24" y="39">5</text></svg>
@@ -613,12 +615,12 @@
       <section id="numeros">
         <div class="wrap">
           <h2>O concelho em números</h2>
-          <p class="sub">Dados do projeto DouroRisk, de 1990 a 2025.</p>
+          <p class="sub">Dados do projeto DouroRisk, de <!--n:ano_inicio-->1990<!--/n--> a <!--n:ano_fim-->2025<!--/n-->.</p>
           <div class="numbers">
-            <div class="num"><strong>297,6 km²</strong><span>de concelho, do rio (80 m) ao alto do monte (845 m)</span></div>
-            <div class="num"><strong>4 em 10</strong><span>sítios do concelho já arderam pelo menos uma vez (43 %)</span></div>
-            <div class="num"><strong>14 525</strong><span>casas e edifícios em 3D, vistos por satélite</span></div>
-            <div class="num"><strong>+5 600</strong><span>campos de futebol ardidos só em 2017</span></div>
+            <div class="num"><strong><span aria-hidden="true"><!--n:area_km2-->297,6<!--/n--> km²</span><span class="sr-only"><!--n:area_km2-->297,6<!--/n--> quilómetros quadrados</span></strong><span>de concelho, do rio Douro (cerca de <!--n:rio_m-->80<!--/n--> metros) ao ponto mais alto (<!--n:alt_max_m-->995<!--/n--> metros)</span></div>
+            <div class="num"><strong><!--n:ardeu_n10-->4<!--/n--> em 10</strong><span>sítios do concelho já arderam pelo menos uma vez (<!--n:ardeu_pct-->43<!--/n--> %)</span></div>
+            <div class="num"><strong><span aria-hidden="true">14&nbsp;525</span><span class="sr-only">14525</span></strong><span>casas e edifícios em 3D, vistos por satélite</span></div>
+            <div class="num"><strong><span aria-hidden="true">+<!--n:campos_2017_min-->5&nbsp;600<!--/n--></span><span class="sr-only">Mais de <!--n:campos_2017_min_sr-->5600<!--/n--></span></strong><span>campos de futebol ardidos só em 2017</span></div>
           </div>
           <div class="ramp" aria-hidden="true"><i style="background: var(--r1)"></i><i style="background: var(--r2)"></i><i style="background: var(--r3)"></i><i style="background: var(--r4)"></i><i style="background: var(--r5)"></i></div>
           <div class="ramp-labels" aria-hidden="true"><span>1 · muito baixo</span><span>5 · muito alto</span></div>

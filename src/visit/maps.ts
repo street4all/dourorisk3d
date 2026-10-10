@@ -6,6 +6,10 @@ import { CanvasOverlay } from "./overlay";
 import { renderLegend } from "./layers";
 import { extentTM06, gridFromManifest, type GridGeo } from "../geo/grid";
 import { isOnlyConcelho, setOnlyConcelho } from "./clip";
+import { INTRO_ESTUDO, aboutOf, renderHow, type HowGroup } from "./how";
+import { periodo } from "./words";
+import { TECNICO } from "./tecnico";
+import { A0, A1 } from "../data/concelho";
 
 /** A grelha de 25 m: a cortina anda sobre a largura dela (o concelho e arredores). */
 const G25 = gridFromManifest("g25");
@@ -18,15 +22,20 @@ export interface MapChoice {
   group: "risco" | "pistas";
 }
 
+/** Ano do mapa sem travessão («2020 a 2030»): o texto visível também é lido (botões, role=status). */
+const anoDe = (key: string) => (aboutOf(key).ano ?? "").replace("–", " a ");
+
+// anos e métodos vêm do manifest (layers.<chave>.about, verificado nos rasters pelo pipeline): com dados
+// novos, mudam com ele. Frases de 15 palavras ou menos.
 export const MAP_CHOICES: MapChoice[] = [
-  { key: "risco_2025", group: "risco", title: "Risco de incêndio", about: "Estudo DouroRisk (2025): onde o fogo faria mais estragos, juntando o perigo e o que há para perder." },
-  { key: "perigosidade_2025", group: "risco", title: "Perigo de incêndio", about: "Estudo DouroRisk (2025): onde é mais provável o fogo começar e espalhar-se." },
-  { key: "icnf_conjuntural", group: "risco", title: "Perigo oficial (2025)", about: "Mapa do ICNF para este ano, com o mato e os fogos recentes." },
-  { key: "icnf_estrutural", group: "risco", title: "Perigo oficial (2020–2030)", about: "Mapa do ICNF para 10 anos: o perigo que vem da forma do terreno e da ocupação." },
-  { key: "recorrencia_a11y", group: "risco", title: "Quantas vezes ardeu", about: "Onde o fogo passou entre 1990 e 2025, e quantas vezes." },
+  { key: "risco_2025", group: "risco", title: "Risco de fogo", about: `Estudo DouroRisk (${anoDe("risco_2025")}). Mostra onde o fogo faria mais estragos. Junta o perigo e o que há para perder.` },
+  { key: "perigosidade_2025", group: "risco", title: "Perigo de fogo", about: `Estudo DouroRisk (${anoDe("perigosidade_2025")}): onde é mais provável arder.` },
+  { key: "icnf_conjuntural", group: "risco", title: `Perigo oficial (${anoDe("icnf_conjuntural")})`, about: `Mapa oficial do ICNF para ${anoDe("icnf_conjuntural")}. ${aboutOf("icnf_conjuntural").metodo}` },
+  { key: "icnf_estrutural", group: "risco", title: `Perigo oficial (${anoDe("icnf_estrutural")})`, about: `Mapa oficial do ICNF ${periodo(aboutOf("icnf_estrutural").ano ?? "")}. ${aboutOf("icnf_estrutural").metodo}` },
+  { key: "recorrencia_a11y", group: "risco", title: "Quantas vezes ardeu", about: `Onde o fogo passou de ${A0} a ${A1}, e quantas vezes.` },
   { key: "declive_a11y", group: "pistas", title: "Encostas inclinadas", about: "Nas encostas inclinadas o fogo sobe mais depressa." },
-  { key: "exposicao_sol", group: "pistas", title: "Encostas ao sol", about: "As encostas viradas a sul e a poente secam mais." },
-  { key: "biomassa_2025", group: "pistas", title: "Quanto mato há", about: "Mais mato é mais combustível para o fogo." },
+  { key: "exposicao_sol", group: "pistas", title: "Encostas ao sol", about: "As encostas viradas de sudeste a poente secam mais." },
+  { key: "biomassa_2025", group: "pistas", title: "Quanto mato há", about: "Mais mato quer dizer mais para arder." },
 ];
 
 const images = new Map<string, Promise<ImageData>>();
@@ -189,6 +198,13 @@ export class MapsPanel {
 
   /** Quiosque: a pessoa seguinte encontra os Mapas como no início (força da cor, cortina e só o concelho). */
   reset(): void {
+    const how = $("maps-how") as HTMLDetailsElement | null;
+    if (how) {
+      how.open = false;
+      how.hidden = true;
+    }
+    const card = $("maps-card");
+    if (card) card.scrollTop = 0;
     this.setOpen(false);
     this.stopCompare();
     this.opacity = 0.8;
@@ -239,6 +255,26 @@ export class MapsPanel {
         sel.value = "";
       }
     }
+    this.renderMapsHow(key);
+  }
+
+  /** «Como sabemos?» dos mapas à vista (o escolhido e, a comparar, o outro). Fica aberto ou fechado como estava. */
+  private renderMapsHow(atual: string | null = this.hooks.current()): void {
+    const how = $("maps-how");
+    if (!how) return;
+    how.hidden = !atual;
+    if (!atual) return;
+    const keys = [atual, ...(this.compareKey && this.compareKey !== atual ? [this.compareKey] : [])];
+    // só se escreve quando os mapas mudam (o painel acerta-se muitas vezes)
+    if (how.dataset.keys === keys.join(",")) return;
+    how.dataset.keys = keys.join(",");
+    const grupos: HowGroup[] = keys.map((k) => ({ keys: [k] }));
+    renderHow($("maps-how-body"), grupos, {
+      tecnico: TECNICO,
+      // o que é o «estudo» só quando algum dos mapas à vista vem dele (os do ICNF não)
+      intro: keys.some((k) => /estudo/.test(aboutOf(k).fonte)) ? INTRO_ESTUDO : [],
+      rodape: `Cada cor vale para um quadrado inteiro do mapa. Os fogos contados vão até ${A1}.`,
+    });
   }
 
   private renderCards(): void {
@@ -305,8 +341,9 @@ export class MapsPanel {
     const ta = MAP_CHOICES.find((c) => c.key === a)?.title ?? "";
     const tb = MAP_CHOICES.find((c) => c.key === b)?.title ?? "";
     const lbl = $("maps-curtain-label");
-    if (lbl) lbl.textContent = `Oeste: ${ta} · Este: ${tb}`;
+    if (lbl) lbl.textContent = `Poente: ${ta} · Nascente: ${tb}`;
     renderLegend($("maps-legend-b"), b);
+    this.renderMapsHow();
   }
 
   private stopCompare(resetSelect = true): void {
@@ -323,5 +360,6 @@ export class MapsPanel {
       const sel = $("maps-compare") as HTMLSelectElement | null;
       if (sel) sel.value = "";
     }
+    this.renderMapsHow();
   }
 }

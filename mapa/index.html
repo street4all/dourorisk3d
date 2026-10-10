@@ -230,14 +230,14 @@
       </header>
       <div class="pop-body">
         <p class="pop-status" role="status" aria-live="polite"></p>
-        <p class="lead">Vê no mapa onde o fogo passou desde 1990.</p>
+        <p class="lead">Vê no mapa onde o fogo passou de <!--n:ano_inicio-->1990<!--/n--> a <!--n:ano_fim-->2025<!--/n-->.</p>
         <div id="compare-need" class="notice" hidden>
           <p>Primeiro guarda o palpite no passo 3. Assim ninguém o muda depois de ver o resultado.</p>
           <button type="button" class="big-btn" data-goto="guarda">Ir para o passo 3</button>
         </div>
         <div id="compare-open">
         <button type="button" class="big-btn primary wide" id="btn-show-burned" aria-pressed="false">Revelar onde ardeu</button>
-        <label class="curtain">Ou arrasta a cortina, de oeste para este
+        <label class="curtain">Ou arrasta a cortina, de poente para nascente
           <input type="range" id="reveal-range" min="0" max="100" value="0" step="1" />
         </label>
 
@@ -251,8 +251,8 @@
         </div>
 
         <div class="fact">
-          <div class="grid10" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          <p><strong>Mais de 4 em cada 10 sítios do concelho já arderam.</strong></p>
+          <div class="grid10" aria-hidden="true"><!--n:grid10_ardeu--><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><!--/n--></div>
+          <p><strong><!--n:ardeu_frase-->Mais de 4 em cada 10<!--/n--> sítios do concelho já arderam.</strong></p>
         </div>
 
         <h3>O mapa acerta sempre?</h3>
@@ -557,6 +557,11 @@
           <div class="probe-parish-list" id="probe-parish-list" role="group" aria-labelledby="probe-parish-summary"></div>
         </details>
       </div>
+      <!-- no fim do cartão: aberto, não afasta os controlos dos resultados; a ordem visual é a do Tab -->
+      <details class="probe-how" id="probe-how">
+        <summary>Como sabemos?</summary>
+        <div class="probe-how-body" id="probe-how-body"></div>
+      </details>
     </aside>
 
     <!-- Mapas de risco: escolher, ver e comparar -->
@@ -587,6 +592,10 @@
         </label>
         <div class="legend" id="maps-legend-b"></div>
       </div>
+      <details class="probe-how" id="maps-how" hidden>
+        <summary>Como sabemos?</summary>
+        <div class="probe-how-body" id="maps-how-body"></div>
+      </details>
     </aside>
 
     <!-- termómetro da ficha (ao arrastar ou pôr) -->

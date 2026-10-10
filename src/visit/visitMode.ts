@@ -20,6 +20,10 @@ import { loadStack } from "./stack";
 import { Probe } from "./probe";
 import { MapsPanel, loadImage } from "./maps";
 import { HA_PER_CELL, HA_PER_FIELD, renderSpread, simulateSpread, type SpreadResult } from "./spread";
+import { RISK_WORDS, rumo } from "./words";
+import { TECNICO } from "./tecnico";
+import { A0, A1 } from "../data/concelho";
+import { fmtInt } from "../data/numeros";
 
 type PopName = "olha" | "escolhe" | "guarda" | "compara" | "protege" | "mais" | "ajuda";
 type Mark = "ok" | "no" | null;
@@ -33,7 +37,6 @@ const G25 = gridFromManifest("g25");
 /** grelha do mapa "onde ardeu" (a revelação corta colunas desta grelha) */
 const BURNED_GRID = gridOfLayer(BURNED);
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-const RISK_WORDS = ["muito baixo", "baixo", "médio", "alto", "muito alto"];
 const RISK_COLORS = ["#036403", "#88B302", "#FFFE06", "#FE9900", "#DD2203"];
 const FLAME_PATH = "M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4-1-6 1-9z";
 
@@ -83,11 +86,6 @@ function windWords(kmh: number): string {
   if (kmh < 40) return "moderado";
   if (kmh < 60) return "forte";
   return "muito forte";
-}
-
-const DIRS = ["norte", "nordeste", "nascente", "sudeste", "sul", "sudoeste", "poente", "noroeste"];
-function windFrom(deg: number): string {
-  return DIRS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
 }
 
 function regrowAt(years: number): number {
@@ -153,11 +151,15 @@ export class VisitMode {
 
   constructor(private manager: Alijo3DManager) {
     // em ecrãs estreitos o cartão do Explorar e a janela do passo não cabem os dois
-    this.probe = new Probe(manager, (on) => {
-      if (!on) return;
-      this.maps?.setOpen(false); // os dois cartões ocupam o mesmo lugar
-      if (!matchMedia("(min-width: 900px)").matches) this.close();
-    });
+    this.probe = new Probe(
+      manager,
+      (on) => {
+        if (!on) return;
+        this.maps?.setOpen(false); // os dois cartões ocupam o mesmo lugar
+        if (!matchMedia("(min-width: 900px)").matches) this.close();
+      },
+      () => this.visibleKey,
+    );
   }
 
   init(): void {
@@ -206,7 +208,7 @@ export class VisitMode {
       if (wt) wt.checked = false;
     }
     // "Mais" (camadas e controlos técnicos) só aparece com ?tecnico no endereço
-    if (new URLSearchParams(location.search).has("tecnico")) {
+    if (TECNICO) {
       document.querySelectorAll<HTMLElement>(".tecnico-only").forEach((el) => (el.hidden = false));
     }
     this.mapLegend = document.createElement("div");
@@ -1015,7 +1017,7 @@ export class VisitMode {
       }
       shown++;
       if (ok) hits++;
-      const txt = cls === NO_DATA ? "sem dados" : ok ? layer.describe(cls!).replace("Aqui ardeu", "ardeu") : "não ardeu desde 1990";
+      const txt = cls === NO_DATA ? "sem dados" : ok ? layer.describe(cls!).replace("Aqui ardeu", "ardeu") : `não ardeu de ${A0} a ${A1}`;
       markHtml.push(ok ? `<span class="sm ok">✓</span>` : `<span class="sm no">✗</span>`);
       items.push(
         `<li class="${ok ? "ok" : "no"}"><span class="mark" aria-hidden="true">${ok ? "✓" : "✗"}</span><span><strong>Ficha ${i + 1}:</strong> ${txt}</span></li>`,
@@ -1056,7 +1058,7 @@ export class VisitMode {
     const h = Math.round(w.humidity);
     const parts = [
       ok(w.temperature) ? `${t} °C` : "temperatura sem dados",
-      ok(w.windSpeed) ? `vento ${windWords(v)} (${v} km/h) que vem de ${windFrom(w.windDirection)}` : "vento sem dados",
+      ok(w.windSpeed) ? `vento ${windWords(v)} (${v} km/h) que vem de ${rumo(w.windDirection)}` : "vento sem dados",
     ];
     this.text($("weather-plain"), `Agora em ${w.stationName}: ${parts.join(", ")}. ${w.description}.`);
     const rules = [
@@ -1178,7 +1180,7 @@ export class VisitMode {
         const fill = $("spark-fill");
         if (fill) fill.style.width = `${Math.round(p * 100)}%`;
         const ha = cells * HA_PER_CELL;
-        const fields = Math.round(ha / HA_PER_FIELD);
+        const fields = fmtInt(ha / HA_PER_FIELD);
         if (p < 1) this.text($("spark-text"), `O fogo está a andar… já ardeu o mesmo que ${fields} campos de futebol.`);
         else this.text($("spark-text"), this.sparkSummary(s, ha));
       }
@@ -1202,10 +1204,11 @@ export class VisitMode {
     const cx = (p.x / G25.width) * r.width, cy = (p.y / G25.height) * r.height;
     const dx = n ? sx / n - cx : 0, dy = n ? sy / n - cy : 0;
     const deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
-    const dir = Math.hypot(dx, dy) < 3 ? "todos os lados" : `${DIRS[Math.round((((deg % 360) + 360) % 360) / 45) % 8]}`;
-    const fields = Math.round(ha / HA_PER_FIELD).toLocaleString("pt-PT");
-    const windTxt = s.wind < 3 ? "Sem vento" : `Com vento ${windWords(s.wind)} de ${windFrom(s.from)}`;
-    return `${windTxt}, o fogo foi sobretudo para ${dir} e queimou o mesmo que ${fields} campos de futebol (${Math.round(ha).toLocaleString("pt-PT")} ha).`;
+    const dir = Math.hypot(dx, dy) < 3 ? "todos os lados" : rumo(deg);
+    // espaço que não parte nos milhares («4 028»), como no Explorar (toLocaleString pt-PT não separa 4 algarismos)
+    const fields = fmtInt(ha / HA_PER_FIELD);
+    const windTxt = s.wind < 3 ? "Sem vento" : `Com vento ${windWords(s.wind)} de ${rumo(s.from)}`;
+    return `${windTxt}, o fogo foi sobretudo para ${dir} e queimou o mesmo que ${fields} campos de futebol (${fmtInt(ha)} ha).`;
   }
 
   private stopSpark(clear: boolean): void {
@@ -1340,6 +1343,7 @@ export class VisitMode {
 
   private applyFont(): void {
     document.documentElement.style.setProperty("--ui-scale", ["1", "1.2", "1.4"][this.fontStep]);
+    this.probe.fitPadding(); // o cartão do Explorar cresce com a letra: os botões do mapa afastam-se dele
     const label = `A+, tamanho da letra: ${["normal", "maior", "muito maior"][this.fontStep]}. Carrega para mudar.`;
     $("btn-font")?.setAttribute("aria-label", label);
     $("btn-font")?.setAttribute("title", label);
@@ -1376,6 +1380,8 @@ export class VisitMode {
     this.close();
     this.probe.reset();
     this.maps?.reset();
+    // rede de segurança: nenhum «Como sabemos?» fica aberto para a pessoa seguinte
+    document.querySelectorAll<HTMLDetailsElement>("details.probe-how").forEach((d) => (d.open = false));
     this.resetGuess();
     this.visited.clear();
     this.clearCues();

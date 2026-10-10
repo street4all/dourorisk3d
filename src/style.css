@@ -892,6 +892,8 @@ calcite-slider {
 /* foco visível: anel âmbar por fora de anel escuro */
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
+summary:focus-visible,
 .pop-q:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
@@ -1029,8 +1031,9 @@ body[data-mode="protege"] .crosshair { display: block; }
 
 /* Alto Contraste do Windows: os estados ficam visíveis e as amostras de cor mantêm a cor */
 @media (forced-colors: active) {
-  .legend .sw, .grid10 i.on, .summer.win, .slot.on { forced-color-adjust: none; }
-  .dock-btn.active, .chip[aria-pressed="true"], .cue[aria-pressed="true"], .face[aria-checked="true"], .big-btn[aria-pressed="true"] {
+  .legend .sw, .grid10 i.on, .summer.win, .slot.on, .probe-table .sw, .probe-bar i { forced-color-adjust: none; }
+  .dock-btn.active, .chip[aria-pressed="true"], .cue[aria-pressed="true"], .face[aria-checked="true"], .big-btn[aria-pressed="true"],
+  .probe-scope button[aria-pressed="true"], .map-card[aria-pressed="true"], .tool-btn[aria-pressed="true"] {
     outline: 3px solid Highlight;
     outline-offset: -3px;
   }
@@ -1934,4 +1937,58 @@ body.probing #alijo-scene-container {
 }
 .probe-parishes details[open] summary {
   margin-bottom: 4px;
+}
+
+/* Fase 1: fonte e sub-linha na ficha, factos das áreas e «Como sabemos?» (sem animação) */
+.probe-table .pv-src,
+.probe-table .pv-sub { display: block; font-weight: 400; font-size: 0.9em; line-height: 1.25; color: var(--fg-2); }
+/* a sub-linha diz coisas essenciais («a última em 2017», «cerca de 13 t/ha»): ao tamanho do valor, não mais pequena */
+.probe-table .pv-sub { font-size: 1em; }
+.probe-table th .pv-src { white-space: normal; }
+.probe-table.point .pv strong { font-size: 1em; }
+.probe-table .pv-tec { font-weight: 400; font-size: 0.85em; color: var(--fg-2); margin-left: 4px; }
+.probe-head strong span { color: inherit; font-size: inherit; }
+.probe-facts { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; font-size: 0.92em; }
+.probe-body:empty ~ .probe-how { display: none; }
+.probe-how { margin: 8px 0 4px; }
+.probe-how > summary { list-style: none; display: flex; align-items: center; justify-content: space-between;
+  min-height: 44px; padding: 0 10px; border: 2px solid var(--fg-2); border-radius: 12px; font-weight: 700; cursor: pointer; }
+.probe-how > summary::-webkit-details-marker { display: none; }
+.probe-how > summary::after { content: "▾"; content: "▾" / ""; font-size: 1.2em; }
+.probe-how[open] > summary::after { content: "▴"; content: "▴" / ""; }
+.probe-how[open] > summary { margin-bottom: 6px; }
+.probe-how-body { font-size: 0.9em; line-height: 1.4; }
+.probe-how-body p { margin: 0 0 4px; }
+.probe-how-body dl { margin: 0; }
+.probe-how-body dt { font-weight: 700; margin-top: 8px; }
+.probe-how-body dd { margin: 2px 0 0; }
+.probe-how-body .how-tec { color: var(--fg-2); font-size: 0.9em; overflow-wrap: anywhere; }
+.probe-how-body .how-foot { margin-top: 8px; color: var(--fg-2); }
+.probe-parishes summary::after { content: "▾"; content: "▾" / ""; }
+.probe-parishes details[open] summary::after { content: "▴"; content: "▴" / ""; }
+/* «Como sabemos?» fica no fim do cartão (depois dos controlos), também em ecrãs estreitos: ordem visual = ordem do Tab */
+@media (max-width: 899px) { .probe-card .probe-how { order: 3; } }
+/* contorno do botão de abrir com contraste de 3:1 ou mais (era var(--line)) */
+.probe-parishes summary { border-color: var(--fg-2); }
+/* a fonte curta não parte o período («1990–2025») */
+.nw { white-space: nowrap; }
+/* círculo só em parte no concelho: dito antes dos números */
+.probe-part { margin: 0 0 6px; font-size: 0.92em; }
+/* tabelas de área: o nome e o número partem linha e a barra encolhe, para nada sair do cartão (também com A++);
+   o número e o «%» ficam juntos pelo espaço que não parte («menos de / 1 %») */
+.probe-table.area th { white-space: normal; width: auto; }
+.probe-table.area .pv { white-space: normal; }
+.probe-table.area .probe-bar { min-width: 36px; }
+
+/* rodapés (coordenadas, «Cada número é uma parte da área») legíveis: eram 0.8em */
+.probe-foot { font-size: 0.9em; }
+/* ecrãs largos: o cartão cresce com a letra (A+, A++), para a ficha ficar com o mesmo desenho que em A */
+@media (min-width: 900px) {
+  .probe-card { width: min(calc(340px * var(--ui-scale)), calc(100vw - 32px)); }
+}
+/* cartão estreito para a letra (telemóvel com A+ ou A++): o nome da linha da ficha também parte,
+   para o valor e a sub-linha não ficarem com uma palavra por linha */
+.probe-card { container: probe-card / inline-size; }
+@container probe-card (max-width: 17em) {
+  .probe-table.point th { white-space: normal; width: auto; }
 }

@@ -5,6 +5,9 @@
 import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
 import { gridOfLayer } from "../geo/grid";
 import { ClassGrid } from "./sampler";
+import { DECL_WORDS, RISK_WORDS } from "./words";
+import { aboutOf } from "./how";
+import { A0, A1 } from "../data/concelho";
 
 const A11Y = "/data/dourorisk/a11y";
 
@@ -33,23 +36,23 @@ export interface VisitLayer {
 }
 
 const RISK_COLORS = ["#036403", "#88B302", "#FFFE06", "#FE9900", "#DD2203"];
-const RISK_WORDS = ["muito baixo", "baixo", "médio", "alto", "muito alto"];
 
 function riskLegend(): LegendItem[] {
   return RISK_WORDS.map((w, i) => ({ classes: [i + 1], color: RISK_COLORS[i], label: w, number: i + 1, flames: i + 1 }));
 }
 
-function riskLayer(key: string, title: string, noun: string, image: string, classes: string): VisitLayer {
+function riskLayer(key: string, title: string, noun: string, image: string, classes: string, quando = ""): VisitLayer {
   const grid = gridOfLayer(key);
   DOURORISK_MODELS[key] = { id: key, title, image, grid };
   return {
     key,
     title,
-    question: `${noun[0].toUpperCase()}${noun.slice(1)} de incêndio, de 1 a 5`,
+    // «quando» distingue as duas legendas do perigo oficial lado a lado na cortina
+    question: `${noun[0].toUpperCase()}${noun.slice(1)} de fogo${quando ? ` (${quando})` : ""}, de 1 a 5`,
     legend: riskLegend(),
     grid: new ClassGrid(classes, grid),
     empty: "Aqui não há dados.",
-    describe: (c) => `Aqui o ${noun} de incêndio é ${c}: ${RISK_WORDS[c - 1]}.`,
+    describe: (c) => `Aqui o ${noun} de fogo é ${c}: ${RISK_WORDS[c - 1]}.`,
   };
 }
 
@@ -58,42 +61,44 @@ export const VISIT_LAYERS: Record<string, VisitLayer> = {};
 /** Substitui as imagens DouroRisk pelas versões acessíveis e junta as camadas novas. Chamar antes de inicializar a cena. */
 export function applyAccessibleLayers(): void {
   const add = (l: VisitLayer) => (VISIT_LAYERS[l.key] = l);
-  add(riskLayer("risco_2025", "Risco de incêndio (tese, 2025)", "risco", `${A11Y}/risco_2025.png`, `${A11Y}/risco_2025_classes.png`));
-  add(riskLayer("perigosidade_2025", "Perigo de incêndio (tese, 2025)", "perigo", `${A11Y}/perigosidade_2025.png`, `${A11Y}/perigosidade_2025_classes.png`));
-  add(riskLayer("icnf_conjuntural", "Perigo oficial ICNF (2025)", "perigo", `${A11Y}/icnf_conjuntural.png`, `${A11Y}/icnf_conjuntural_classes.png`));
-  add(riskLayer("icnf_estrutural", "Perigo oficial ICNF (2020–2030)", "perigo", `${A11Y}/icnf_estrutural.png`, `${A11Y}/icnf_estrutural_classes.png`));
+  add(riskLayer("risco_2025", `Risco de fogo (${aboutOf("risco_2025").fonte_curta})`, "risco", `${A11Y}/risco_2025.png`, `${A11Y}/risco_2025_classes.png`));
+  add(riskLayer("perigosidade_2025", `Perigo de fogo (${aboutOf("perigosidade_2025").fonte_curta})`, "perigo", `${A11Y}/perigosidade_2025.png`, `${A11Y}/perigosidade_2025_classes.png`));
+  // anos sem travessão («2020 a 2030»): a legenda é lida pelo leitor de ecrã
+  const ano = (k: string) => (aboutOf(k).ano ?? "").replace("–", " a ");
+  add(riskLayer("icnf_conjuntural", `Perigo oficial ICNF (${aboutOf("icnf_conjuntural").ano})`, "perigo oficial", `${A11Y}/icnf_conjuntural.png`, `${A11Y}/icnf_conjuntural_classes.png`, ano("icnf_conjuntural")));
+  add(riskLayer("icnf_estrutural", `Perigo oficial ICNF (${aboutOf("icnf_estrutural").ano})`, "perigo oficial", `${A11Y}/icnf_estrutural.png`, `${A11Y}/icnf_estrutural_classes.png`, ano("icnf_estrutural")));
 
   const recGrid = gridOfLayer("recorrencia_a11y");
-  DOURORISK_MODELS.recorrencia_a11y = { id: "recorrencia_a11y", title: "Quantas vezes ardeu (1990–2025)", image: `${A11Y}/recorrencia.png`, grid: recGrid };
+  const recTitle = `Quantas vezes ardeu (${A0}–${A1})`;
+  DOURORISK_MODELS.recorrencia_a11y = { id: "recorrencia_a11y", title: recTitle, image: `${A11Y}/recorrencia.png`, grid: recGrid };
   add({
     key: "recorrencia_a11y",
-    title: "Quantas vezes ardeu (1990–2025)",
-    question: "Quantas vezes ardeu, de 1990 a 2025",
+    title: recTitle,
+    question: `Quantas vezes ardeu, de ${A0} a ${A1}`,
     legend: [
       { classes: [1, 2], color: "#EFA650", label: "1 ou 2 vezes" },
       { classes: [3, 4], color: "#D0672A", label: "3 ou 4 vezes" },
       { classes: [5], color: "#47180D", label: "5 ou mais vezes" },
     ],
     grid: new ClassGrid(`${A11Y}/recorrencia_classes.png`, recGrid),
-    empty: "Aqui não ardeu desde 1990.",
-    describe: (c) => (c >= 5 ? "Aqui ardeu 5 ou mais vezes desde 1990." : `Aqui ardeu ${c} ${c === 1 ? "vez" : "vezes"} desde 1990.`),
+    empty: `Aqui não ardeu de ${A0} a ${A1}.`,
+    describe: (c) => (c >= 5 ? `Aqui ardeu 5 ou mais vezes de ${A0} a ${A1}.` : `Aqui ardeu ${c} ${c === 1 ? "vez" : "vezes"} de ${A0} a ${A1}.`),
   });
 
   const decGrid = gridOfLayer("declive_a11y");
   DOURORISK_MODELS.declive_a11y = { id: "declive_a11y", title: "Encostas inclinadas", image: `${A11Y}/declive.png`, grid: decGrid };
-  const DECL_WORDS = ["", "quase plana", "um pouco inclinada", "muito inclinada", "quase a pique"];
   add({
     key: "declive_a11y",
     title: "Encostas inclinadas",
     question: "Quanto sobe a encosta",
     legend: [
-      { classes: [2], color: "#88B302", label: "um pouco inclinada" },
-      { classes: [3], color: "#FE9900", label: "muito inclinada" },
-      { classes: [4], color: "#DD2203", label: "quase a pique" },
+      { classes: [2], color: "#88B302", label: DECL_WORDS[2] },
+      { classes: [3], color: "#FE9900", label: DECL_WORDS[3] },
+      { classes: [4], color: "#DD2203", label: DECL_WORDS[4] },
     ],
     grid: new ClassGrid(`${A11Y}/declive_classes.png`, decGrid),
     empty: "Aqui não há dados.",
-    describe: (c) => `Aqui a encosta é ${DECL_WORDS[c] || "quase plana"}.`,
+    describe: (c) => `Aqui a encosta é ${DECL_WORDS[c] || "pouco inclinada"}.`,
   });
 
   const solGrid = gridOfLayer("exposicao_sol");
@@ -101,8 +106,8 @@ export function applyAccessibleLayers(): void {
   add({
     key: "exposicao_sol",
     title: "Encostas viradas ao sol",
-    question: "Encostas que apanham sol à tarde",
-    legend: [{ classes: [1], color: "#EFA650", label: "virada ao sol (sul e poente)" }],
+    question: "Encostas viradas ao sol",
+    legend: [{ classes: [1], color: "#EFA650", label: "virada ao sol (de sudeste a poente)" }],
     grid: new ClassGrid(`${A11Y}/exposicao_sol_classes.png`, solGrid),
     empty: "Aqui não há dados.",
     describe: (c) =>
@@ -110,13 +115,13 @@ export function applyAccessibleLayers(): void {
         ? "Aqui a encosta está virada ao sol: o mato fica mais seco."
         : c === 3
           ? "Aqui o terreno é plano."
-          : "Aqui a encosta está virada para a sombra.",
+          : "Aqui a encosta apanha menos sol.",
   });
 
   const BIO_WORDS = ["muito pouco mato", "pouco mato", "algum mato", "muito mato", "mato muito denso"];
   add({
     key: "biomassa_2025",
-    title: "Quanto mato há (2025)",
+    title: `Quanto mato há (${aboutOf("biomassa_2025").ano})`,
     question: "Quanto mato há para arder",
     legend: [
       { classes: [1], color: "#EDF8E9", label: BIO_WORDS[0] },

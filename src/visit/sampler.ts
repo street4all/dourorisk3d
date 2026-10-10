@@ -6,8 +6,53 @@ import { cellHa, cellOf, forEachCellInCircle, pixelOf, type GridGeo } from "../g
 /** Valor devolvido quando o ponto está fora da grelha ou a grelha não carregou. */
 export const NO_DATA = -1;
 
+/** Máscaras de polígonos já desenhadas, por grelha e pela chave da seleção (concelho, freguesias). */
+const masks = new Map<string, Map<string, Uint8Array>>();
+/** só as últimas seleções ficam guardadas em cada grelha (as grelhas de 10 m têm 5 milhões de células) */
+const MASKS_PER_GRID = 6;
+
+/**
+ * Máscara (1 = centro da célula dentro) de um ou mais polígonos (anéis GeoJSON em lon/lat) na grelha
+ * `geo`, desenhada uma vez por grelha e partilhada por todas as camadas dessa grelha: as camadas de
+ * 25 m desenham uma só máscara por seleção. `key` identifica a seleção. null se não houver canvas.
+ */
+export function maskOf(geo: GridGeo, key: string, polygons: number[][][][]): Uint8Array | null {
+  let byKey = masks.get(geo.id);
+  if (!byKey) masks.set(geo.id, (byKey = new Map()));
+  let mask = byKey.get(key);
+  if (mask) return mask;
+  const canvas = document.createElement("canvas");
+  canvas.width = geo.width;
+  canvas.height = geo.height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.fillStyle = "#000";
+  // cada polígono à parte (par-ímpar só entre os seus anéis, para os buracos) e depois a união de todos:
+  // duas freguesias que se sobrepõem não se anulam, e o bordo comum de duas vizinhas fica preenchido
+  for (const rings of polygons) {
+    ctx.beginPath();
+    for (const ring of rings) {
+      // cada vértice vai para PT-TM06 e daí para o píxel da grelha (projeção por vértice, não por célula)
+      ring.forEach(([lon, lat], i) => {
+        const p = pixelOf(geo, lon, lat);
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.closePath();
+    }
+    ctx.fill("evenodd");
+  }
+  const px = ctx.getImageData(0, 0, geo.width, geo.height).data;
+  mask = new Uint8Array(geo.width * geo.height);
+  for (let i = 0; i < mask.length; i++) mask[i] = px[i * 4 + 3] > 127 ? 1 : 0;
+  byKey.set(key, mask);
+  if (byKey.size > MASKS_PER_GRID) byKey.delete(byKey.keys().next().value!);
+  return mask;
+}
+
 export class ClassGrid {
-  private data: Uint8ClampedArray | null = null;
+  /** um byte por célula (o canal R do PNG), linha a linha de norte para sul */
+  private data: Uint8Array | null = null;
   private width = 0;
   private height = 0;
   private loading: Promise<void> | null = null;
@@ -31,7 +76,11 @@ export class ClassGrid {
           const ctx = canvas.getContext("2d", { willReadFrequently: true });
           if (!ctx) return reject(new Error("Canvas indisponível"));
           ctx.drawImage(img, 0, 0);
-          this.data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          const rgba = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          // guarda só o canal R (PNG em tons de cinzento): 1 byte por célula em vez de 4
+          const data = new Uint8Array(canvas.width * canvas.height);
+          for (let i = 0; i < data.length; i++) data[i] = rgba[i * 4];
+          this.data = data;
           this.width = canvas.width;
           this.height = canvas.height;
           resolve();
@@ -46,20 +95,28 @@ export class ClassGrid {
     return this.loading;
   }
 
-  /** A grelha inteira (um byte por célula, linha a linha de norte para sul), para desenhar ou simular. */
+  /** A grelha inteira (uma cópia, um byte por célula, linha a linha de norte para sul), para desenhar ou simular. */
   async raw(): Promise<{ cls: Uint8Array; width: number; height: number; grid: GridGeo }> {
     await this.load();
-    const cls = new Uint8Array(this.width * this.height);
-    for (let i = 0; i < cls.length; i++) cls[i] = this.data![i * 4];
-    return { cls, width: this.width, height: this.height, grid: this.geo };
+    return { cls: this.data!.slice(), width: this.width, height: this.height, grid: this.geo };
+  }
+
+  /** Os bytes da grelha, só para ler (por exemplo, a máscara 0/1 do concelho); null se não carregou. */
+  async bytes(): Promise<Uint8Array | null> {
+    try {
+      await this.load();
+    } catch {
+      return null;
+    }
+    return this.data;
   }
 
   /**
    * Quantas células de cada classe há dentro de um círculo (raio em metros, medidos em PT-TM06).
-   * Conta as células cujo centro está no círculo.
-   * `counts[c]` = células da classe c; `total` = células do círculo dentro da grelha.
+   * Conta as células cujo centro está no círculo e, com `inside`, só as que têm inside[i] != 0
+   * (por exemplo, as do concelho). `counts[c]` = células da classe c; `total` = células contadas.
    */
-  async histogram(lon: number, lat: number, radiusM: number): Promise<{ counts: number[]; total: number } | null> {
+  async histogram(lon: number, lat: number, radiusM: number, inside?: Uint8Array | null): Promise<{ counts: number[]; total: number } | null> {
     try {
       await this.load();
     } catch {
@@ -68,59 +125,35 @@ export class ClassGrid {
     const data = this.data;
     if (!data) return null;
     const counts = new Array<number>(256).fill(0);
-    const total = forEachCellInCircle(this.geo, lon, lat, radiusM, (i) => {
-      counts[data[i * 4]]++;
+    let total = 0;
+    forEachCellInCircle(this.geo, lon, lat, radiusM, (i) => {
+      if (inside && !inside[i]) return;
+      counts[data[i]]++;
+      total++;
     });
     return { counts, total };
   }
 
-  /** máscaras de polígonos já desenhadas nesta grelha (concelho, freguesias), pela chave da seleção */
-  private masks = new Map<string, Uint8Array>();
-
   /**
-   * Quantas células de cada classe há dentro de um ou mais polígonos (anéis GeoJSON em lon/lat).
-   * `key` identifica a seleção, para reaproveitar a máscara já desenhada.
+   * Quantas células de cada classe há dentro de um ou mais polígonos (anéis GeoJSON em lon/lat) e, com
+   * `inside`, só as que têm inside[i] != 0. `key` identifica a seleção, para reaproveitar a máscara já
+   * desenhada nesta grelha (maskOf).
    */
-  async histogramPolygons(key: string, polygons: number[][][][]): Promise<{ counts: number[]; total: number } | null> {
+  async histogramPolygons(key: string, polygons: number[][][][], inside?: Uint8Array | null): Promise<{ counts: number[]; total: number } | null> {
     try {
       await this.load();
     } catch {
       return null;
     }
-    if (!this.data) return null;
-    let mask = this.masks.get(key);
-    if (!mask) {
-      const canvas = document.createElement("canvas");
-      canvas.width = this.width;
-      canvas.height = this.height;
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      if (!ctx) return null;
-      ctx.beginPath();
-      for (const rings of polygons) {
-        for (const ring of rings) {
-          // cada vértice vai para PT-TM06 e daí para o píxel da grelha (projeção por vértice, não por célula)
-          ring.forEach(([lon, lat], i) => {
-            const p = pixelOf(this.geo, lon, lat);
-            if (i === 0) ctx.moveTo(p.x, p.y);
-            else ctx.lineTo(p.x, p.y);
-          });
-          ctx.closePath();
-        }
-      }
-      ctx.fillStyle = "#000";
-      ctx.fill("evenodd");
-      const px = ctx.getImageData(0, 0, this.width, this.height).data;
-      mask = new Uint8Array(this.width * this.height);
-      for (let i = 0; i < mask.length; i++) mask[i] = px[i * 4 + 3] > 127 ? 1 : 0;
-      this.masks.set(key, mask);
-      // só as últimas seleções ficam guardadas (as grelhas de 10 m têm 5 milhões de células)
-      if (this.masks.size > 6) this.masks.delete(this.masks.keys().next().value!);
-    }
+    const data = this.data;
+    if (!data) return null;
+    const mask = maskOf(this.geo, key, polygons);
+    if (!mask) return null;
     const counts = new Array<number>(256).fill(0);
     let total = 0;
     for (let i = 0; i < mask.length; i++) {
-      if (!mask[i]) continue;
-      counts[this.data[i * 4]]++;
+      if (!mask[i] || (inside && !inside[i])) continue;
+      counts[data[i]]++;
       total++;
     }
     return { counts, total };
@@ -151,7 +184,7 @@ export class ClassGrid {
         const r = row + dr;
         const c = col + dc;
         if (r < 0 || c < 0 || r >= this.height || c >= this.width) continue;
-        best = Math.max(best, this.data[(r * this.width + c) * 4]);
+        best = Math.max(best, this.data[r * this.width + c]);
       }
     }
     return best;

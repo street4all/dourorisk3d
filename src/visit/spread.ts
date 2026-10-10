@@ -2,6 +2,7 @@
 // Células de 50 m; o fogo anda mais depressa onde o perigo oficial é alto, nas encostas inclinadas,
 // nas encostas viradas ao sol e a favor do vento de agora. Caminho mais rápido (Dijkstra) a partir da faísca.
 import { cellAt, loadStack } from "./stack";
+import { HA_POR_CAMPO } from "../data/numeros";
 
 const STEP = 2; // 2 × 25 m = células de 50 m
 const MAX_CELLS = 24000; // segurança: 24 000 × 0,25 ha = 6 000 ha
@@ -10,7 +11,8 @@ const TIME_LIMIT = 36;
 const PERIGO_SPEED = [0, 0.25, 0.45, 0.7, 1.0, 1.3];
 const DECLIVE_SPEED = [1, 0.9, 1, 1.25, 1.5];
 export const HA_PER_CELL = 0.25;
-export const HA_PER_FIELD = 0.714; // campo de futebol 105 × 68 m
+/** Campo de futebol de 105 × 68 m, em hectares: o mesmo do Explorar e da apresentação (src/data/numeros.ts). */
+export const HA_PER_FIELD = HA_POR_CAMPO;
 
 export interface SpreadResult {
   width: number;
