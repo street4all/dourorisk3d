@@ -101,6 +101,7 @@ export class Alijo3DManager {
   public windLayer: ImageryTileLayer | null = null;
   public concelhoBoundaryLayer: GeoJSONLayer | null = null;
   public alijoParishesLayer: GeoJSONLayer | null = null;
+  public alijoRoadsLayer: GeoJSONLayer | null = null;
   public stationLayer: GraphicsLayer | null = null;
   public stationGraphic: Graphic | null = null;
   public sanfinsBuildingsLayer: GeoJSONLayer | null = null;
@@ -231,6 +232,78 @@ export class Alijo3DManager {
             <p><strong>População Ativa:</strong> {pop_ativa} habitantes</p>
             <p><strong>Taxa de Atividade:</strong> {taxa_atividade}%</p>
             <p><strong>Setor Serviços:</strong> {pct_servicos}% | <strong>Indústria/Vinho:</strong> {pct_industria}%</p>
+          </div>
+        `,
+      },
+    });
+
+    // 5b. Rede Viária e Caminhos Florestais do Concelho de Alijó (OpenStreetMap)
+    const roadsRenderer = new UniqueValueRenderer({
+      field: "highway",
+      defaultSymbol: new SimpleLineSymbol({
+        color: [220, 220, 220, 0.75],
+        width: 1.4,
+      }),
+      defaultLabel: "Arruamento / Via Local",
+      uniqueValueInfos: [
+        {
+          value: "primary",
+          symbol: new SimpleLineSymbol({
+            color: [245, 158, 11, 0.95], // Âmbar / Laranja
+            width: 3.2,
+          }),
+          label: "Estrada Nacional (ex: EN 212, EN 322)",
+        },
+        {
+          value: "trunk",
+          symbol: new SimpleLineSymbol({
+            color: [239, 68, 68, 0.95], // Vermelho / Laranja
+            width: 3.5,
+          }),
+          label: "Itinerário Principal / Complementar (IC5)",
+        },
+        {
+          value: "secondary",
+          symbol: new SimpleLineSymbol({
+            color: [251, 191, 36, 0.9], // Amarelo
+            width: 2.2,
+          }),
+          label: "Estrada Regional (ER)",
+        },
+        {
+          value: "tertiary",
+          symbol: new SimpleLineSymbol({
+            color: [254, 240, 138, 0.85],
+            width: 1.8,
+          }),
+          label: "Estrada Municipal (EM)",
+        },
+        {
+          value: "track",
+          symbol: new SimpleLineSymbol({
+            color: [217, 119, 6, 0.75], // Castanho terra / florestal
+            width: 1.2,
+            style: "dash",
+          }),
+          label: "Caminho Rural / Florestal (Acesso BVSD)",
+        },
+      ],
+    });
+
+    this.alijoRoadsLayer = new GeoJSONLayer({
+      url: "/data/alijo-estradas.geojson",
+      title: "Rede Viária e Caminhos de Alijó",
+      elevationInfo: {
+        mode: "on-the-ground",
+      },
+      renderer: roadsRenderer,
+      popupTemplate: {
+        title: "🛣️ {name}",
+        content: `
+          <div style="font-size: 13px; line-height: 1.6;">
+            <p><strong>Designação:</strong> {name}</p>
+            <p><strong>Tipo de Via:</strong> {tipo}</p>
+            <p><strong>Piso:</strong> {surface}</p>
           </div>
         `,
       },
@@ -444,6 +517,7 @@ export class Alijo3DManager {
     if (this.concelhoBoundaryLayer) map.add(this.concelhoBoundaryLayer);
     map.add(this.alijoParishesLayer);
     map.add(this.douroRiskLayer);
+    if (this.alijoRoadsLayer) map.add(this.alijoRoadsLayer);
     map.add(this.sanfinsBuildingsLayer);
     map.add(this.sanfinsRoofsLayer);
     map.add(this.windLayer);
@@ -681,6 +755,10 @@ export class Alijo3DManager {
 
   public setConcelhoVisible(visible: boolean): void {
     if (this.concelhoBoundaryLayer) this.concelhoBoundaryLayer.visible = visible;
+  }
+
+  public setRoadsVisible(visible: boolean): void {
+    if (this.alijoRoadsLayer) this.alijoRoadsLayer.visible = visible;
   }
 
   public setSanfinsBuildingsVisible(visible: boolean): void {

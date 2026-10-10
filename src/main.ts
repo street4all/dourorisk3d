@@ -251,6 +251,11 @@ function setup3DControls(manager: Alijo3DManager) {
     manager.setConcelhoVisible(concelhoToggle.checked);
   });
 
+  const roadsToggle = document.getElementById("roads-toggle") as any;
+  roadsToggle?.addEventListener("calciteSwitchChange", () => {
+    manager.setRoadsVisible(roadsToggle.checked);
+  });
+
   // 3D Buildings Toggle
   const buildingsToggle = document.getElementById("buildings-toggle") as any;
   buildingsToggle?.addEventListener("calciteSwitchChange", () => {
