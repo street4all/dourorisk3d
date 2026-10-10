@@ -726,7 +726,7 @@
         "metodo": "Um cálculo mostra onde é mais provável arder.",
         "nota": "É um cenário para 2025, feito com os fogos do passado. Não é uma medição nem uma previsão.",
         "resolucao_m": 10,
-        "titulo": "Perigo de fogo (estudo)"
+        "titulo": "Perigo de incêndio (estudo)"
       },
       "classes": [
         {
@@ -882,10 +882,10 @@
         "ano": "2025",
         "fonte": "estudo DouroRisk",
         "fonte_curta": "estudo, 2025",
-        "metodo": "Junta o perigo de fogo com o que se pode perder.",
+        "metodo": "Junta o perigo de incêndio com o que se pode perder.",
         "nota": "É um cenário para 2025, feito com os fogos do passado. Não é uma medição nem uma previsão.",
         "resolucao_m": 10,
-        "titulo": "Risco de fogo"
+        "titulo": "Risco de incêndio"
       },
       "classes": [
         {

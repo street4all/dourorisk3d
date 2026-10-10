@@ -270,9 +270,9 @@ function altitude(p: PointValues, tecnico: boolean): Linha {
 }
 
 function tabela(p: PointValues, o: { visibleMap: string | null; tecnico: boolean }): string {
-  const linhas: Linha[] = [escala("risco_2025", { label: "Risco" }, "Risco de fogo", p.risco, estudoSem("Risco de fogo"))];
+  const linhas: Linha[] = [escala("risco_2025", { label: "Risco" }, "Risco de incêndio", p.risco, estudoSem("Risco de incêndio"))];
   if (o.visibleMap === "perigosidade_2025") {
-    linhas.push(escala("perigosidade_2025", { label: "Perigo" }, "Perigo de fogo", p.perigo, estudoSem("Perigo de fogo")));
+    linhas.push(escala("perigosidade_2025", { label: "Perigo" }, "Perigo de incêndio", p.perigo, estudoSem("Perigo de incêndio")));
   }
   const tec2030 = o.tecnico ? `${aboutOf("icnf_estrutural").ano}: ${p.icnf2030 ?? "–"}` : undefined;
   linhas.push(escala("icnf_conjuntural", { label: "Perigo oficial" }, "Perigo oficial", p.icnf, oficialSem, tec2030));

@@ -28,8 +28,8 @@ const anoDe = (key: string) => (aboutOf(key).ano ?? "").replace("–", " a ");
 // anos e métodos vêm do manifest (layers.<chave>.about, verificado nos rasters pelo pipeline): com dados
 // novos, mudam com ele. Frases de 15 palavras ou menos.
 export const MAP_CHOICES: MapChoice[] = [
-  { key: "risco_2025", group: "risco", title: "Risco de fogo", about: `Estudo DouroRisk (${anoDe("risco_2025")}). Mostra onde o fogo faria mais estragos. Junta o perigo e o que há para perder.` },
-  { key: "perigosidade_2025", group: "risco", title: "Perigo de fogo", about: `Estudo DouroRisk (${anoDe("perigosidade_2025")}): onde é mais provável arder.` },
+  { key: "risco_2025", group: "risco", title: "Risco de incêndio", about: `Estudo DouroRisk (${anoDe("risco_2025")}). Mostra onde o fogo faria mais estragos. Junta o perigo e o que há para perder.` },
+  { key: "perigosidade_2025", group: "risco", title: "Perigo de incêndio", about: `Estudo DouroRisk (${anoDe("perigosidade_2025")}): onde é mais provável arder.` },
   { key: "icnf_conjuntural", group: "risco", title: `Perigo oficial (${anoDe("icnf_conjuntural")})`, about: `Mapa oficial do ICNF para ${anoDe("icnf_conjuntural")}. ${aboutOf("icnf_conjuntural").metodo}` },
   { key: "icnf_estrutural", group: "risco", title: `Perigo oficial (${anoDe("icnf_estrutural")})`, about: `Mapa oficial do ICNF ${periodo(aboutOf("icnf_estrutural").ano ?? "")}. ${aboutOf("icnf_estrutural").metodo}` },
   { key: "recorrencia_a11y", group: "risco", title: "Quantas vezes ardeu", about: `Onde o fogo passou de ${A0} a ${A1}, e quantas vezes.` },

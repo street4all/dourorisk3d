@@ -48,11 +48,11 @@ function riskLayer(key: string, title: string, noun: string, image: string, clas
     key,
     title,
     // «quando» distingue as duas legendas do perigo oficial lado a lado na cortina
-    question: `${noun[0].toUpperCase()}${noun.slice(1)} de fogo${quando ? ` (${quando})` : ""}, de 1 a 5`,
+    question: `${noun[0].toUpperCase()}${noun.slice(1)} de incêndio${quando ? ` (${quando})` : ""}, de 1 a 5`,
     legend: riskLegend(),
     grid: new ClassGrid(classes, grid),
     empty: "Aqui não há dados.",
-    describe: (c) => `Aqui o ${noun} de fogo é ${c}: ${RISK_WORDS[c - 1]}.`,
+    describe: (c) => `Aqui o ${noun} de incêndio é ${c}: ${RISK_WORDS[c - 1]}.`,
   };
 }
 
@@ -61,8 +61,8 @@ export const VISIT_LAYERS: Record<string, VisitLayer> = {};
 /** Substitui as imagens DouroRisk pelas versões acessíveis e junta as camadas novas. Chamar antes de inicializar a cena. */
 export function applyAccessibleLayers(): void {
   const add = (l: VisitLayer) => (VISIT_LAYERS[l.key] = l);
-  add(riskLayer("risco_2025", `Risco de fogo (${aboutOf("risco_2025").fonte_curta})`, "risco", `${A11Y}/risco_2025.png`, `${A11Y}/risco_2025_classes.png`));
-  add(riskLayer("perigosidade_2025", `Perigo de fogo (${aboutOf("perigosidade_2025").fonte_curta})`, "perigo", `${A11Y}/perigosidade_2025.png`, `${A11Y}/perigosidade_2025_classes.png`));
+  add(riskLayer("risco_2025", `Risco de incêndio (${aboutOf("risco_2025").fonte_curta})`, "risco", `${A11Y}/risco_2025.png`, `${A11Y}/risco_2025_classes.png`));
+  add(riskLayer("perigosidade_2025", `Perigo de incêndio (${aboutOf("perigosidade_2025").fonte_curta})`, "perigo", `${A11Y}/perigosidade_2025.png`, `${A11Y}/perigosidade_2025_classes.png`));
   // anos sem travessão («2020 a 2030»): a legenda é lida pelo leitor de ecrã
   const ano = (k: string) => (aboutOf(k).ano ?? "").replace("–", " a ");
   add(riskLayer("icnf_conjuntural", `Perigo oficial ICNF (${aboutOf("icnf_conjuntural").ano})`, "perigo oficial", `${A11Y}/icnf_conjuntural.png`, `${A11Y}/icnf_conjuntural_classes.png`, ano("icnf_conjuntural")));

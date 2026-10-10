@@ -6,7 +6,7 @@ import { esc, periodo } from "./words";
 export interface HowGroup { keys: string[]; titulo?: string }
 
 /** O que quer dizer «estudo», com «tese» explicada (Leitura Fácil). Nos Mapas só entra se algum mapa vem do estudo. */
-export const INTRO_ESTUDO = ["\"Estudo\" quer dizer o estudo DouroRisk.", "É uma tese: um trabalho da universidade sobre o risco de fogo em Alijó."];
+export const INTRO_ESTUDO = ["\"Estudo\" quer dizer o estudo DouroRisk.", "É uma tese: um trabalho da universidade sobre o risco de incêndio em Alijó."];
 
 export const EDIFICIOS = { titulo: "Edifícios", fonte: "Microsoft, edifícios vistos por satélite (licença ODbL)",
   metodo: "Um programa de computador encontrou os edifícios nas imagens de satélite.",

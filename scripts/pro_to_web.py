@@ -166,9 +166,9 @@ OFICIAL = "mapa oficial do ICNF"
 CENARIO = "É um cenário para 2025, feito com os fogos do passado. Não é uma medição nem uma previsão."
 SEM_NUMERO = "Não dá número a alguns sítios, por exemplo zonas com casas e o rio."
 SOBRE = {
-    "risco": dict(titulo="Risco de fogo", fonte=ESTUDO, fonte_curta="estudo, 2025", ano="2025",
-                  metodo="Junta o perigo de fogo com o que se pode perder.", nota=CENARIO),
-    "perigosidade": dict(titulo="Perigo de fogo (estudo)", fonte=ESTUDO, fonte_curta="estudo, 2025", ano="2025",
+    "risco": dict(titulo="Risco de incêndio", fonte=ESTUDO, fonte_curta="estudo, 2025", ano="2025",
+                  metodo="Junta o perigo de incêndio com o que se pode perder.", nota=CENARIO),
+    "perigosidade": dict(titulo="Perigo de incêndio (estudo)", fonte=ESTUDO, fonte_curta="estudo, 2025", ano="2025",
                          metodo="Um cálculo mostra onde é mais provável arder.", nota=CENARIO),
     "icnf_conjuntural": dict(titulo="Perigo oficial de 2025", fonte=OFICIAL, fonte_curta="ICNF, 2025", ano="2025",
                              metodo="O ICNF faz este mapa todos os anos. Usa o mapa de 2020 a 2030. "
