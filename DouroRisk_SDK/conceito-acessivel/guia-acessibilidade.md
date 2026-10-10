@@ -49,7 +49,7 @@ Exposição e app para o Centro Interpretativo, feitas para todas as pessoas: al
 - **Compara:** só depois de guardar. "Revelar onde ardeu" passa uma cortina de oeste para este (ou arrasta-se a cortina); cada ficha ganha ✓ ou ✗ no mapa quando a cortina passa e o placar diz quantas caíram onde já ardeu. Mostra também o tempo de agora (IPMA/Open-Meteo) e a regra 30-30-30.
 - **E se uma faísca caísse hoje?** (no passo 4): toca-se no mapa e o fogo anda durante alguns segundos, mais depressa onde o perigo oficial é alto, nas encostas inclinadas, ao sol e a favor do vento de agora (ou sem vento / vento forte). Diz para onde foi e quantos campos de futebol ardeu. É um modelo simplificado para aprender, não uma previsão.
 - **Protege:** camada de risco 1–5; toca-se numa casa e aparece o anel de 50 m à volta. Ações em botões grandes (limpar 50 m, pastoreio, sem queimadas, 112, ponto de encontro); limpar e pastorear baixam o risco à volta da casa e o anel fica verde. "Passaram X anos" mostra o mato a voltar e o risco a subir outra vez (limpar é todos os anos). Frase "Eu vou…".
-- **Quiosque:** `?quiosque` no endereço — aviso de 20 s ao fim de 2 min sem uso e recomeço limpo.
+- **Quiosque:** `/mapa/?quiosque` no endereço (o antigo `/?quiosque` reencaminha para lá) — aviso de 20 s ao fim de 2 min sem uso e recomeço limpo; os atalhos para a apresentação ficam escondidos.
 - **Camadas acessíveis:** `public/data/dourorisk/a11y/` (imagens na paleta oficial verde→vermelho, com alternativa segura para daltonismo em `--paleta segura`, + grelhas de classes), geradas por `scripts/pro_to_web.py` a partir dos rasters do ArcGIS Pro (manifest em `src/data/dourorisk-grids.json`).
 
 ## De onde vêm os números (projeto DOURORISK.aprx, concelho de Alijó, 297,6 km²)

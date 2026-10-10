@@ -9,14 +9,18 @@
     {
       "source": "/mapa",
       "destination": "/mapa/index.html"
-    },
-    {
-      "source": "/apresentacao/(.*)",
-      "destination": "/index.html"
-    },
+    }
+  ],
+  "redirects": [
     {
       "source": "/apresentacao",
-      "destination": "/index.html"
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/apresentacao/:path*",
+      "destination": "/",
+      "permanent": true
     }
   ]
 }

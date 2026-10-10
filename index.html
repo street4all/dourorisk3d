@@ -10,6 +10,10 @@
     <meta property="og:description" content="O concelho de Alijó em 3D, para perceber o risco de incêndio e proteger a aldeia." />
     <meta property="og:image" content="/images/marca/logo-vertical-claro.svg" />
     <link rel="icon" href="/images/marca/logo-icone.svg" type="image/svg+xml" />
+    <script>
+      // endereços antigos do quiosque e do modo técnico (/?quiosque, /?tecnico) abrem a app em /mapa/
+      if (/[?&](quiosque|tecnico)(=|&|$)/.test(location.search)) location.replace("/mapa/" + location.search + location.hash);
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />

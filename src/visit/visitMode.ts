@@ -1403,6 +1403,11 @@ export class VisitMode {
 
   private setupKiosk(): void {
     if (!new URLSearchParams(location.search).has("quiosque")) return;
+    // no quiosque não se sai da app: a apresentação não tem recomeço automático
+    $("btn-home")?.setAttribute("hidden", "");
+    const brand = document.querySelector<HTMLAnchorElement>(".hud-brand a");
+    brand?.removeAttribute("href");
+    brand?.removeAttribute("title");
     const warn = $("idle-warn");
     let idle: number | undefined;
     let final: number | undefined;
