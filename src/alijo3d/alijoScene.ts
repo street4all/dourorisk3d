@@ -23,64 +23,58 @@ import SolidEdges3D from "@arcgis/core/symbols/edges/SolidEdges3D.js";
 import Compass from "@arcgis/core/widgets/Compass.js";
 import NavigationToggle from "@arcgis/core/widgets/NavigationToggle.js";
 import MediaLayer from "@arcgis/core/layers/MediaLayer.js";
-import ImageElement from "@arcgis/core/layers/support/ImageElement.js";
-import ExtentAndRotationGeoreference from "@arcgis/core/layers/support/ExtentAndRotationGeoreference.js";
-import Extent from "@arcgis/core/geometry/Extent.js";
+import type ImageElement from "@arcgis/core/layers/support/ImageElement.js";
 import LabelClass from "@arcgis/core/layers/support/LabelClass.js";
 import LabelSymbol3D from "@arcgis/core/symbols/LabelSymbol3D.js";
 import TextSymbol3DLayer from "@arcgis/core/symbols/TextSymbol3DLayer.js";
 import * as reactiveUtils from "@arcgis/core/core/reactiveUtils.js";
 import type { LiveWeatherReport } from "./weatherService";
+import { gridFromManifest, type GridGeo } from "../geo/grid";
+import { loadGridImageElements } from "../geo/gridMedia";
 
 export interface DouroRiskModelInfo {
   id: string;
   title: string;
   image: string;
-  extent: { xmin: number; ymin: number; xmax: number; ymax: number };
+  /** grelha PT-TM06 da imagem (uma célula por píxel): o desenho usa os cantos reais, em blocos */
+  grid: GridGeo;
 }
+
+// grelhas nativas dos rasters (src/data/dourorisk-grids.json, gerado por scripts/pro_to_web.py)
+const G10_RISCO = gridFromManifest("g10_risco");
+const G10_PERIGOSIDADE = gridFromManifest("g10_perigosidade");
+const G25 = gridFromManifest("g25");
 
 export const DOURORISK_MODELS: Record<string, DouroRiskModelInfo> = {
   risco_2025: {
     id: "risco_2025",
     title: "Risco de Incêndio (Cenário 2025 — 10m)",
-    image: "/data/dourorisk/dourorisk_risco_2025_10m.png",
-    extent: { xmin: -7.605246, ymin: 41.180072, xmax: -7.360933, ymax: 41.402264 },
+    image: "/data/dourorisk/a11y/risco_2025.png",
+    grid: G10_RISCO,
   },
   perigosidade_2025: {
     id: "perigosidade_2025",
     title: "Perigosidade de Incêndio (Modelo Tese — 10m)",
-    image: "/data/dourorisk/dourorisk_perigosidade_2025_10m.png",
-    extent: { xmin: -7.605251, ymin: 41.180003, xmax: -7.360936, ymax: 41.402375 },
+    image: "/data/dourorisk/a11y/perigosidade_2025.png",
+    grid: G10_PERIGOSIDADE,
   },
   icnf_conjuntural: {
     id: "icnf_conjuntural",
     title: "Perigosidade Conjuntural ICNF (Oficial 2025)",
-    image: "/data/dourorisk/dourorisk_perigosidade_icnf_2025.png",
-    extent: { xmin: -7.61171, ymin: 41.177757, xmax: -7.355757, ymax: 41.405918 },
+    image: "/data/dourorisk/a11y/icnf_conjuntural.png",
+    grid: G25,
   },
   icnf_estrutural: {
     id: "icnf_estrutural",
     title: "Perigosidade Estrutural ICNF (2020–2030)",
-    image: "/data/dourorisk/dourorisk_perigosidade_estrutural_icnf.png",
-    extent: { xmin: -7.61171, ymin: 41.177757, xmax: -7.355757, ymax: 41.405918 },
-  },
-  recorrencia_1990_2025: {
-    id: "recorrencia_1990_2025",
-    title: "Recorrência de Incêndios (1990–2025)",
-    image: "/data/dourorisk/dourorisk_recorrencia_1990_2025.png",
-    extent: { xmin: -7.61171, ymin: 41.177757, xmax: -7.355757, ymax: 41.405918 },
+    image: "/data/dourorisk/a11y/icnf_estrutural.png",
+    grid: G25,
   },
   biomassa_2025: {
     id: "biomassa_2025",
     title: "Biomassa Vegetal Estimada (2025)",
-    image: "/data/dourorisk/dourorisk_biomassa_2025.png",
-    extent: { xmin: -7.61171, ymin: 41.177757, xmax: -7.355757, ymax: 41.405918 },
-  },
-  declive_25m: {
-    id: "declive_25m",
-    title: "Declive Topográfico (%)",
-    image: "/data/dourorisk/dourorisk_declive_25m.png",
-    extent: { xmin: -7.61171, ymin: 41.177757, xmax: -7.355757, ymax: 41.405918 },
+    image: "/data/dourorisk/a11y/biomassa.png",
+    grid: G25,
   },
 };
 
@@ -115,6 +109,8 @@ export class Alijo3DManager {
   public churchLayer: GraphicsLayer | null = null;
   public douroRiskLayer: MediaLayer | null = null;
   private orbitAnimationId: number | null = null;
+  /** pedidos de setDouroRiskModel: só o último troca a imagem (a leitura é assíncrona) */
+  private douroRiskSeq = 0;
   private onCameraChangeCallback: ((heading: number, tilt: number) => void) | null = null;
 
   public state: AlijoState = {
@@ -434,26 +430,15 @@ export class Alijo3DManager {
     });
 
     // 9. DouroRisk Wildfire Risk MediaLayer (Draped on 3D Terrain)
-    const defaultModel = DOURORISK_MODELS.risco_2025;
-    const initialElement = new ImageElement({
-      image: defaultModel.image,
-      georeference: new ExtentAndRotationGeoreference({
-        extent: new Extent({
-          xmin: defaultModel.extent.xmin,
-          ymin: defaultModel.extent.ymin,
-          xmax: defaultModel.extent.xmax,
-          ymax: defaultModel.extent.ymax,
-          spatialReference: { wkid: 4326 },
-        }),
-      }),
-    });
-
+    // a imagem é a grelha PT-TM06, desenhada em blocos com os cantos reais em WGS84 (rodada ~0,43°),
+    // não uma extensão lon/lat; os blocos entram quando a imagem estiver lida (setDouroRiskModel)
     this.douroRiskLayer = new MediaLayer({
       title: "DouroRisk — Risco de Incêndio Alijó",
-      source: [initialElement],
+      source: [],
       opacity: 0.75,
       visible: true,
     });
+    this.setDouroRiskModel("risco_2025");
 
     // Add layers to map
     if (this.concelhoBoundaryLayer) map.add(this.concelhoBoundaryLayer);
@@ -671,28 +656,23 @@ export class Alijo3DManager {
 
   public setDouroRiskModel(modelKey: keyof typeof DOURORISK_MODELS): void {
     const model = DOURORISK_MODELS[modelKey];
-    if (!model || !this.douroRiskLayer) return;
+    const layer = this.douroRiskLayer;
+    if (!model || !layer) return;
 
-    const elem = new ImageElement({
-      image: model.image,
-      georeference: new ExtentAndRotationGeoreference({
-        extent: new Extent({
-          xmin: model.extent.xmin,
-          ymin: model.extent.ymin,
-          xmax: model.extent.xmax,
-          ymax: model.extent.ymax,
-          spatialReference: { wkid: 4326 },
-        }),
-      }),
-    });
-
-    const src = this.douroRiskLayer.source as any;
-    if (src && src.elements) {
-      src.elements.removeAll();
-      src.elements.add(elem);
-    } else {
-      this.douroRiskLayer.source = [elem] as any;
-    }
+    // a imagem entra em blocos, cada um com os seus 4 cantos reais (desvio de desenho ~1 m em vez de
+    // ~19 m, ver MEDIA_TILES); troca quando os blocos estão prontos, se entretanto não se pediu outro mapa
+    const seq = ++this.douroRiskSeq;
+    const swap = (elements: ImageElement[]) => {
+      if (seq !== this.douroRiskSeq) return;
+      const src = layer.source as any;
+      if (src && src.elements) {
+        src.elements.removeAll();
+        src.elements.addMany(elements);
+      } else {
+        layer.source = elements as any;
+      }
+    };
+    void loadGridImageElements(model.image, model.grid).then(swap, () => swap([]));
   }
 
   public setParishesVisible(visible: boolean): void {

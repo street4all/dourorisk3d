@@ -3,9 +3,12 @@
 import type EsriMap from "@arcgis/core/Map.js";
 import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
 import { CanvasOverlay } from "./overlay";
-import { EXT_25M, renderLegend } from "./layers";
-import type { Extent4326 } from "./sampler";
+import { renderLegend } from "./layers";
+import { extentTM06, gridFromManifest, type GridGeo } from "../geo/grid";
 import { isOnlyConcelho, setOnlyConcelho } from "./clip";
+
+/** A grelha de 25 m: a cortina anda sobre a largura dela (o concelho e arredores). */
+const G25 = gridFromManifest("g25");
 
 export interface MapChoice {
   key: string;
@@ -57,10 +60,38 @@ function imageData(key: string): Promise<ImageData> {
   return p;
 }
 
-/** Copia só as colunas a oeste (side "left") ou a este ("right") da longitude da cortina. */
-function half(full: ImageData, extent: Extent4326, cutLon: number, side: "left" | "right"): ImageData {
+/**
+ * Colunas da cortina nas grelhas ga (metade oeste) e gb (metade este), para um corte perto da linha
+ * x = cutX em PT-TM06. As colunas das grelhas são paralelas a essa linha, mas os bordos das colunas de
+ * grelhas diferentes não coincidem: se cada metade arredondasse à sua coluna ficava uma folga sem cor
+ * (até ~14 m entre a g25 e uma g10). Por isso o corte cai num bordo de coluna da grelha mais grossa,
+ * escolhido entre os vizinhos de cutX (±2 colunas: os bordos de 25 m e de 10 m repetem o padrão a cada
+ * 50 m) como o que tem um bordo da outra grelha mais perto; a outra metade corta nesse bordo.
+ * Folga ou sobreposição: 0 m entre mapas da mesma grelha, < 0,8 m entre a g25 e uma g10, 0,34 m entre
+ * as duas g10. O corte afasta-se de cutX no máximo 1,5 colunas da grelha grossa (37,5 m na g25), bem
+ * menos do que um passo da cortina (1 % ≈ 212 m).
+ */
+function curtainCols(ga: GridGeo, gb: GridGeo, cutX: number): [number, number] {
+  const [coarse, fine] = ga.cell >= gb.cell ? [ga, gb] : [gb, ga];
+  const k0 = Math.round((cutX - coarse.x0) / coarse.cell);
+  let best = { k: k0, j: 0, gap: Infinity };
+  for (const k of [k0, k0 - 1, k0 + 1, k0 - 2, k0 + 2]) {
+    const x = coarse.x0 + k * coarse.cell;
+    const j = Math.round((x - fine.x0) / fine.cell);
+    const gap = Math.abs(fine.x0 + j * fine.cell - x);
+    // à mesma folga (1 mm) fica o mais perto de cutX (a ordem da lista)
+    if (gap < best.gap - 1e-3) best = { k, j, gap };
+  }
+  return coarse === ga ? [best.k, best.j] : [best.j, best.k];
+}
+
+/**
+ * Copia só as colunas a oeste (side "left") ou a este ("right") da coluna `col` da grelha (bordo
+ * oeste da coluna; ver curtainCols). A imagem tem as dimensões da grelha (ou proporcional).
+ */
+function half(full: ImageData, grid: GridGeo, col: number, side: "left" | "right"): ImageData {
   const { width: w, height: h } = full;
-  const cut = Math.max(0, Math.min(w, Math.round(((cutLon - extent.xmin) / (extent.xmax - extent.xmin)) * w)));
+  const cut = Math.max(0, Math.min(w, Math.round(col * (w / grid.width))));
   const out = new ImageData(w, h);
   const [c0, c1] = side === "left" ? [0, cut] : [cut, w];
   for (let y = 0; y < h; y++) {
@@ -95,8 +126,8 @@ export class MapsPanel {
   private internal = false;
 
   constructor(map: EsriMap, private hooks: MapsHooks) {
-    this.left = new CanvasOverlay(map, "Comparar mapas (esquerda)", EXT_25M, this.opacity);
-    this.right = new CanvasOverlay(map, "Comparar mapas (direita)", EXT_25M, this.opacity);
+    this.left = new CanvasOverlay(map, "Comparar mapas (esquerda)", G25, this.opacity);
+    this.right = new CanvasOverlay(map, "Comparar mapas (direita)", G25, this.opacity);
   }
 
   init(): void {
@@ -239,14 +270,16 @@ export class MapsPanel {
       return;
     }
     if (seq !== this.seq) return;
-    const ea = DOURORISK_MODELS[a].extent, eb = DOURORISK_MODELS[b].extent;
-    // a cortina anda sobre a largura do concelho
-    const cutLon = EXT_25M.xmin + this.frac * (EXT_25M.xmax - EXT_25M.xmin);
-    this.left.setExtent(ea);
-    this.right.setExtent(eb);
+    const ga = DOURORISK_MODELS[a].grid, gb = DOURORISK_MODELS[b].grid;
+    // a cortina anda sobre a largura do concelho (grelha de 25 m), em PT-TM06
+    const e25 = extentTM06(G25);
+    const cutX = e25.xmin + this.frac * (e25.xmax - e25.xmin);
+    const [colA, colB] = curtainCols(ga, gb, cutX);
+    this.left.setGrid(ga);
+    this.right.setGrid(gb);
     this.left.layer.opacity = this.right.layer.opacity = this.opacity;
-    this.left.draw(half(ia, ea, cutLon, "left"));
-    this.right.draw(half(ib, eb, cutLon, "right"));
+    this.left.draw(half(ia, ga, colA, "left"));
+    this.right.draw(half(ib, gb, colB, "right"));
     // as duas metades substituem a camada inteira enquanto se compara
     this.show(a, 0);
     const ta = MAP_CHOICES.find((c) => c.key === a)?.title ?? "";

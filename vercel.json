@@ -3,7 +3,19 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/mapa/(.*)",
+      "destination": "/mapa/index.html"
+    },
+    {
+      "source": "/mapa",
+      "destination": "/mapa/index.html"
+    },
+    {
+      "source": "/apresentacao/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/apresentacao",
       "destination": "/index.html"
     }
   ]

@@ -18,6 +18,10 @@ A aplicação combina:
 4. **Meteorologia Dinâmica & Linhas de Fluxo:** Telemetria em tempo real da estação meteorológica oficial do IPMA no Pinhão (Santa Bárbara) e correntes de vento simuladas via `FlowRenderer`.
 5. **Visita Interativa Inclusiva ("Onde Pode Arder?"):** 5 estações pedagógicas e operacionais (*Olha*, *Escolhe*, *Guarda*, *Compara*, *Protege*).
 
+### 🧭 Estrutura de Rotas
+* **`/` (Landing Page):** Página de apresentação com identidade visual, objetivos, números e parceiros.
+* **`/mapa/` (Gémeo Digital 3D):** Aplicação interativa em ecrã inteiro com ArcGIS SceneView e ferramentas de análise.
+
 ---
 
 ## 🚀 Como Executar Localmente

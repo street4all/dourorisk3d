@@ -1,0 +1,779 @@
+{
+  "cornersWgs84": {
+    "g10_perigosidade": {
+      "bl": [
+        -7.605251029,
+        41.180002523
+      ],
+      "br": [
+        -7.363569676,
+        41.178641287
+      ],
+      "tl": [
+        -7.603444353,
+        41.4037468
+      ],
+      "tr": [
+        -7.360935976,
+        41.402374872
+      ]
+    },
+    "g10_risco": {
+      "bl": [
+        -7.605246409,
+        41.1800717
+      ],
+      "br": [
+        -7.363564802,
+        41.178710452
+      ],
+      "tl": [
+        -7.603441175,
+        41.403635901
+      ],
+      "tr": [
+        -7.360933209,
+        41.40226397
+      ]
+    },
+    "g25": {
+      "bl": [
+        -7.611709515,
+        41.177757007
+      ],
+      "br": [
+        -7.358477192,
+        41.176332228
+      ],
+      "tl": [
+        -7.609878138,
+        41.40735396
+      ],
+      "tr": [
+        -7.355756537,
+        41.405917696
+      ]
+    }
+  },
+  "crs": {
+    "name": "ETRS89 / Portugal TM06",
+    "wkid": 3763
+  },
+  "generated": "2026-10-08T21:12:29Z",
+  "grids": {
+    "g10_perigosidade": {
+      "cell": 10,
+      "height": 2485,
+      "width": 2028,
+      "x0": 44290.41369374505,
+      "y0": 192852.64970000245
+    },
+    "g10_risco": {
+      "cell": 10,
+      "height": 2483,
+      "width": 2028,
+      "x0": 44290.754799998365,
+      "y0": 192840.33470000088
+    },
+    "g25": {
+      "cell": 25,
+      "height": 1020,
+      "width": 850,
+      "x0": 43750.0,
+      "y0": 193250.0
+    }
+  },
+  "layers": {
+    "biomassa_2025": {
+      "classes": [
+        {
+          "rule": "biomassa < 5 t/ha",
+          "value": 1
+        },
+        {
+          "rule": "5 t/ha <= biomassa < 15 t/ha",
+          "value": 2
+        },
+        {
+          "rule": "15 t/ha <= biomassa < 25 t/ha",
+          "value": 3
+        },
+        {
+          "rule": "25 t/ha <= biomassa < 32 t/ha",
+          "value": 4
+        },
+        {
+          "rule": "biomassa >= 32 t/ha",
+          "value": 5
+        }
+      ],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 0,
+        "special": {
+          "0": "sem dados (NoData no raster: nunca ardeu desde 1990 ou ardeu em 2025)"
+        }
+      },
+      "files": {
+        "classes": "/data/dourorisk/a11y/biomassa_classes.png",
+        "display": "/data/dourorisk/a11y/biomassa.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/a11y/biomassa.png": "58ec41934c24463992968185acce92d91040ceaef9cbbbc4f7c14d6481bba168",
+        "/data/dourorisk/a11y/biomassa_classes.png": "60a72fe956f7a464d5c119e9fffa5342b1c401cf96dce5902f974d25fc39e0ce"
+      },
+      "source": "Biomassa_Metodo_Original_2025_25m"
+    },
+    "biomassa_t_ha": {
+      "classes": [],
+      "encoding": {
+        "format": "png-l8",
+        "lut": [
+          0.22,
+          1.03,
+          2.32,
+          4.02,
+          6.05,
+          8.35,
+          10.83,
+          13.43,
+          16.07,
+          18.68,
+          21.2,
+          23.54,
+          25.63,
+          27.4,
+          28.78,
+          29.69,
+          30.07,
+          40
+        ],
+        "nodata": 255,
+        "note": "t/ha = lut[valor] (valores exatos do raster, float32 na representação mais curta)",
+        "special": {
+          "255": "sem dados (nunca ardeu desde 1990 ou ardeu em 2025)"
+        },
+        "unit": "t/ha"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/biomassa.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/biomassa.png": "a396f8aedd20338e056cab2e92046410d932a158fa4945ac45cf10f80ffec82a"
+      },
+      "source": "Biomassa_Metodo_Original_2025_25m"
+    },
+    "concelho_25m": {
+      "classes": [],
+      "encoding": {
+        "format": "png-l8",
+        "note": "limite do concelho (GeoJSON lon/lat) projetado para EPSG:3763 com arcpy, sem transformação de datum",
+        "special": {
+          "0": "fora do concelho",
+          "1": "centro da célula dentro do concelho"
+        }
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/concelho_25m.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/concelho_25m.png": "c11e575dddb9fa82cf0c7a3a5571c3dbb57384e974090faa7c16785654897e54"
+      },
+      "source": "public/data/alijo-concelho.geojson"
+    },
+    "declive_a11y": {
+      "classes": [
+        {
+          "rule": "declive < 15 % (suave; transparente)",
+          "value": 1
+        },
+        {
+          "rule": "15 % <= declive < 30 % (moderado)",
+          "value": 2
+        },
+        {
+          "rule": "30 % <= declive < 50 % (forte)",
+          "value": 3
+        },
+        {
+          "rule": "declive >= 50 % (escarpado)",
+          "value": 4
+        }
+      ],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 0,
+        "special": {
+          "0": "sem dados"
+        }
+      },
+      "files": {
+        "classes": "/data/dourorisk/a11y/declive_classes.png",
+        "display": "/data/dourorisk/a11y/declive.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/a11y/declive.png": "49968b3568dfd985472f6dbd64b1a8b13213d1ddfa374f3c1803831bd5d6eec5",
+        "/data/dourorisk/a11y/declive_classes.png": "524a33c7eccff77daaff01a9ef267d6470328ba5dad1a7aa9789b22ac2db717d"
+      },
+      "source": "Declive_Percentagem_25m"
+    },
+    "declive_pct": {
+      "classes": [],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 255,
+        "note": "declive arredondado ao inteiro mais próximo (0,5 para cima)",
+        "offset": 0,
+        "scale": 1,
+        "special": {
+          "255": "sem dados"
+        },
+        "unit": "%"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/declive_pct.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/declive_pct.png": "8f3ef82aead96d28cdf1fc29e5b3dc29113e1723d878ddc79070fdbe7849da67"
+      },
+      "source": "Declive_Percentagem_25m"
+    },
+    "exposicao_graus": {
+      "classes": [],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 255,
+        "note": "graus = valor x 2 (0 = norte, sentido horário; arredondado, erro <= 1°; 360° volta a 0)",
+        "offset": 0,
+        "scale": 2,
+        "special": {
+          "254": "plano (exposição < 0; não ocorre)",
+          "255": "sem dados"
+        },
+        "unit": "graus"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/exposicao.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/exposicao.png": "fd965ee0b87227c1e96853a67308c3f12f4604e14dd391150663bc8ce94d6277"
+      },
+      "source": "Exposicao_25m"
+    },
+    "exposicao_sol": {
+      "classes": [
+        {
+          "rule": "135° <= exposição <= 270° (virada ao sol: sueste a oeste)",
+          "value": 1
+        },
+        {
+          "rule": "restantes exposições (virada à sombra)",
+          "value": 2
+        },
+        {
+          "rule": "exposição < 0 (plano; não ocorre neste raster)",
+          "value": 3
+        }
+      ],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 0,
+        "special": {
+          "0": "sem dados (NoData no raster: exposição indefinida, sobretudo zonas planas)"
+        }
+      },
+      "files": {
+        "classes": "/data/dourorisk/a11y/exposicao_sol_classes.png",
+        "display": "/data/dourorisk/a11y/exposicao_sol.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/a11y/exposicao_sol.png": "e8442942124c8a7f41fdb9f94f2f5f08a4590bc0964dca353d0911cab05b6537",
+        "/data/dourorisk/a11y/exposicao_sol_classes.png": "1fae0eeb9ad98b41fb3e5ff3813fb627f82f6d1dc7742b776a0cc850633be664"
+      },
+      "source": "Exposicao_25m"
+    },
+    "icnf_conjuntural": {
+      "classes": [
+        {
+          "rule": "Perigosidade_Conjuntural_ICNF_2025_25m = 1 (muito baixo)",
+          "value": 1
+        },
+        {
+          "rule": "Perigosidade_Conjuntural_ICNF_2025_25m = 2 (baixo)",
+          "value": 2
+        },
+        {
+          "rule": "Perigosidade_Conjuntural_ICNF_2025_25m = 3 (médio)",
+          "value": 3
+        },
+        {
+          "rule": "Perigosidade_Conjuntural_ICNF_2025_25m = 4 (alto)",
+          "value": 4
+        },
+        {
+          "rule": "Perigosidade_Conjuntural_ICNF_2025_25m = 5 (muito alto)",
+          "value": 5
+        }
+      ],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 0,
+        "special": {
+          "0": "sem dados (valor 0 no raster, fora da área classificada pelo ICNF)"
+        }
+      },
+      "files": {
+        "classes": "/data/dourorisk/a11y/icnf_conjuntural_classes.png",
+        "display": "/data/dourorisk/a11y/icnf_conjuntural.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/a11y/icnf_conjuntural.png": "fb7ae12e8db42e85a2bac78f709d6e12183a3ef3f43c0bab4bc96ba0f3314f58",
+        "/data/dourorisk/a11y/icnf_conjuntural_classes.png": "dbb344c71a8ac427021b3e9fc93999204044db1664dbb92a5d2a347839a6b40c"
+      },
+      "source": "Perigosidade_Conjuntural_ICNF_2025_25m"
+    },
+    "icnf_estrutural": {
+      "classes": [
+        {
+          "rule": "Perigosidade_Estrutural_ICNF_2020_2030_25m = 1 (muito baixo)",
+          "value": 1
+        },
+        {
+          "rule": "Perigosidade_Estrutural_ICNF_2020_2030_25m = 2 (baixo)",
+          "value": 2
+        },
+        {
+          "rule": "Perigosidade_Estrutural_ICNF_2020_2030_25m = 3 (médio)",
+          "value": 3
+        },
+        {
+          "rule": "Perigosidade_Estrutural_ICNF_2020_2030_25m = 4 (alto)",
+          "value": 4
+        },
+        {
+          "rule": "Perigosidade_Estrutural_ICNF_2020_2030_25m = 5 (muito alto)",
+          "value": 5
+        }
+      ],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 0,
+        "special": {
+          "0": "sem dados"
+        }
+      },
+      "files": {
+        "classes": "/data/dourorisk/a11y/icnf_estrutural_classes.png",
+        "display": "/data/dourorisk/a11y/icnf_estrutural.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/a11y/icnf_estrutural.png": "e42dc6c1f5efb414f722c165a5f3d8a911c550bb57a0b280a575de0584a647a4",
+        "/data/dourorisk/a11y/icnf_estrutural_classes.png": "12f0fc8d4cb1d28a63be1eb4c824cbeac131d435aea6ac14dab8b0e3b28f64d3"
+      },
+      "source": "Perigosidade_Estrutural_ICNF_2020_2030_25m"
+    },
+    "mdt": {
+      "classes": [],
+      "encoding": {
+        "format": "int16le",
+        "nodata": -32768,
+        "note": "Int16 little-endian, width x height valores, linha a linha de norte para sul, de oeste para este",
+        "offset": 0,
+        "scale": 1,
+        "unit": "m"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/mdt.bin"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/mdt.bin": "81017055d100b9c4e92269ec52871fc7c43f95f65ae8e5223235eff7d37eb552"
+      },
+      "source": "MDT_Original_25m_EPSG3763"
+    },
+    "perigosidade_2025": {
+      "classes": [
+        {
+          "rule": "Perigosidade_Modelo_Tese_Cenario_2025_10m = 1 (muito baixo)",
+          "value": 1
+        },
+        {
+          "rule": "Perigosidade_Modelo_Tese_Cenario_2025_10m = 2 (baixo)",
+          "value": 2
+        },
+        {
+          "rule": "Perigosidade_Modelo_Tese_Cenario_2025_10m = 3 (médio)",
+          "value": 3
+        },
+        {
+          "rule": "Perigosidade_Modelo_Tese_Cenario_2025_10m = 4 (alto)",
+          "value": 4
+        },
+        {
+          "rule": "Perigosidade_Modelo_Tese_Cenario_2025_10m = 5 (muito alto)",
+          "value": 5
+        }
+      ],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 0,
+        "special": {
+          "0": "sem dados"
+        }
+      },
+      "files": {
+        "classes": "/data/dourorisk/a11y/perigosidade_2025_classes.png",
+        "display": "/data/dourorisk/a11y/perigosidade_2025.png"
+      },
+      "grid": "g10_perigosidade",
+      "sha256": {
+        "/data/dourorisk/a11y/perigosidade_2025.png": "83bfbf26b39b643f415396f6eaec965e5e63fbebd7759159391b9924a2e41578",
+        "/data/dourorisk/a11y/perigosidade_2025_classes.png": "44a3f471f9e7a6c8663f82b44abab7447ef3544a9b7d68a523d731b289e10b63"
+      },
+      "source": "Perigosidade_Modelo_Tese_Cenario_2025_10m"
+    },
+    "recorrencia_a11y": {
+      "classes": [
+        {
+          "rule": "Recorrencia_1990_2025_25m = 1",
+          "value": 1
+        },
+        {
+          "rule": "Recorrencia_1990_2025_25m = 2",
+          "value": 2
+        },
+        {
+          "rule": "Recorrencia_1990_2025_25m = 3",
+          "value": 3
+        },
+        {
+          "rule": "Recorrencia_1990_2025_25m = 4",
+          "value": 4
+        },
+        {
+          "rule": "Recorrencia_1990_2025_25m >= 5",
+          "value": 5
+        }
+      ],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 0,
+        "special": {
+          "0": "nunca ardeu desde 1990 (o raster não tem NoData; inclui o exterior do concelho)"
+        }
+      },
+      "files": {
+        "classes": "/data/dourorisk/a11y/recorrencia_classes.png",
+        "display": "/data/dourorisk/a11y/recorrencia.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/a11y/recorrencia.png": "737f6a3f2c9fcda66b75cdc7e57c51802e46748bfa3ef20d0264fd2db1d380fe",
+        "/data/dourorisk/a11y/recorrencia_classes.png": "4a87174ae5a95d08afcca38192a7c050f0336e890493458cfc2cbf5885818375"
+      },
+      "source": "Recorrencia_1990_2025_25m"
+    },
+    "recorrencia_valor": {
+      "classes": [],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 255,
+        "note": "número de vezes que ardeu de 1990 a 2025 (0 = nunca; o raster não tem NoData e cobre também o exterior do concelho)",
+        "offset": 0,
+        "scale": 1,
+        "special": {
+          "255": "sem dados"
+        },
+        "unit": "vezes"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/recorrencia.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/recorrencia.png": "e856092a9bcef95d47df93bfb50428fb910108f35870d5f5d3cadd81c1714beb"
+      },
+      "source": "Recorrencia_1990_2025_25m"
+    },
+    "risco_2025": {
+      "classes": [
+        {
+          "rule": "Risco_Cenario_2025_Incendios_Parametros_Historicos_10m = 1 (muito baixo)",
+          "value": 1
+        },
+        {
+          "rule": "Risco_Cenario_2025_Incendios_Parametros_Historicos_10m = 2 (baixo)",
+          "value": 2
+        },
+        {
+          "rule": "Risco_Cenario_2025_Incendios_Parametros_Historicos_10m = 3 (médio)",
+          "value": 3
+        },
+        {
+          "rule": "Risco_Cenario_2025_Incendios_Parametros_Historicos_10m = 4 (alto)",
+          "value": 4
+        },
+        {
+          "rule": "Risco_Cenario_2025_Incendios_Parametros_Historicos_10m = 5 (muito alto)",
+          "value": 5
+        }
+      ],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 0,
+        "special": {
+          "0": "sem dados"
+        }
+      },
+      "files": {
+        "classes": "/data/dourorisk/a11y/risco_2025_classes.png",
+        "display": "/data/dourorisk/a11y/risco_2025.png"
+      },
+      "grid": "g10_risco",
+      "sha256": {
+        "/data/dourorisk/a11y/risco_2025.png": "5998f6e1a4fff07f3ba02821b852494ee92ce48a51672fcb2fa82a072834ef0c",
+        "/data/dourorisk/a11y/risco_2025_classes.png": "61fddb5522a8ffab9c40d34fd4175f559c83b0505417f7a409ba6e99a991e612"
+      },
+      "source": "Risco_Cenario_2025_Incendios_Parametros_Historicos_10m"
+    },
+    "tempo_pos_fogo": {
+      "classes": [],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 255,
+        "note": "anos desde o último fogo em 2025 (0 = ardeu em 2025; = 2025 - último ano)",
+        "offset": 0,
+        "scale": 1,
+        "special": {
+          "254": "nunca ardeu desde 1990 (NoData no raster, as mesmas células que recorrência 0)",
+          "255": "sem dados"
+        },
+        "unit": "anos"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/tempo_pos_fogo.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/tempo_pos_fogo.png": "61169a9de7e9fb67805f07a691c1c0732154b836d84ceb2e84cea659119fb45b"
+      },
+      "source": "Tempo_Pos_Fogo_1990_2025_25m"
+    },
+    "ultimo_ano": {
+      "classes": [],
+      "encoding": {
+        "format": "png-l8",
+        "nodata": 255,
+        "note": "ano = valor + 1989 (1990..2025)",
+        "offset": 1989,
+        "scale": 1,
+        "special": {
+          "0": "nunca ardeu desde 1990",
+          "255": "sem dados"
+        },
+        "unit": "ano"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/ultimo_ano.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/ultimo_ano.png": "1859baf91c0ee2a969fd83a24e60789005641719dafcbf7b82b859198bf2664e"
+      },
+      "source": "Ultimo_Ano_Ardido_1990_2025_25m"
+    }
+  },
+  "palette": "oficial",
+  "script": "scripts/pro_to_web.py",
+  "source": {
+    "gdb": "~/Documents/ArcGIS/Packages/DouroRisk_Alijo_aec603/commondata/raster_data.gdb",
+    "rasters": {
+      "Biomassa_Metodo_Original_2025_25m": {
+        "cell": 25,
+        "extent": {
+          "xmax": 65000.0,
+          "xmin": 43750.0,
+          "ymax": 193250.0,
+          "ymin": 167750.0
+        },
+        "height": 1020,
+        "max": 40,
+        "min": 0.22,
+        "modified": "2026-10-08T21:11:45Z",
+        "nodataCells": 570611,
+        "pixelType": "F32",
+        "width": 850
+      },
+      "Declive_Percentagem_25m": {
+        "cell": 25,
+        "extent": {
+          "xmax": 65000.0,
+          "xmin": 43750.0,
+          "ymax": 193250.0,
+          "ymin": 167750.0
+        },
+        "height": 1020,
+        "max": 139.97856,
+        "min": 0,
+        "modified": "2026-10-08T21:10:51Z",
+        "nodataCells": 0,
+        "pixelType": "F32",
+        "width": 850
+      },
+      "Exposicao_25m": {
+        "cell": 25,
+        "extent": {
+          "xmax": 65000.0,
+          "xmin": 43750.0,
+          "ymax": 193250.0,
+          "ymin": 167750.0
+        },
+        "height": 1020,
+        "max": 359.6726,
+        "min": 0,
+        "modified": "2026-10-08T21:11:16Z",
+        "nodataCells": 2622,
+        "pixelType": "F32",
+        "width": 850
+      },
+      "MDT_Original_25m_EPSG3763": {
+        "cell": 25,
+        "extent": {
+          "xmax": 65000.0,
+          "xmin": 43750.0,
+          "ymax": 193250.0,
+          "ymin": 167750.0
+        },
+        "height": 1020,
+        "max": 1021,
+        "min": 39,
+        "modified": "2026-10-08T21:12:19Z",
+        "nodataCells": 0,
+        "pixelType": "S16",
+        "width": 850
+      },
+      "Perigosidade_Conjuntural_ICNF_2025_25m": {
+        "cell": 25,
+        "extent": {
+          "xmax": 65000.0,
+          "xmin": 43750.0,
+          "ymax": 193250.0,
+          "ymin": 167750.0
+        },
+        "height": 1020,
+        "max": 5,
+        "min": 0,
+        "modified": "2026-10-08T21:11:37Z",
+        "nodataCells": 0,
+        "pixelType": "U8",
+        "width": 850
+      },
+      "Perigosidade_Estrutural_ICNF_2020_2030_25m": {
+        "cell": 25,
+        "extent": {
+          "xmax": 65000.0,
+          "xmin": 43750.0,
+          "ymax": 193250.0,
+          "ymin": 167750.0
+        },
+        "height": 1020,
+        "max": 5,
+        "min": 1,
+        "modified": "2026-10-08T21:12:29Z",
+        "nodataCells": 33847,
+        "pixelType": "U8",
+        "width": 850
+      },
+      "Perigosidade_Modelo_Tese_Cenario_2025_10m": {
+        "cell": 10,
+        "extent": {
+          "xmax": 64570.41369374505,
+          "xmin": 44290.41369374505,
+          "ymax": 192852.64970000245,
+          "ymin": 168002.64970000245
+        },
+        "height": 2485,
+        "max": 5,
+        "min": 1,
+        "modified": "2026-10-08T21:11:24Z",
+        "nodataCells": 2063603,
+        "pixelType": "U8",
+        "width": 2028
+      },
+      "Recorrencia_1990_2025_25m": {
+        "cell": 25,
+        "extent": {
+          "xmax": 65000.0,
+          "xmin": 43750.0,
+          "ymax": 193250.0,
+          "ymin": 167750.0
+        },
+        "height": 1020,
+        "max": 9,
+        "min": 0,
+        "modified": "2026-10-08T21:12:10Z",
+        "nodataCells": 0,
+        "pixelType": "U16",
+        "width": 850
+      },
+      "Risco_Cenario_2025_Incendios_Parametros_Historicos_10m": {
+        "cell": 10,
+        "extent": {
+          "xmax": 64570.754799998365,
+          "xmin": 44290.754799998365,
+          "ymax": 192840.33470000088,
+          "ymin": 168010.33470000088
+        },
+        "height": 2483,
+        "max": 5,
+        "min": 1,
+        "modified": "2026-10-08T21:11:08Z",
+        "nodataCells": 2059548,
+        "pixelType": "U8",
+        "width": 2028
+      },
+      "Tempo_Pos_Fogo_1990_2025_25m": {
+        "cell": 25,
+        "extent": {
+          "xmax": 65000.0,
+          "xmin": 43750.0,
+          "ymax": 193250.0,
+          "ymin": 167750.0
+        },
+        "height": 1020,
+        "max": 35,
+        "min": 0,
+        "modified": "2026-10-08T21:11:53Z",
+        "nodataCells": 540242,
+        "pixelType": "U16",
+        "width": 850
+      },
+      "Ultimo_Ano_Ardido_1990_2025_25m": {
+        "cell": 25,
+        "extent": {
+          "xmax": 65000.0,
+          "xmin": 43750.0,
+          "ymax": 193250.0,
+          "ymin": 167750.0
+        },
+        "height": 1020,
+        "max": 2025,
+        "min": 1990,
+        "modified": "2026-10-08T21:12:02Z",
+        "nodataCells": 540242,
+        "pixelType": "U16",
+        "width": 850
+      }
+    }
+  },
+  "version": 1
+}

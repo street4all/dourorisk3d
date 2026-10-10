@@ -565,8 +565,8 @@ export class Probe {
   private async regionHtml(title: string, key: string, polys: Rings[], names: string[] | null = null, parishNames: string[] | null = null): Promise<string> {
     const grid = VISIT_LAYERS.risco_2025.grid;
     const risk = await grid.histogramPolygons(key, polys);
-    const lat = polys[0][0].reduce((s, p) => s + p[1], 0) / polys[0][0].length;
-    const ha = risk ? risk.total * grid.cellHa(lat) : 0;
+    // células da grelha PT-TM06: a área é a mesma em todo o concelho
+    const ha = risk ? risk.total * grid.cellHa() : 0;
     const houses = this.housesText(await this.countHousesIn(parishNames));
     const list = names ? `<br /><span class="probe-names">${names.map(esc).join(", ")}</span>` : "";
     const head = `<p class="probe-head"><strong>${esc(title)}</strong><br /><span>${fmtHa(ha)}${houses}</span>${list}</p>`;

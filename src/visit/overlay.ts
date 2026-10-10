@@ -1,58 +1,50 @@
 // Desenho livre sobre o terreno 3D: uma MediaLayer cuja imagem é um ImageData feito no browser.
 // Serve para as pistas que se somam, a revelação de "onde ardeu" e a faísca.
+// A imagem cobre uma grelha PT-TM06 inteira (ou proporcional: a faísca usa células de 50 m) e é
+// colocada em blocos, cada um pelos seus 4 cantos reais (gridImageElements).
 import MediaLayer from "@arcgis/core/layers/MediaLayer.js";
-import ImageElement from "@arcgis/core/layers/support/ImageElement.js";
-import ExtentAndRotationGeoreference from "@arcgis/core/layers/support/ExtentAndRotationGeoreference.js";
-import Extent from "@arcgis/core/geometry/Extent.js";
+import type ImageElement from "@arcgis/core/layers/support/ImageElement.js";
 import type EsriMap from "@arcgis/core/Map.js";
-import type { Extent4326 } from "./sampler";
+import type { GridGeo } from "../geo/grid";
+import { gridImageElements } from "../geo/gridMedia";
 
 export class CanvasOverlay {
   readonly layer: MediaLayer;
-  private element: ImageElement | null = null;
+  private elements: ImageElement[] = [];
   private seq = 0;
   private shown = 0;
 
-  constructor(map: EsriMap, title: string, private extent: Extent4326, opacity = 0.85) {
+  constructor(map: EsriMap, title: string, private grid: GridGeo, opacity = 0.85) {
     this.layer = new MediaLayer({ title, opacity, visible: false, listMode: "hide" });
     map.add(this.layer);
   }
 
   /**
    * Mostra a imagem (substitui a anterior). Mudar `element.image` não volta a desenhar na SceneView,
-   * por isso cada imagem nova entra num elemento novo, que troca com o anterior.
+   * por isso cada imagem nova entra em elementos novos (um por bloco), que trocam com os anteriores.
    */
   draw(image: ImageData): void {
-    const { xmin, ymin, xmax, ymax } = this.extent;
     const seq = ++this.seq;
-    const next = new ImageElement({
-      image,
-      georeference: new ExtentAndRotationGeoreference({
-        extent: new Extent({ xmin, ymin, xmax, ymax, spatialReference: { wkid: 4326 } }),
-      }),
-    });
+    const next = gridImageElements(image, this.grid);
     this.layer.visible = true;
     // numa animação as imagens chegam mais depressa do que a cena as prepara:
     // só troca quando a nova está pronta, e salta as que entretanto ficaram velhas
-    void next
-      .load()
-      .catch(() => undefined)
-      .then(() => {
-        if (seq !== this.seq) return;
-        // a camada já carregada tem uma fonte vazia: junta-se o elemento a ela (substituir a fonte não pega)
-        const src = this.layer.source as any;
-        if (src?.elements) {
-          src.elements.add(next);
-          if (this.element) src.elements.remove(this.element);
-        } else this.layer.source = [next] as any;
-        this.element = next;
-        this.shown = seq;
-      });
+    void Promise.all(next.map((e) => e.load().catch(() => undefined))).then(() => {
+      if (seq !== this.seq) return;
+      // a camada já carregada tem uma fonte vazia: juntam-se os elementos a ela (substituir a fonte não pega)
+      const src = this.layer.source as any;
+      if (src?.elements) {
+        src.elements.addMany(next);
+        if (this.elements.length) src.elements.removeMany(this.elements);
+      } else this.layer.source = next as any;
+      this.elements = next;
+      this.shown = seq;
+    });
   }
 
-  /** Muda a extensão das próximas imagens (para mapas com extensões diferentes na mesma camada). */
-  setExtent(extent: Extent4326): void {
-    this.extent = extent;
+  /** Muda a grelha das próximas imagens (para mapas com grelhas diferentes na mesma camada). */
+  setGrid(grid: GridGeo): void {
+    this.grid = grid;
   }
 
   /** Há uma imagem a preparar? (as animações esperam por ela antes de mandar a seguinte) */

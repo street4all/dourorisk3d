@@ -1,11 +1,11 @@
-// Camadas do Modo Visita: imagens com a escala segura para daltonismo,
-// legendas por palavras e grelhas de classes para ler o valor num ponto.
+// Camadas do Modo Visita: imagens na paleta oficial (verde→vermelho nos mapas de risco, perigo e declive;
+// a alternativa segura para daltonismo sai de scripts/pro_to_web.py --paleta segura e obriga a mudar as
+// cores das legendas abaixo), legendas por palavras e grelhas de classes para ler o valor num ponto.
+// Cada camada usa a grelha PT-TM06 que o manifest (src/data/dourorisk-grids.json) lhe atribui.
 import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
-import { ClassGrid, type Extent4326 } from "./sampler";
+import { gridOfLayer } from "../geo/grid";
+import { ClassGrid } from "./sampler";
 
-const EXT_10M_RISCO: Extent4326 = { xmin: -7.605246, ymin: 41.180072, xmax: -7.360933, ymax: 41.402264 };
-const EXT_10M_PERIG: Extent4326 = { xmin: -7.605251, ymin: 41.180003, xmax: -7.360936, ymax: 41.402375 };
-export const EXT_25M: Extent4326 ={ xmin: -7.61171, ymin: 41.177757, xmax: -7.355757, ymax: 41.405918 };
 const A11Y = "/data/dourorisk/a11y";
 
 export interface LegendItem {
@@ -39,14 +39,15 @@ function riskLegend(): LegendItem[] {
   return RISK_WORDS.map((w, i) => ({ classes: [i + 1], color: RISK_COLORS[i], label: w, number: i + 1, flames: i + 1 }));
 }
 
-function riskLayer(key: string, title: string, noun: string, image: string, classes: string, extent: Extent4326): VisitLayer {
-  DOURORISK_MODELS[key] = { id: key, title, image, extent };
+function riskLayer(key: string, title: string, noun: string, image: string, classes: string): VisitLayer {
+  const grid = gridOfLayer(key);
+  DOURORISK_MODELS[key] = { id: key, title, image, grid };
   return {
     key,
     title,
     question: `${noun[0].toUpperCase()}${noun.slice(1)} de incêndio, de 1 a 5`,
     legend: riskLegend(),
-    grid: new ClassGrid(classes, extent),
+    grid: new ClassGrid(classes, grid),
     empty: "Aqui não há dados.",
     describe: (c) => `Aqui o ${noun} de incêndio é ${c}: ${RISK_WORDS[c - 1]}.`,
   };
@@ -57,12 +58,13 @@ export const VISIT_LAYERS: Record<string, VisitLayer> = {};
 /** Substitui as imagens DouroRisk pelas versões acessíveis e junta as camadas novas. Chamar antes de inicializar a cena. */
 export function applyAccessibleLayers(): void {
   const add = (l: VisitLayer) => (VISIT_LAYERS[l.key] = l);
-  add(riskLayer("risco_2025", "Risco de incêndio (tese, 2025)", "risco", `${A11Y}/risco_2025.png`, `${A11Y}/risco_2025_classes.png`, EXT_10M_RISCO));
-  add(riskLayer("perigosidade_2025", "Perigo de incêndio (tese, 2025)", "perigo", `${A11Y}/perigosidade_2025.png`, `${A11Y}/perigosidade_2025_classes.png`, EXT_10M_PERIG));
-  add(riskLayer("icnf_conjuntural", "Perigo oficial ICNF (2025)", "perigo", `${A11Y}/icnf_conjuntural.png`, `${A11Y}/icnf_conjuntural_classes.png`, EXT_25M));
-  add(riskLayer("icnf_estrutural", "Perigo oficial ICNF (2020–2030)", "perigo", `${A11Y}/icnf_estrutural.png`, `${A11Y}/icnf_estrutural_classes.png`, EXT_25M));
+  add(riskLayer("risco_2025", "Risco de incêndio (tese, 2025)", "risco", `${A11Y}/risco_2025.png`, `${A11Y}/risco_2025_classes.png`));
+  add(riskLayer("perigosidade_2025", "Perigo de incêndio (tese, 2025)", "perigo", `${A11Y}/perigosidade_2025.png`, `${A11Y}/perigosidade_2025_classes.png`));
+  add(riskLayer("icnf_conjuntural", "Perigo oficial ICNF (2025)", "perigo", `${A11Y}/icnf_conjuntural.png`, `${A11Y}/icnf_conjuntural_classes.png`));
+  add(riskLayer("icnf_estrutural", "Perigo oficial ICNF (2020–2030)", "perigo", `${A11Y}/icnf_estrutural.png`, `${A11Y}/icnf_estrutural_classes.png`));
 
-  DOURORISK_MODELS.recorrencia_a11y = { id: "recorrencia_a11y", title: "Quantas vezes ardeu (1990–2025)", image: `${A11Y}/recorrencia.png`, extent: EXT_25M };
+  const recGrid = gridOfLayer("recorrencia_a11y");
+  DOURORISK_MODELS.recorrencia_a11y = { id: "recorrencia_a11y", title: "Quantas vezes ardeu (1990–2025)", image: `${A11Y}/recorrencia.png`, grid: recGrid };
   add({
     key: "recorrencia_a11y",
     title: "Quantas vezes ardeu (1990–2025)",
@@ -72,12 +74,13 @@ export function applyAccessibleLayers(): void {
       { classes: [3, 4], color: "#D0672A", label: "3 ou 4 vezes" },
       { classes: [5], color: "#47180D", label: "5 ou mais vezes" },
     ],
-    grid: new ClassGrid(`${A11Y}/recorrencia_classes.png`, EXT_25M),
+    grid: new ClassGrid(`${A11Y}/recorrencia_classes.png`, recGrid),
     empty: "Aqui não ardeu desde 1990.",
     describe: (c) => (c >= 5 ? "Aqui ardeu 5 ou mais vezes desde 1990." : `Aqui ardeu ${c} ${c === 1 ? "vez" : "vezes"} desde 1990.`),
   });
 
-  DOURORISK_MODELS.declive_a11y = { id: "declive_a11y", title: "Encostas inclinadas", image: `${A11Y}/declive.png`, extent: EXT_25M };
+  const decGrid = gridOfLayer("declive_a11y");
+  DOURORISK_MODELS.declive_a11y = { id: "declive_a11y", title: "Encostas inclinadas", image: `${A11Y}/declive.png`, grid: decGrid };
   const DECL_WORDS = ["", "quase plana", "um pouco inclinada", "muito inclinada", "quase a pique"];
   add({
     key: "declive_a11y",
@@ -88,18 +91,19 @@ export function applyAccessibleLayers(): void {
       { classes: [3], color: "#FE9900", label: "muito inclinada" },
       { classes: [4], color: "#DD2203", label: "quase a pique" },
     ],
-    grid: new ClassGrid(`${A11Y}/declive_classes.png`, EXT_25M),
+    grid: new ClassGrid(`${A11Y}/declive_classes.png`, decGrid),
     empty: "Aqui não há dados.",
     describe: (c) => `Aqui a encosta é ${DECL_WORDS[c] || "quase plana"}.`,
   });
 
-  DOURORISK_MODELS.exposicao_sol = { id: "exposicao_sol", title: "Encostas viradas ao sol", image: `${A11Y}/exposicao_sol.png`, extent: EXT_25M };
+  const solGrid = gridOfLayer("exposicao_sol");
+  DOURORISK_MODELS.exposicao_sol = { id: "exposicao_sol", title: "Encostas viradas ao sol", image: `${A11Y}/exposicao_sol.png`, grid: solGrid };
   add({
     key: "exposicao_sol",
     title: "Encostas viradas ao sol",
     question: "Encostas que apanham sol à tarde",
     legend: [{ classes: [1], color: "#EFA650", label: "virada ao sol (sul e poente)" }],
-    grid: new ClassGrid(`${A11Y}/exposicao_sol_classes.png`, EXT_25M),
+    grid: new ClassGrid(`${A11Y}/exposicao_sol_classes.png`, solGrid),
     empty: "Aqui não há dados.",
     describe: (c) =>
       c === 1
@@ -121,7 +125,7 @@ export function applyAccessibleLayers(): void {
       { classes: [4], color: "#31A354", label: BIO_WORDS[3] },
       { classes: [5], color: "#006D2C", label: BIO_WORDS[4] },
     ],
-    grid: new ClassGrid(`${A11Y}/biomassa_classes.png`, EXT_25M),
+    grid: new ClassGrid(`${A11Y}/biomassa_classes.png`, gridOfLayer("biomassa_2025")),
     empty: "Aqui não há dados de mato.",
     describe: (c) => `Aqui há ${BIO_WORDS[c - 1] || "pouco mato"}.`,
   });

@@ -11,8 +11,9 @@ import type { Alijo3DManager } from "../alijo3d/alijoScene";
 import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
 import type { LiveWeatherReport } from "../alijo3d/weatherService";
 import type { ClickEvent } from "@arcgis/core/views/input/types.js";
-import { VISIT_LAYERS, EXT_25M, renderLegend } from "./layers";
+import { VISIT_LAYERS, renderLegend } from "./layers";
 import { NO_DATA } from "./sampler";
+import { gridFromManifest, gridOfLayer, pixelOf } from "../geo/grid";
 import { CanvasOverlay } from "./overlay";
 import { COUNT_COLORS, cuesAt, renderCueCount } from "./cues";
 import { loadStack } from "./stack";
@@ -27,6 +28,10 @@ const MAX_TOKENS = 3;
 const STORAGE_KEY = "onde-pode-arder:palpites";
 const BURNED = "recorrencia_a11y";
 const RISK = "risco_2025";
+/** grelha de 25 m (PT-TM06) das pistas e da faísca */
+const G25 = gridFromManifest("g25");
+/** grelha do mapa "onde ardeu" (a revelação corta colunas desta grelha) */
+const BURNED_GRID = gridOfLayer(BURNED);
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const RISK_WORDS = ["muito baixo", "baixo", "médio", "alto", "muito alto"];
 const RISK_COLORS = ["#036403", "#88B302", "#FFFE06", "#FE9900", "#DD2203"];
@@ -159,9 +164,9 @@ export class VisitMode {
     const view = this.manager.view;
     if (view) {
       const map = view.map!;
-      this.cueOverlay = new CanvasOverlay(map, "Pistas que se somam", EXT_25M, 0.85);
-      this.revealOverlay = new CanvasOverlay(map, "Onde ardeu (revelação)", EXT_25M, 0.85);
-      this.sparkOverlay = new CanvasOverlay(map, "Faísca (modelo simplificado)", EXT_25M, 0.9);
+      this.cueOverlay = new CanvasOverlay(map, "Pistas que se somam", G25, 0.85);
+      this.revealOverlay = new CanvasOverlay(map, "Onde ardeu (revelação)", BURNED_GRID, 0.85);
+      this.sparkOverlay = new CanvasOverlay(map, "Faísca (modelo simplificado)", G25, 0.9);
       map.addMany([this.markLayer, this.tokenLayer]);
       // as janelas do ArcGIS (freguesias com dados económicos) não fazem parte da visita
       view.popupEnabled = false;
@@ -965,7 +970,8 @@ export class VisitMode {
   private tokenRevealed(i: number): boolean {
     const t = this.tokens[i];
     if (!t) return false;
-    const x = (t.lon - EXT_25M.xmin) / (EXT_25M.xmax - EXT_25M.xmin);
+    // a cortina corta colunas da grelha do mapa "onde ardeu": a ficha conta pela sua coluna real
+    const x = pixelOf(BURNED_GRID, t.lon, t.lat).x / BURNED_GRID.width;
     return this.revealFrac >= 1 || x <= this.revealFrac;
   }
 
@@ -1191,8 +1197,9 @@ export class VisitMode {
       sy += (i / r.width) | 0;
       n++;
     }
-    const W = EXT_25M.xmax - EXT_25M.xmin, H = EXT_25M.ymax - EXT_25M.ymin;
-    const cx = ((s.lon - EXT_25M.xmin) / W) * r.width, cy = ((EXT_25M.ymax - s.lat) / H) * r.height;
+    // a faísca em píxeis da simulação (a grelha de 25 m agrupada em células de 50 m)
+    const p = pixelOf(G25, s.lon, s.lat);
+    const cx = (p.x / G25.width) * r.width, cy = (p.y / G25.height) * r.height;
     const dx = n ? sx / n - cx : 0, dy = n ? sy / n - cy : 0;
     const deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
     const dir = Math.hypot(dx, dy) < 3 ? "todos os lados" : `${DIRS[Math.round((((deg % 360) + 360) % 360) / 45) % 8]}`;

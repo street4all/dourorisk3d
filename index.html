@@ -3,600 +3,680 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DouroRisk 3D — Onde Pode Arder? | BVSD</title>
-    <meta name="description" content="DouroRisk 3D — Gémeo Digital de Inteligência Territorial, Risco de Incêndio Rural e Património no Concelho de Alijó. Bombeiros Voluntários de Sanfins do Douro." />
+    <title>DouroRisk 3D — Onde pode arder?</title>
+    <meta name="description" content="DouroRisk 3D: o concelho de Alijó em 3D para perceber onde o fogo pode chegar, comparar com onde ardeu de verdade e escolher como proteger a aldeia. Bombeiros Voluntários de Sanfins do Douro." />
     <meta name="author" content="Hugo Vilela" />
+    <meta property="og:title" content="DouroRisk 3D — Onde pode arder?" />
+    <meta property="og:description" content="O concelho de Alijó em 3D, para perceber o risco de incêndio e proteger a aldeia." />
+    <meta property="og:image" content="/images/marca/logo-vertical-claro.svg" />
     <link rel="icon" href="/images/marca/logo-icone.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #121417;
+        --ink-2: #3a3a3a;
+        --paper: #f7f3ea;
+        --paper-2: #efe8da;
+        --line: rgba(18, 20, 23, 0.14);
+        --river: #1f5c99;
+        --accent: #e0521c;
+        --st1: #1e29aa;
+        --st2: #681078;
+        --st3: #493b2f;
+        --st4: #972c6e;
+        --st5: #296209;
+        --focus: #ffb000;
+        --r1: #3f7a26;
+        --r2: #a8b533;
+        --r3: #e9c33a;
+        --r4: #ee7a1d;
+        --r5: #b92d1a;
+        --max: 1160px;
+        --font: "Atkinson Hyperlegible", Verdana, Tahoma, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font: 400 18px/1.55 var(--font);
+      }
+      a {
+        color: var(--river);
+      }
+      a:focus-visible,
+      button:focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 3px;
+        box-shadow: 0 0 0 6px var(--ink);
+      }
+      .wrap {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .skip {
+        position: absolute;
+        left: -9999px;
+      }
+      .skip:focus {
+        left: 16px;
+        top: 16px;
+        z-index: 10;
+        background: var(--ink);
+        color: var(--paper);
+        padding: 10px 14px;
+        border-radius: 10px;
+      }
+
+      /* topo */
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: color-mix(in srgb, var(--paper) 92%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+      }
+      .top .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 72px;
+      }
+      .top img {
+        height: 44px;
+        width: auto;
+        display: block;
+      }
+      .top nav {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        flex-wrap: wrap;
+      }
+      .top nav a {
+        color: var(--ink);
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .top nav a:hover {
+        text-decoration: underline;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 52px;
+        padding: 12px 22px;
+        border-radius: 14px;
+        background: var(--ink);
+        color: var(--paper) !important;
+        font-weight: 700;
+        text-decoration: none;
+        border: 2px solid var(--ink);
+      }
+      .btn:hover {
+        background: #2a2d33;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--ink) !important;
+      }
+      .btn.ghost:hover {
+        background: var(--paper-2);
+      }
+      .btn svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* capa */
+      .hero {
+        padding: 72px 0 56px;
+      }
+      .hero .wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        gap: 48px;
+        align-items: center;
+      }
+      .eyebrow {
+        margin: 0 0 14px;
+        font-size: 0.82em;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(2.6rem, 6vw, 4.6rem);
+        line-height: 1.02;
+        letter-spacing: -0.01em;
+      }
+      h1 .q {
+        color: var(--accent);
+      }
+      .lead {
+        margin: 22px 0 30px;
+        font-size: 1.22em;
+        max-width: 34em;
+        color: var(--ink-2);
+      }
+      .cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .hero-mark {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 28px;
+        background: var(--paper-2);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .hero-mark img {
+        width: 82%;
+        height: auto;
+      }
+      .hero-mark .alt {
+        position: absolute;
+        left: 22px;
+        font: 400 0.78em/1 "DM Mono", ui-monospace, Consolas, monospace;
+        color: var(--ink-2);
+      }
+
+      /* secções */
+      section {
+        padding: 64px 0;
+        /* o topo fixo não tapa o título quando se salta para a secção */
+        scroll-margin-top: 72px;
+      }
+      section + section {
+        border-top: 1px solid var(--line);
+      }
+      h2 {
+        margin: 0 0 10px;
+        font-size: clamp(1.8rem, 3.6vw, 2.5rem);
+        line-height: 1.12;
+      }
+      .sub {
+        margin: 0 0 34px;
+        color: var(--ink-2);
+        max-width: 40em;
+      }
+
+      /* os 5 passos */
+      .steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .step {
+        --st: var(--st1);
+        padding: 20px 18px 22px;
+        border-radius: 20px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-top: 8px solid var(--st);
+      }
+      .step svg {
+        width: 48px;
+        height: 48px;
+        display: block;
+        margin-bottom: 12px;
+      }
+      .step svg .shape {
+        fill: var(--st);
+      }
+      .step svg text {
+        fill: #fff;
+        font: 700 22px var(--font);
+        text-anchor: middle;
+      }
+      .step h3 {
+        margin: 0 0 6px;
+        font-size: 1.2em;
+      }
+      .step p {
+        margin: 0;
+        font-size: 0.95em;
+        color: var(--ink-2);
+      }
+
+      /* ferramentas */
+      .tools {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .tool {
+        padding: 22px;
+        border-radius: 20px;
+        background: var(--ink);
+        color: var(--paper);
+      }
+      .tool .ico {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 14px;
+      }
+      .tool .ico svg {
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .tool h3 {
+        margin: 0 0 6px;
+        font-size: 1.15em;
+      }
+      .tool p {
+        margin: 0;
+        color: #d9d4c7;
+        font-size: 0.95em;
+      }
+
+      /* números */
+      .numbers {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .num {
+        padding: 22px 20px;
+        border-radius: 20px;
+        background: #fff;
+        border: 1px solid var(--line);
+      }
+      .num strong {
+        display: block;
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        line-height: 1;
+        margin-bottom: 10px;
+      }
+      .num span {
+        color: var(--ink-2);
+      }
+      .ramp {
+        display: flex;
+        height: 10px;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 28px;
+      }
+      .ramp i {
+        flex: 1;
+      }
+      .ramp-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        font-size: 0.85em;
+        color: var(--ink-2);
+      }
+
+      /* para todas as pessoas */
+      .a11y {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px 28px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .a11y li {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .a11y svg {
+        flex: none;
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        margin-top: 2px;
+      }
+
+      /* parceiros */
+      .partners {
+        display: grid;
+        grid-template-columns: auto auto 1fr;
+        gap: 28px 48px;
+        align-items: center;
+        padding: 28px 32px;
+        border-radius: 24px;
+        background: #fff;
+        border: 1px solid var(--line);
+      }
+      .partners figure {
+        margin: 0;
+        display: grid;
+        gap: 10px;
+        justify-items: center;
+        text-align: center;
+      }
+      .partners figcaption {
+        font-size: 0.8em;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+      .partners .ahbv {
+        height: 150px;
+        width: auto;
+      }
+      .partners .utad {
+        height: 54px;
+        width: auto;
+      }
+      .partners .apoio {
+        width: 100%;
+        max-width: 440px;
+        height: auto;
+      }
+
+      /* fim */
+      .final {
+        text-align: center;
+        padding: 80px 0;
+        background: var(--ink);
+        color: var(--paper);
+        border-top: 0 !important;
+      }
+      .final h2 {
+        margin-bottom: 14px;
+      }
+      .final p {
+        margin: 0 auto 28px;
+        max-width: 34em;
+        color: #d9d4c7;
+      }
+      .final .btn {
+        background: var(--paper);
+        color: var(--ink) !important;
+        border-color: var(--paper);
+      }
+      .final .btn:hover {
+        background: #fff;
+      }
+      footer {
+        padding: 28px 0 40px;
+        font-size: 0.88em;
+        color: var(--ink-2);
+      }
+      footer .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      /* ecrãs médios e telemóvel */
+      @media (max-width: 980px) {
+        .hero .wrap {
+          grid-template-columns: 1fr;
+        }
+        .hero-mark {
+          max-width: 420px;
+        }
+        .steps {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .tools,
+        .numbers {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .a11y {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .partners {
+          grid-template-columns: 1fr 1fr;
+        }
+        .partners .support {
+          grid-column: 1 / -1;
+        }
+      }
+      @media (max-width: 640px) {
+        body {
+          font-size: 17px;
+        }
+        .wrap {
+          padding: 0 16px;
+        }
+        .top nav a:not(.btn) {
+          display: none;
+        }
+        .top img {
+          height: 36px;
+        }
+        .hero {
+          padding: 40px 0 32px;
+        }
+        section {
+          padding: 48px 0;
+        }
+        .steps,
+        .tools,
+        .numbers,
+        .a11y,
+        .partners {
+          grid-template-columns: 1fr;
+        }
+        .partners {
+          padding: 22px 18px;
+        }
+        .cta .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    </style>
   </head>
+  <body>
+    <a class="skip" href="#conteudo">Saltar para o conteúdo</a>
 
-  <body class="calcite-mode-dark">
-    <!-- Mapa 3D em ecrã inteiro -->
-    <div id="alijo-scene-container" aria-label="Mapa 3D do concelho de Alijó"></div>
-
-    <!-- Nome da app -->
-    <header class="hud hud-brand">
-      <h1>DouroRisk 3D</h1>
-      <p>Onde pode arder? · BVSD · Alijó</p>
+    <header class="top">
+      <div class="wrap">
+        <a href="#topo" aria-label="DouroRisk 3D, início"><img src="/images/marca/logo-horizontal-claro.svg" alt="DouroRisk 3D — Onde pode arder?" /></a>
+        <nav aria-label="Secções">
+          <a href="#passos">Como funciona</a>
+          <a href="#ferramentas">Ferramentas</a>
+          <a href="#parceiros">Parceiros</a>
+          <a class="btn" href="/mapa/">Entrar no mapa</a>
+        </nav>
+      </div>
     </header>
 
-    <!-- Entidades financiadoras: sempre à vista no ecrã principal -->
-    <aside class="hud hud-apoio" aria-label="Com o apoio de">
-      <span>Com o apoio de</span>
-      <img src="/images/logos/logo_fct_bpi_lacaixa.png" alt="Fundação para a Ciência e a Tecnologia, BPI e Fundação la Caixa" />
-    </aside>
-
-    <!-- Opções de leitura -->
-    <div class="hud hud-tools" role="group" aria-label="Ferramentas e opções de leitura">
-      <button type="button" class="tool-btn tool-probe" id="btn-probe" aria-pressed="false" aria-controls="probe-card" title="Explorar: dados de um ponto ou de uma área" aria-label="Explorar: dados de um ponto ou de uma área">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
-      </button>
-      <button type="button" class="tool-btn tool-maps" id="btn-maps" aria-pressed="false" aria-controls="maps-card" title="Mapas de risco" aria-label="Mapas de risco">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5z"/><path d="m2 12 10 5 10-5"/><path d="m2 16 10 5 10-5"/></svg>
-      </button>
-      <button type="button" class="tool-btn" id="btn-font" title="Letra maior" aria-label="Letra maior">
-        <span aria-hidden="true">A<sup>+</sup></span>
-      </button>
-      <button type="button" class="tool-btn" id="btn-contrast" aria-pressed="false" title="Alto contraste" aria-label="Alto contraste">
-        <calcite-icon icon="contrast" scale="m" aria-hidden="true"></calcite-icon>
-      </button>
-      <button type="button" class="tool-btn" id="theme-toggle-btn" title="Modo claro" aria-label="Modo claro">
-        <calcite-icon icon="brightness" scale="m" aria-hidden="true"></calcite-icon>
-      </button>
-      <button type="button" class="tool-btn" data-pop="ajuda" aria-controls="pop-ajuda" aria-expanded="false" title="Ajuda" aria-label="Ajuda">
-        <span aria-hidden="true">?</span>
-      </button>
-    </div>
-
-    <!-- Barra dos 5 passos -->
-    <nav class="dock" aria-label="Passos da visita">
-      <button type="button" class="dock-btn" data-pop="olha" data-step="1" aria-keyshortcuts="1" aria-controls="pop-olha" aria-expanded="false">
-        <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20"/><text x="24" y="31">1</text></svg>
-        <span class="dock-label">Olha</span>
-      </button>
-      <button type="button" class="dock-btn" data-pop="escolhe" data-step="2" aria-keyshortcuts="2" aria-controls="pop-escolhe" aria-expanded="false">
-        <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><polygon points="24,3 46,42 2,42"/><text x="24" y="37">2</text></svg>
-        <span class="dock-label">Escolhe</span>
-      </button>
-      <button type="button" class="dock-btn" data-pop="guarda" data-step="3" aria-keyshortcuts="3" aria-controls="pop-guarda" aria-expanded="false">
-        <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="5" width="38" height="38" rx="3"/><text x="24" y="32">3</text></svg>
-        <span class="dock-label">Guarda</span>
-      </button>
-      <button type="button" class="dock-btn" data-pop="compara" data-step="4" aria-keyshortcuts="4" aria-controls="pop-compara" aria-expanded="false">
-        <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><polygon points="24,1 47,24 24,47 1,24"/><text x="24" y="32">4</text></svg>
-        <span class="dock-label">Compara</span>
-      </button>
-      <button type="button" class="dock-btn" data-pop="protege" data-step="5" aria-keyshortcuts="5" aria-controls="pop-protege" aria-expanded="false">
-        <svg class="shape" viewBox="0 0 48 48" aria-hidden="true"><polygon points="5,44 43,44 43,20 24,3 5,20"/><text x="24" y="38">5</text></svg>
-        <span class="dock-label">Protege</span>
-      </button>
-      <span class="dock-sep tecnico-only" aria-hidden="true" hidden></span>
-      <button type="button" class="dock-btn dock-more tecnico-only" hidden data-pop="mais" aria-controls="pop-mais" aria-expanded="false">
-        <calcite-icon icon="sliders-horizontal" scale="l" aria-hidden="true"></calcite-icon>
-        <span class="dock-label">Mais</span>
-      </button>
-    </nav>
-
-    <!-- ============================================================ 1 · OLHA -->
-    <section class="pop" id="pop-olha" data-station="1" role="dialog" aria-modal="false" aria-labelledby="pop-olha-q" hidden>
-      <header class="pop-head">
-        <div class="pop-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/><text x="24" y="31">1</text></svg><span>Olha</span></div>
-        <h2 id="pop-olha-q" class="pop-q">Como é a nossa terra, do rio ao monte?</h2>
-        <button type="button" class="pop-close" aria-label="Fechar">×</button>
-      </header>
-      <div class="pop-body">
-        <p class="pop-status" role="status" aria-live="polite"></p>
-        <p class="lead">Toca num lugar para voar até lá.</p>
-
-        <div class="place-cards">
-          <button type="button" class="place-card" id="header-preset-santuario" aria-pressed="false">
-            <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M2 30L18 8L28 20L34 13L46 30Z"/><path d="M16 8V3h4"/></svg>
-            <span>Santuário, no monte</span>
-          </button>
-          <button type="button" class="place-card" id="header-preset-sanfins" aria-pressed="false">
-            <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M4 30V16L13 9L22 16V30Z"/><path d="M22 30V12L32 4L42 12V30Z"/><path d="M2 30H46"/></svg>
-            <span>Aldeia de Sanfins</span>
-          </button>
-          <button type="button" class="place-card" id="header-preset-pinhao" aria-pressed="false">
-            <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M2 12C8 8 14 16 20 12S32 8 38 12 46 14 46 14"/><path d="M2 22C8 18 14 26 20 22S32 18 38 22 46 24 46 24"/></svg>
-            <span>Pinhão e o rio</span>
-          </button>
-          <button type="button" class="place-card" id="header-preset-general" aria-pressed="false">
-            <svg viewBox="0 0 48 32" aria-hidden="true"><path stroke-dasharray="4 3" d="M6 4L40 2L46 16L36 30L10 28L2 14Z"/></svg>
-            <span>Todo o concelho</span>
-          </button>
-        </div>
-
-        <h3>O que mostrar no mapa</h3>
-        <div class="switch-list">
-          <calcite-label layout="inline" scale="l"><calcite-switch id="buildings-toggle" checked scale="l"></calcite-switch>Casas em 3D</calcite-label>
-          <calcite-label layout="inline" scale="l"><calcite-switch id="parishes-toggle" checked scale="l"></calcite-switch>Nomes das terras</calcite-label>
-        </div>
-        <button type="button" class="big-btn wide" id="btn-toggle-orbit" aria-pressed="false"><span aria-hidden="true">↻ </span>Dar a volta</button>
-        <button type="button" class="big-btn primary wide next-btn" data-goto="escolhe">Seguinte: 2 · Escolhe</button>
-      </div>
-    </section>
-
-    <!-- ============================================================ 2 · ESCOLHE -->
-    <section class="pop" id="pop-escolhe" data-station="2" role="dialog" aria-modal="false" aria-labelledby="pop-escolhe-q" hidden>
-      <header class="pop-head">
-        <div class="pop-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><polygon points="24,3 46,42 2,42"/><text x="24" y="37">2</text></svg><span>Escolhe</span></div>
-        <h2 id="pop-escolhe-q" class="pop-q">Onde achas que o incêndio pode chegar/propagar?</h2>
-        <button type="button" class="pop-close" aria-label="Fechar">×</button>
-      </header>
-      <div class="pop-body">
-        <p class="pop-status" role="status" aria-live="polite"></p>
-        <p class="lead">Toca no mapa para pôr 3 fichas onde achas que o incêndio pode chegar/propagar.</p>
-        <div class="tokens" aria-live="polite">
-          <div class="token-slots" id="token-slots" aria-hidden="true"></div>
-          <p id="token-count">Fichas no mapa: 0 de 3</p>
-        </div>
-        <p class="hint">Arrasta uma ficha para a mudar de sítio. Toca numa ficha para a tirar.</p>
-        <div class="row-btns two">
-          <button type="button" class="big-btn" id="btn-token-center">Pôr ficha no centro do mapa</button>
-          <button type="button" class="big-btn" id="btn-clear-tokens">Tirar todas as fichas</button>
-        </div>
-
-        <h3>Pistas: liga várias. Onde se juntam, há mais perigo.</h3>
-        <div class="cue-grid" role="group" aria-label="Pistas">
-          <button type="button" class="cue" data-cue="declive_a11y" aria-pressed="false">
-            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 40h40V8z" /><path class="acc" d="M14 33 34 18m0 0h-7m7 0v7"/></svg>
-            <strong>Encosta inclinada</strong><span>O fogo sobe mais depressa.</span>
-          </button>
-          <button type="button" class="cue" data-cue="exposicao_sol" aria-pressed="false">
-            <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="8"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6M11 11l4 4M33 33l4 4M37 11l-4 4M15 33l-4 4"/></svg>
-            <strong>Encosta virada ao sol</strong><span>O mato fica mais seco.</span>
-          </button>
-          <button type="button" class="cue" data-cue="biomassa_2025" aria-pressed="false">
-            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40c-6-6 0-14 6-12-1-10 12-14 16-6 7-4 15 4 10 10 6 4 2 10-4 8H8z"/><path d="M4 42h40"/></svg>
-            <strong>Muito mato</strong><span>Há mais para arder.</span>
-          </button>
-          <button type="button" class="cue" data-cue="icnf_estrutural" aria-pressed="false">
-            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 6h20l8 8v28H10z"/><path d="M30 6v8h8"/><path class="acc" d="M17 24h14M17 31h14M17 38h8"/></svg>
-            <strong>Mapa oficial do perigo</strong><span>O Estado diz onde é mais perigoso.</span>
-          </button>
-        </div>
-        <div class="legend" id="cue-legend" aria-live="polite"></div>
-        <p class="hint" id="cue-point" role="status" aria-live="polite"></p>
-        <button type="button" class="big-btn" id="btn-hide-cue" hidden>Desligar as pistas</button>
-        <button type="button" class="big-btn primary wide next-btn" data-goto="guarda">Seguinte: 3 · Guarda</button>
-      </div>
-    </section>
-
-    <!-- ============================================================ 3 · GUARDA -->
-    <section class="pop" id="pop-guarda" data-station="3" role="dialog" aria-modal="false" aria-labelledby="pop-guarda-q" hidden>
-      <header class="pop-head">
-        <div class="pop-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="5" y="5" width="38" height="38" rx="3"/><text x="24" y="32">3</text></svg><span>Guarda</span></div>
-        <h2 id="pop-guarda-q" class="pop-q">Tens pouca, alguma ou muita certeza?</h2>
-        <button type="button" class="pop-close" aria-label="Fechar">×</button>
-      </header>
-      <div class="pop-body">
-        <p class="pop-status" role="status" aria-live="polite"></p>
-        <p class="lead">Fecha o palpite no envelope dos bombeiros para ninguém o mudar depois.</p>
-        <div id="guard-need" class="notice" hidden>
-          <p>Primeiro põe 3 fichas no mapa.</p>
-          <button type="button" class="big-btn" data-goto="escolhe">Ir para o passo 2</button>
-        </div>
-        <div id="guard-form">
-          <h3 id="faces-label">Quanta certeza tens?</h3>
-          <div class="faces" role="radiogroup" aria-labelledby="faces-label" aria-describedby="faces-error">
-            <button type="button" class="face" role="radio" aria-checked="false" data-certeza="1">
-              <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20"/><circle class="dot" cx="17" cy="20" r="2.4"/><circle class="dot" cx="31" cy="20" r="2.4"/><path d="M15 34q9-7 18 0"/></svg>
-              <span>pouca</span>
-            </button>
-            <button type="button" class="face" role="radio" aria-checked="false" data-certeza="2">
-              <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20"/><circle class="dot" cx="17" cy="20" r="2.4"/><circle class="dot" cx="31" cy="20" r="2.4"/><path d="M15 31h18"/></svg>
-              <span>alguma</span>
-            </button>
-            <button type="button" class="face" role="radio" aria-checked="false" data-certeza="3">
-              <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20"/><circle class="dot" cx="17" cy="20" r="2.4"/><circle class="dot" cx="31" cy="20" r="2.4"/><path d="M14 28q10 10 20 0"/></svg>
-              <span>muita</span>
-            </button>
-          </div>
-          <p class="field-error" id="faces-error" role="alert" hidden>Escolhe uma cara: pouca, alguma ou muita certeza.</p>
-          <label class="field">Nome da turma (se quiseres)
-            <input type="text" id="turma-input" maxlength="20" autocomplete="off" placeholder="Por exemplo: 11.º B" />
-          </label>
-          <button type="button" class="big-btn primary wide" id="btn-save-guess">Guardar o palpite</button>
-          <p class="hint">Os cientistas também fazem assim: decidem antes de ver o resultado.</p>
-        </div>
-        <div id="guard-sealed" class="sealed" hidden aria-live="polite">
-          <img src="/images/logos/logo_ahbv_brasao.png" alt="Carimbo dos Bombeiros Voluntários de Sanfins do Douro" />
+    <main id="conteudo">
+      <!-- capa -->
+      <div class="hero" id="topo">
+        <div class="wrap">
           <div>
-            <p class="sealed-title" id="sealed-title" tabindex="-1">Palpite guardado</p>
-            <p>Código: <strong id="guess-code">—</strong></p>
-            <p id="guess-summary"></p>
+            <p class="eyebrow">Concelho de Alijó · Douro</p>
+            <h1>Onde pode <span class="q">arder?</span></h1>
+            <p class="lead">O concelho de Alijó em 3D, do rio ao monte. Faz um palpite sobre onde o fogo pode chegar, compara com onde ardeu de verdade e escolhe como proteger a aldeia antes do próximo verão.</p>
+            <div class="cta">
+              <a class="btn" href="/mapa/">
+                Entrar no mapa 3D
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </a>
+              <a class="btn ghost" href="#passos">Como funciona</a>
+            </div>
           </div>
-          <button type="button" class="big-btn" data-goto="compara">Ir para o passo 4</button>
-          <button type="button" class="big-btn" id="btn-new-guess">Fazer um novo palpite</button>
+          <div class="hero-mark">
+            <img src="/images/marca/logo-simbolo.svg" alt="Símbolo DouroRisk 3D: uma chama feita de socalcos, verde em baixo e vermelha no alto, sobre a linha azul do rio Douro." />
+          </div>
         </div>
       </div>
-    </section>
 
-    <!-- ============================================================ 4 · COMPARA -->
-    <section class="pop" id="pop-compara" data-station="4" role="dialog" aria-modal="false" aria-labelledby="pop-compara-q" hidden>
-      <header class="pop-head">
-        <div class="pop-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><polygon points="24,1 47,24 24,47 1,24"/><text x="24" y="32">4</text></svg><span>Compara</span></div>
-        <h2 id="pop-compara-q" class="pop-q">Onde ardeu de verdade? Acertámos?</h2>
-        <button type="button" class="pop-close" aria-label="Fechar">×</button>
-      </header>
-      <div class="pop-body">
-        <p class="pop-status" role="status" aria-live="polite"></p>
-        <p class="lead">Vê no mapa onde o fogo passou desde 1990.</p>
-        <div id="compare-need" class="notice" hidden>
-          <p>Primeiro guarda o palpite no passo 3. Assim ninguém o muda depois de ver o resultado.</p>
-          <button type="button" class="big-btn" data-goto="guarda">Ir para o passo 3</button>
-        </div>
-        <div id="compare-open">
-        <button type="button" class="big-btn primary wide" id="btn-show-burned" aria-pressed="false">Revelar onde ardeu</button>
-        <label class="curtain">Ou arrasta a cortina, de oeste para este
-          <input type="range" id="reveal-range" min="0" max="100" value="0" step="1" />
-        </label>
-
-        <div class="score" id="score" role="status" aria-live="polite">
-          <div class="score-marks" id="score-marks" aria-hidden="true"></div>
-          <p class="score-text" id="score-text">Carrega em Revelar.</p>
-        </div>
-        <ul class="results" id="token-results" aria-live="polite"><li>Ainda não puseste fichas. Vai ao passo 2.</li></ul>
-        <div class="legend" id="burned-legend"></div>
-        <button type="button" class="big-btn" id="btn-read-burned">Ler o centro do mapa</button>
-        </div>
-
-        <div class="fact">
-          <div class="grid10" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          <p><strong>Mais de 4 em cada 10 sítios do concelho já arderam.</strong></p>
-        </div>
-
-        <h3>O mapa acerta sempre?</h3>
-        <div class="summers" id="summers" role="img" aria-label="21 verões com mais de 5 hectares ardidos, de 2001 a 2025. Em 4 o mapa acertou mais do que à sorte."></div>
-        <p>Só com a forma dos montes, o mapa acertou mais do que à sorte em <strong>4 de 21 verões</strong>. Nos outros, acertou menos.</p>
-
-        <h3>O que o mapa não sabe: o tempo de hoje</h3>
-        <p id="weather-plain" class="weather-plain">A ler o tempo no Pinhão…</p>
-        <ul class="rule30" id="rule30" aria-label="Regra 30-30-30"></ul>
-
-        <h3 class="spark-title"><svg class="flame-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>E se uma faísca caísse hoje?</h3>
-        <p>Acende uma faísca e vê para onde o fogo anda com o vento de agora.</p>
-        <div class="row-btns two">
-          <button type="button" class="big-btn spark-btn" id="btn-spark" aria-pressed="false">Acender uma faísca</button>
-          <button type="button" class="big-btn" id="btn-spark-center">Acender no centro do mapa</button>
-        </div>
-        <div class="regrow" role="group" aria-label="Vento para a faísca">
-          <button type="button" class="chip" data-wind="live" aria-pressed="true">Vento de agora</button>
-          <button type="button" class="chip" data-wind="0" aria-pressed="false">Sem vento</button>
-          <button type="button" class="chip" data-wind="40" aria-pressed="false">Vento forte</button>
-        </div>
-        <div class="spark-box" id="spark-box" hidden>
-          <div class="spark-bar" aria-hidden="true"><div class="spark-fill" id="spark-fill"></div></div>
-          <p class="answer" id="spark-text" role="status" aria-live="polite"></p>
-          <div class="spark-legend">
-            <span><i class="sw-front"></i>A arder agora</span>
-            <span><i class="sw-burnt"></i>Já ardeu</span>
-          </div>
-          <div class="row-btns two">
-            <button type="button" class="big-btn" id="btn-spark-replay">Ver outra vez</button>
-            <button type="button" class="big-btn" id="btn-spark-clear">Apagar o fogo</button>
-          </div>
-        </div>
-        <p class="hint">Modelo simplificado para aprender: o fogo anda mais depressa onde o perigo é alto, nas encostas inclinadas, ao sol e a favor do vento. Não é uma previsão.</p>
-        <button type="button" class="big-btn primary wide next-btn" data-goto="protege">Seguinte: 5 · Protege</button>
-      </div>
-    </section>
-
-    <!-- ============================================================ 5 · PROTEGE -->
-    <section class="pop" id="pop-protege" data-station="5" role="dialog" aria-modal="false" aria-labelledby="pop-protege-q" hidden>
-      <header class="pop-head">
-        <div class="pop-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><polygon points="5,44 43,44 43,20 24,3 5,20"/><text x="24" y="38">5</text></svg><span>Protege</span></div>
-        <h2 id="pop-protege-q" class="pop-q">O que podemos fazer antes do próximo verão?</h2>
-        <button type="button" class="pop-close" aria-label="Fechar">×</button>
-      </header>
-      <div class="pop-body">
-        <p class="pop-status" role="status" aria-live="polite"></p>
-        <p class="lead">Toca numa casa no mapa. Depois escolhe o que fazer.</p>
-        <button type="button" class="big-btn primary wide" id="btn-see-sanfins">Ver Sanfins de perto</button>
-        <button type="button" class="big-btn wide" id="btn-read-risk">Escolher a casa no centro do mapa</button>
-
-        <div class="house-risk" id="house-risk" role="status" aria-live="polite" hidden>
-          <span class="risk-num" id="house-risk-num">4</span>
-          <div>
-            <p class="risk-word" id="house-risk-word"></p>
-            <p class="risk-why" id="risk-point"></p>
-          </div>
-        </div>
-
-        <div class="legend" id="risk-legend"></div>
-
-        <h3>Eu vou…</h3>
-        <div class="action-tiles" role="group" aria-label="Ações para proteger">
-          <button type="button" class="tile" data-action="limpar" aria-pressed="false">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 26L20 12M18 6l8 8-4 4-8-8z"/><path d="M4 28h10"/></svg>
-            <span>Limpar o mato 50 m à volta da casa</span>
-          </button>
-          <button type="button" class="tile" data-action="pastorear" aria-pressed="false">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="15" cy="16" rx="9" ry="6"/><circle cx="26" cy="13" r="3"/><path d="M10 22v5M20 22v5"/></svg>
-            <span>Pôr cabras e ovelhas a pastar</span>
-          </button>
-          <button type="button" class="tile" data-action="queimadas" aria-pressed="false">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4c1 5 7 7 7 14a7 7 0 0 1-14 0c0-4 3-6 4-7"/><path d="M5 5l22 22"/></svg>
-            <span>Não fazer queimadas com calor ou vento</span>
-          </button>
-          <button type="button" class="tile" data-action="112" aria-pressed="false">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h5l2 6-3 2a14 14 0 0 0 8 8l2-3 6 2v5a3 3 0 0 1-3 3A22 22 0 0 1 5 7a3 3 0 0 1 3-3z"/></svg>
-            <span>Ligar 112 se vir fumo</span>
-          </button>
-          <button type="button" class="tile" data-action="encontro" aria-pressed="false">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 29s9-8 9-15a9 9 0 0 0-18 0c0 7 9 15 9 15z"/><circle cx="16" cy="14" r="3"/></svg>
-            <span>Saber onde é o ponto de encontro</span>
-          </button>
-        </div>
-
-        <h3>Depois de limpar, o mato volta</h3>
-        <label class="curtain">Passaram <strong id="regrow-years">0 anos</strong>
-          <input type="range" id="regrow-range" min="0" max="10" step="1" value="0" />
-        </label>
-        <div class="gauge" aria-hidden="true"><div class="gauge-fill" id="regrow-fill"></div></div>
-        <p id="regrow-text" aria-live="polite"></p>
-        <p class="answer pledge" id="pledge" aria-live="polite"></p>
-        <div class="vida">
-          <img src="/images/logos/logo_ahbv_brasao.png" alt="" />
-          <p><strong>Vida por Vida</strong><br />Bombeiros Voluntários de Sanfins do Douro</p>
-        </div>
-        <div class="apoio">
-          <p>Com o apoio de</p>
-          <img src="/images/logos/logo_fct_bpi_lacaixa.png" alt="Fundação para a Ciência e a Tecnologia, BPI e Fundação la Caixa" />
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================ MAIS -->
-    <section class="pop pop-wide" id="pop-mais" data-station="0" role="dialog" aria-modal="false" aria-labelledby="pop-mais-q" hidden>
-      <header class="pop-head">
-        <div class="pop-mark" aria-hidden="true"><calcite-icon icon="sliders-horizontal" scale="l"></calcite-icon><span>Mais</span></div>
-        <h2 id="pop-mais-q" class="pop-q">Mais camadas e controlos</h2>
-        <button type="button" class="pop-close" aria-label="Fechar">×</button>
-      </header>
-      <div class="pop-body cols">
-        <p class="pop-status" role="status" aria-live="polite"></p>
-        <div>
-          <h3>Camada de perigo</h3>
-          <calcite-label layout="inline" scale="l"><calcite-switch id="dourorisk-toggle" scale="l"></calcite-switch>Mostrar camada</calcite-label>
-          <calcite-label scale="l">Camada
-            <calcite-select id="dourorisk-model-select" label="Camada de perigo" scale="l">
-              <calcite-option value="risco_2025" selected>Risco de incêndio (tese, 2025)</calcite-option>
-              <calcite-option value="perigosidade_2025">Perigo de incêndio (tese, 2025)</calcite-option>
-              <calcite-option value="icnf_conjuntural">Perigo oficial ICNF (2025)</calcite-option>
-              <calcite-option value="icnf_estrutural">Perigo oficial ICNF (2020–2030)</calcite-option>
-              <calcite-option value="recorrencia_a11y">Quantas vezes ardeu (1990–2025)</calcite-option>
-              <calcite-option value="biomassa_2025">Quanto mato há (2025)</calcite-option>
-              <calcite-option value="declive_a11y">Encostas inclinadas</calcite-option>
-              <calcite-option value="exposicao_sol">Encostas viradas ao sol</calcite-option>
-            </calcite-select>
-          </calcite-label>
-          <calcite-label scale="l">Força da cor: <strong id="dourorisk-opacity-label">75%</strong>
-            <calcite-slider id="dourorisk-opacity-slider" min="10" max="100" value="75" scale="l"></calcite-slider>
-          </calcite-label>
-          <div class="legend" id="dourorisk-stats-items"></div>
-
-          <h3>Mapa</h3>
-          <div class="switch-list">
-            <calcite-label layout="inline" scale="l"><calcite-switch id="concelho-toggle" checked scale="l"></calcite-switch>Limite do concelho</calcite-label>
-          </div>
-          <div class="row-btns">
-            <button type="button" class="big-btn" id="header-preset-igreja">Igreja Matriz</button>
-            <button type="button" class="big-btn" id="header-preset-favaios">Favaios</button>
-            <button type="button" class="big-btn" id="header-preset-tua">Vale do Tua</button>
-          </div>
-          <h3>Luz do sol: <span id="sun-time-label">17:20 (fim de tarde)</span></h3>
-          <calcite-slider id="sun-time-slider" min="8" max="20" value="17.33" step="0.25" label="Hora do dia" scale="l"></calcite-slider>
-
-          <h3>Câmara</h3>
-          <div class="row-btns">
-            <button type="button" class="big-btn" id="btn-rotate-left" aria-label="Rodar para a esquerda">↺ Esquerda</button>
-            <button type="button" class="big-btn" id="btn-cardinal-north">Norte</button>
-            <button type="button" class="big-btn" id="btn-rotate-right" aria-label="Rodar para a direita">Direita ↻</button>
-          </div>
-          <calcite-label scale="l">Direção: <strong id="cam-heading-label">42° (Nordeste)</strong>
-            <calcite-slider id="cam-heading-slider" min="0" max="360" value="42" scale="l"></calcite-slider>
-          </calcite-label>
-          <calcite-label scale="l">Inclinação: <strong id="cam-tilt-label">64° (Perspetiva 3D)</strong>
-            <calcite-slider id="cam-tilt-slider" min="0" max="85" value="64" scale="l"></calcite-slider>
-          </calcite-label>
-          <div class="row-btns four">
-            <button type="button" class="big-btn" id="btn-cardinal-east">Este</button>
-            <button type="button" class="big-btn" id="btn-cardinal-south">Sul</button>
-            <button type="button" class="big-btn" id="btn-cardinal-west">Oeste</button>
-            <button type="button" class="big-btn" id="btn-focus-church">Igreja Matriz</button>
-          </div>
-        </div>
-        <div>
-          <h3>Tempo ao vivo <calcite-chip id="live-weather-badge" scale="s" kind="brand">IPMA</calcite-chip></h3>
-          <calcite-segmented-control id="weather-provider-select" width="full" scale="l">
-            <calcite-segmented-control-item value="ipma" checked scale="l">IPMA</calcite-segmented-control-item>
-            <calcite-segmented-control-item value="open-meteo" scale="l">Open-Meteo</calcite-segmented-control-item>
-          </calcite-segmented-control>
-          <dl class="telemetry">
-            <dt>Estação</dt><dd id="telemetry-station">Pinhão, Santa Bárbara</dd>
-            <dt>Céu</dt><dd id="telemetry-desc">A carregar…</dd>
-            <dt>Temperatura</dt><dd><span id="telemetry-temp">-</span> °C</dd>
-            <dt>Humidade</dt><dd><span id="telemetry-hum">-</span> %</dd>
-            <dt>Vento</dt><dd><span id="telemetry-wind">-</span> km/h, <span id="telemetry-dir">-</span></dd>
-            <dt>Chuva</dt><dd><span id="telemetry-rain">-</span> mm/h</dd>
-            <dt>Nuvens</dt><dd><span id="telemetry-cloud">-</span> %</dd>
-          </dl>
-          <button type="button" class="big-btn wide" id="sync-weather-btn">Atualizar o tempo</button>
-
-          <h3>Vento</h3>
-          <div class="switch-list">
-            <calcite-label layout="inline" scale="l"><calcite-switch id="wind-toggle" scale="l"></calcite-switch>Linhas de vento 3D (FlowRenderer)</calcite-label>
-            <calcite-label layout="inline" scale="l"><calcite-switch id="rain-toggle" scale="l"></calcite-switch>Chuva e nuvens</calcite-label>
-          </div>
-          <calcite-label scale="l">Altura das linhas
-            <calcite-select id="wind-elev-mode" label="Altura das linhas de vento" scale="l">
-              <calcite-option value="relative-to-ground" selected>Acima do terreno</calcite-option>
-              <calcite-option value="absolute-height">Altitude fixa</calcite-option>
-            </calcite-select>
-          </calcite-label>
-          <calcite-label scale="l">Altura: <strong id="wind-offset-label">1 400 m</strong>
-            <calcite-slider id="wind-offset-slider" min="200" max="6000" value="1400" step="100" scale="l"></calcite-slider>
-          </calcite-label>
-          <calcite-label scale="l">Velocidade: <strong id="wind-speed-label">18</strong>
-            <calcite-slider id="wind-speed-slider" min="5" max="45" value="18" scale="l"></calcite-slider>
-          </calcite-label>
-          <calcite-label scale="l">Densidade das linhas
-            <calcite-slider id="wind-density-slider" min="0.4" max="2.0" value="1.2" step="0.1" scale="l"></calcite-slider>
-          </calcite-label>
-
-          <h3>Chuva e nuvens</h3>
-          <calcite-label scale="l">Chuva: <strong id="rain-intensity-label">65%</strong>
-            <calcite-slider id="rain-intensity-slider" min="10" max="100" value="65" scale="l"></calcite-slider>
-          </calcite-label>
-          <calcite-label scale="l">Nuvens: <strong id="cloud-cover-label">85%</strong>
-            <calcite-slider id="cloud-cover-slider" min="20" max="100" value="85" scale="l"></calcite-slider>
-          </calcite-label>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================ AJUDA -->
-    <section class="pop pop-wide" id="pop-ajuda" data-station="0" role="dialog" aria-modal="false" aria-labelledby="pop-ajuda-q" hidden>
-      <header class="pop-head">
-        <div class="pop-mark" aria-hidden="true"><span class="q-mark">?</span><span>Ajuda</span></div>
-        <h2 id="pop-ajuda-q" class="pop-q">Como usar</h2>
-        <button type="button" class="pop-close" aria-label="Fechar">×</button>
-      </header>
-      <div class="pop-body cols">
-        <p class="pop-status" role="status" aria-live="polite"></p>
-        <div>
-          <p class="lead">Segue os 5 passos na barra de baixo, do 1 ao 5.</p>
-          <ol class="steps-help">
-            <li><strong>Olha:</strong> conhece a terra, do rio ao monte.</li>
-            <li><strong>Escolhe:</strong> põe 3 fichas onde achas que pode arder.</li>
-            <li><strong>Guarda:</strong> fecha o palpite no envelope dos bombeiros.</li>
-            <li><strong>Compara:</strong> vê onde ardeu de verdade.</li>
-            <li><strong>Protege:</strong> escolhe uma ação para proteger a aldeia.</li>
+      <!-- os 5 passos -->
+      <section id="passos">
+        <div class="wrap">
+          <h2>Uma visita em 5 passos</h2>
+          <p class="sub">Feita para turmas, famílias e para quem visita o Centro Interpretativo. Cada passo tem um número, uma cor e uma forma.</p>
+          <ol class="steps">
+            <li class="step" style="--st: var(--st1)">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><circle class="shape" cx="24" cy="24" r="21" /><text x="24" y="31">1</text></svg>
+              <h3>Olha</h3>
+              <p>Conhece a terra, do rio Douro ao alto do monte.</p>
+            </li>
+            <li class="step" style="--st: var(--st2)">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><polygon class="shape" points="24,3 46,43 2,43" /><text x="24" y="38">2</text></svg>
+              <h3>Escolhe</h3>
+              <p>Põe 3 fichas onde achas que o fogo pode chegar. Liga pistas e vê onde se juntam.</p>
+            </li>
+            <li class="step" style="--st: var(--st3)">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><rect class="shape" x="4" y="4" width="40" height="40" rx="4" /><text x="24" y="32">3</text></svg>
+              <h3>Guarda</h3>
+              <p>Fecha o palpite no envelope dos bombeiros, antes de ver a resposta.</p>
+            </li>
+            <li class="step" style="--st: var(--st4)">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><polygon class="shape" points="24,1 47,24 24,47 1,24" /><text x="24" y="32">4</text></svg>
+              <h3>Compara</h3>
+              <p>A cortina revela onde ardeu desde 1990. Quantas fichas acertaram?</p>
+            </li>
+            <li class="step" style="--st: var(--st5)">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><polygon class="shape" points="5,45 43,45 43,20 24,3 5,20" /><text x="24" y="39">5</text></svg>
+              <h3>Protege</h3>
+              <p>Toca numa casa, limpa 50 m à volta e vê o risco a baixar.</p>
+            </li>
           </ol>
-          <h3>Mexer no mapa</h3>
-          <ul class="plain">
-            <li>Arrasta com um dedo para mover o mapa.</li>
-            <li>Afasta ou junta dois dedos para aproximar ou afastar.</li>
-            <li>Com o rato: botão direito e arrastar para rodar.</li>
-            <li>Teclas 1 a 5 abrem os passos. A tecla Esc fecha a janela.</li>
-            <li><strong>Explorar</strong> (botão com a mira, em cima): toca num ponto para ver os dados dele. Para uma área, carrega sem largar e arrasta: o círculo cresce com o dedo. Também dá os dados do concelho todo ou de uma ou várias freguesias.</li>
-            <li><strong>Mapas</strong> (botão com as camadas, em cima): escolhe o mapa de risco a ver e a força da cor, e compara dois mapas com uma cortina.</li>
+        </div>
+      </section>
+
+      <!-- ferramentas -->
+      <section id="ferramentas">
+        <div class="wrap">
+          <h2>Mais do que um mapa</h2>
+          <p class="sub">Em qualquer momento da visita.</p>
+          <div class="tools">
+            <article class="tool">
+              <div class="ico" style="background: #00beff; color: var(--ink)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="2.5" /><path d="M12 1v4M12 19v4M1 12h4M19 12h4" /></svg></div>
+              <h3>Explorar</h3>
+              <p>Toca num ponto, desenha um círculo, escolhe freguesias ou o concelho todo e vê os dados num instante.</p>
+            </article>
+            <article class="tool">
+              <div class="ico" style="background: var(--r4); color: var(--ink)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5z" /><path d="m2 12 10 5 10-5" /><path d="m2 16 10 5 10-5" /></svg></div>
+              <h3>Mapas de risco</h3>
+              <p>Risco, perigo oficial, onde já ardeu, encostas, sol e mato. Compara dois mapas com uma cortina.</p>
+            </article>
+            <article class="tool">
+              <div class="ico" style="background: var(--r5); color: #fff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4-1-6 1-9z" /></svg></div>
+              <h3>E se uma faísca caísse?</h3>
+              <p>Acende uma faísca e vê o fogo andar com o vento de hoje. Um modelo para aprender, não uma previsão.</p>
+            </article>
+            <article class="tool">
+              <div class="ico" style="background: var(--r3); color: var(--ink)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16a8 8 0 0 1 16 0" /><path d="M12 16l4-5" /></svg></div>
+              <h3>Regra 30-30-30</h3>
+              <p>Calor, ar seco e vento, com o tempo de agora no Pinhão (IPMA). Sempre à vista.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- números -->
+      <section id="numeros">
+        <div class="wrap">
+          <h2>O concelho em números</h2>
+          <p class="sub">Dados do projeto DouroRisk, de 1990 a 2025.</p>
+          <div class="numbers">
+            <div class="num"><strong>297,6 km²</strong><span>de concelho, do rio (80 m) ao alto do monte (845 m)</span></div>
+            <div class="num"><strong>4 em 10</strong><span>sítios do concelho já arderam pelo menos uma vez (43 %)</span></div>
+            <div class="num"><strong>14 525</strong><span>casas e edifícios em 3D, vistos por satélite</span></div>
+            <div class="num"><strong>+5 600</strong><span>campos de futebol ardidos só em 2017</span></div>
+          </div>
+          <div class="ramp" aria-hidden="true"><i style="background: var(--r1)"></i><i style="background: var(--r2)"></i><i style="background: var(--r3)"></i><i style="background: var(--r4)"></i><i style="background: var(--r5)"></i></div>
+          <div class="ramp-labels" aria-hidden="true"><span>1 · muito baixo</span><span>5 · muito alto</span></div>
+        </div>
+      </section>
+
+      <!-- acessibilidade -->
+      <section id="todos">
+        <div class="wrap">
+          <h2>Para todas as pessoas</h2>
+          <p class="sub">Pensada com alunos, pessoas idosas, quem vê ou ouve mal, quem lê com dificuldade e quem fala outra língua.</p>
+          <ul class="a11y">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16z" /><path d="M13 7l4 4" /></svg><span>Letra hiperlegível (Atkinson Hyperlegible) e 3 tamanhos de letra.</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" /></svg><span>Alto contraste e tema claro ou escuro.</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 15h2M11 15h2M15 15h2" /></svg><span>Cores com número, palavra e textura: nunca só a cor.</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="2" /><path d="M7 11h.01M11 11h.01M15 11h.01M7 15h10" /></svg><span>Tudo funciona com teclado, e lê-se com leitor de ecrã.</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg><span>Modo quiosque: recomeça sozinho para a pessoa seguinte.</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /><path d="M5 12l4-4M5 12l4 4" /></svg><span>Frases curtas, sem palavras técnicas.</span></li>
           </ul>
         </div>
-        <div>
-          <h3>Para todas as pessoas</h3>
-          <ul class="plain">
-            <li><strong>A+</strong> põe a letra maior.</li>
-            <li>O botão de contraste deixa as cores mais fortes.</li>
-            <li>As cores do perigo têm sempre número e palavra.</li>
-          </ul>
-          <h3>Dados</h3>
-          <p>Projeto DouroRisk, concelho de Alijó, 1990 a 2025. Edifícios vistos por satélite: Microsoft Global ML Building Footprints (ODbL). Tempo: IPMA e Open-Meteo.</p>
+      </section>
+
+      <!-- parceiros -->
+      <section id="parceiros">
+        <div class="wrap">
+          <h2>Parceiros e apoios</h2>
+          <p class="sub">Um projeto dos Bombeiros Voluntários de Sanfins do Douro.</p>
           <div class="partners">
-            <img class="logo-selo" src="/images/logos/logo_ahbv_selo.png" alt="Associação Humanitária dos Bombeiros Voluntários de Sanfins do Douro" />
-            <img class="logo-utad" src="/images/logos/logo_utad.png" alt="UTAD, Universidade de Trás-os-Montes e Alto Douro" />
-            <p class="partners-label">Com o apoio de</p>
-            <img class="logo-strip" src="/images/logos/logo_fct_bpi_lacaixa.png" alt="Fundação para a Ciência e a Tecnologia, BPI e Fundação la Caixa" />
+            <figure>
+              <img class="ahbv" src="/images/logos/logo_ahbv_selo.png" alt="Associação Humanitária dos Bombeiros Voluntários de Sanfins do Douro" />
+              <figcaption>Promotor</figcaption>
+            </figure>
+            <figure>
+              <img class="utad" src="/images/logos/logo_utad.png" alt="UTAD, Universidade de Trás-os-Montes e Alto Douro" />
+              <figcaption>Parceiro científico</figcaption>
+            </figure>
+            <figure class="support">
+              <img class="apoio" src="/images/logos/logo_bpi_lacaixa.png" alt="BPI e Fundação la Caixa" />
+              <figcaption>Com o apoio de</figcaption>
+            </figure>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Regra 30-30-30 sempre à vista -->
-    <aside class="hud hud-30" id="hud-30" aria-labelledby="hud-30-title">
-      <p class="hud-30-title" id="hud-30-title">Regra 30-30-30 · agora</p>
-      <ul class="dials">
-        <li class="dial" id="dial-temp"><svg viewBox="0 0 64 36" aria-hidden="true"><path class="arc-bg" d="M6 32A26 26 0 0 1 58 32"/><path class="arc" d="M6 32A26 26 0 0 1 58 32"/></svg><strong>–</strong><span>Calor</span></li>
-        <li class="dial" id="dial-hum"><svg viewBox="0 0 64 36" aria-hidden="true"><path class="arc-bg" d="M6 32A26 26 0 0 1 58 32"/><path class="arc" d="M6 32A26 26 0 0 1 58 32"/></svg><strong>–</strong><span>Ar seco</span></li>
-        <li class="dial" id="dial-wind"><svg viewBox="0 0 64 36" aria-hidden="true"><path class="arc-bg" d="M6 32A26 26 0 0 1 58 32"/><path class="arc" d="M6 32A26 26 0 0 1 58 32"/></svg><strong>–</strong><span>Vento</span></li>
-      </ul>
-      <p class="hud-30-sum" id="hud-30-sum" role="status" aria-live="polite">A ler o tempo no Pinhão…</p>
-    </aside>
-
-    <!-- Explorar: dados de um ponto ou de uma área em círculo -->
-    <aside class="hud probe-card" id="probe-card" aria-labelledby="probe-title" hidden>
-      <header class="probe-top">
-        <svg class="probe-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
-        <h2 id="probe-title" tabindex="-1">Explorar o mapa</h2>
-        <button type="button" class="pop-close" id="probe-close" aria-label="Fechar o Explorar">×</button>
-      </header>
-      <div class="probe-scope" role="group" aria-label="O que ler">
-        <button type="button" data-probe-scope="local" aria-pressed="true">Ponto ou círculo</button>
-        <button type="button" data-probe-scope="freguesias" aria-pressed="false">Freguesias</button>
-        <button type="button" data-probe-scope="concelho" aria-pressed="false">Concelho</button>
-      </div>
-      <p class="probe-hint" id="probe-hint" role="status" aria-live="polite"></p>
-      <div class="probe-body" id="probe-body" aria-live="polite"></div>
-      <div class="probe-local" id="probe-local">
-        <div class="probe-modes" role="group" aria-label="Ao tocar, ler">
-          <button type="button" class="chip" data-probe-r="0" aria-pressed="true">Ponto</button>
-          <button type="button" class="chip" data-probe-r="100" aria-pressed="false">100 m</button>
-          <button type="button" class="chip" data-probe-r="250" aria-pressed="false">250 m</button>
-          <button type="button" class="chip" data-probe-r="500" aria-pressed="false">500 m</button>
-          <button type="button" class="chip" data-probe-r="1000" aria-pressed="false">1 km</button>
-          <button type="button" class="chip" id="probe-center" title="Ler no centro do mapa (a mira)">Centro</button>
+      <!-- fim -->
+      <section class="final">
+        <div class="wrap">
+          <h2>Proteger a aldeia é trabalho de todos.</h2>
+          <p>Vida por Vida. Entra no mapa, faz o teu palpite e escolhe uma ação para o próximo verão.</p>
+          <a class="btn" href="/mapa/">
+            Entrar no mapa 3D
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </a>
         </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>DouroRisk 3D · Bombeiros Voluntários de Sanfins do Douro · Alijó</span>
+        <span>Dados: projeto DouroRisk · Edifícios: Microsoft Global ML Building Footprints (ODbL) · Tempo: IPMA</span>
       </div>
-      <div class="probe-parishes" id="probe-parishes" hidden>
-        <details id="probe-parishes-details" open>
-          <summary id="probe-parish-summary">Escolher freguesias</summary>
-          <div class="probe-parish-tools">
-            <button type="button" class="link-btn" id="probe-all">Todas</button>
-            <button type="button" class="link-btn" id="probe-none">Nenhuma</button>
-          </div>
-          <div class="probe-parish-list" id="probe-parish-list" role="group" aria-labelledby="probe-parish-summary"></div>
-        </details>
-      </div>
-    </aside>
-
-    <!-- Mapas de risco: escolher, ver e comparar -->
-    <aside class="hud probe-card maps-card" id="maps-card" aria-labelledby="maps-title" hidden>
-      <header class="probe-top">
-        <svg class="probe-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5z"/><path d="m2 12 10 5 10-5"/><path d="m2 16 10 5 10-5"/></svg>
-        <h2 id="maps-title" tabindex="-1">Mapas de risco</h2>
-        <button type="button" class="pop-close" id="maps-close" aria-label="Fechar os mapas">×</button>
-      </header>
-      <p class="probe-hint" id="maps-about" role="status" aria-live="polite"></p>
-      <div class="legend" id="maps-legend"></div>
-      <label class="check-row"><input type="checkbox" id="maps-clip" checked /> Mostrar só o concelho de Alijó</label>
-      <label class="curtain">Força da cor: <span id="maps-opacity-label">80 %</span>
-        <input type="range" id="maps-opacity" min="10" max="100" step="5" value="80" />
-      </label>
-      <p class="probe-label" id="maps-risco-label">Risco e perigo</p>
-      <div class="map-grid" id="maps-risco" role="group" aria-labelledby="maps-risco-label"></div>
-      <p class="probe-label" id="maps-pistas-label">O que ajuda o fogo</p>
-      <div class="map-grid" id="maps-pistas" role="group" aria-labelledby="maps-pistas-label"></div>
-      <button type="button" class="big-btn wide" id="maps-none">Sem mapa (só a paisagem)</button>
-      <label class="curtain">Comparar com outro mapa
-        <select id="maps-compare" class="maps-select"></select>
-      </label>
-      <div id="maps-curtain-box" hidden>
-        <p class="probe-hint" id="maps-curtain-label"></p>
-        <label class="curtain">Mexe a cortina
-          <input type="range" id="maps-curtain" min="0" max="100" step="1" value="50" />
-        </label>
-        <div class="legend" id="maps-legend-b"></div>
-      </div>
-    </aside>
-
-    <!-- termómetro da ficha (ao arrastar ou pôr) -->
-    <div class="thermo" id="thermo" aria-hidden="true" hidden>
-      <div class="thermo-bar"><div class="thermo-fill" id="thermo-fill"></div></div>
-      <div><strong id="thermo-title">Ficha 1</strong><br /><span id="thermo-text"></span></div>
-    </div>
-
-    <div class="crosshair" aria-hidden="true"></div>
-    <div id="idle-warn" class="idle-warn" role="alertdialog" aria-labelledby="idle-warn-text" hidden>
-      <p id="idle-warn-text">Ainda estás aí? Daqui a pouco a visita recomeça.</p>
-      <button type="button" class="big-btn primary" id="btn-idle-continue">Continuar</button>
-    </div>
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-    <script type="module" src="/src/main.ts"></script>
+    </footer>
   </body>
 </html>

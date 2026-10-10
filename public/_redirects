@@ -1,1 +1,4 @@
-/*    /index.html   200
+/apresentacao/*   /                   301
+/apresentacao     /                   301
+/mapa/*           /mapa/index.html    200
+/mapa             /mapa/index.html    200

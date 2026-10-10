@@ -1,13 +1,7 @@
 // Lê o valor de uma grelha de classes (PNG em tons de cinzento, valor = classe)
-// num ponto do mapa. As imagens DouroRisk são os rasters originais célula a célula,
-// esticados para a extensão WGS84 — por isso a conversão é linear, igual à do MediaLayer.
-
-export interface Extent4326 {
-  xmin: number;
-  ymin: number;
-  xmax: number;
-  ymax: number;
-}
+// num ponto do mapa. Cada PNG tem uma célula por píxel da grelha nativa em PT-TM06 (EPSG:3763):
+// lon/lat → PT-TM06 → célula, exato (ver src/geo/grid.ts).
+import { cellHa, cellOf, forEachCellInCircle, pixelOf, type GridGeo } from "../geo/grid";
 
 /** Valor devolvido quando o ponto está fora da grelha ou a grelha não carregou. */
 export const NO_DATA = -1;
@@ -18,13 +12,19 @@ export class ClassGrid {
   private height = 0;
   private loading: Promise<void> | null = null;
 
-  constructor(private url: string, private extent: Extent4326) {}
+  /** `geo`: a grelha do manifest em que o PNG foi gerado (mesmas dimensões). */
+  constructor(private url: string, readonly geo: GridGeo) {}
 
   load(): Promise<void> {
     if (!this.loading) {
       this.loading = new Promise<void>((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
+          const { width: gw, height: gh, id } = this.geo;
+          // uma imagem com outras dimensões já não corresponde à grelha: melhor não ler do que ler mal
+          if (img.naturalWidth !== gw || img.naturalHeight !== gh) {
+            return reject(new Error(`${this.url}: ${img.naturalWidth}×${img.naturalHeight}, a grelha ${id} tem ${gw}×${gh}`));
+          }
           const canvas = document.createElement("canvas");
           canvas.width = img.naturalWidth;
           canvas.height = img.naturalHeight;
@@ -47,15 +47,16 @@ export class ClassGrid {
   }
 
   /** A grelha inteira (um byte por célula, linha a linha de norte para sul), para desenhar ou simular. */
-  async raw(): Promise<{ cls: Uint8Array; width: number; height: number; extent: Extent4326 }> {
+  async raw(): Promise<{ cls: Uint8Array; width: number; height: number; grid: GridGeo }> {
     await this.load();
     const cls = new Uint8Array(this.width * this.height);
     for (let i = 0; i < cls.length; i++) cls[i] = this.data![i * 4];
-    return { cls, width: this.width, height: this.height, extent: this.extent };
+    return { cls, width: this.width, height: this.height, grid: this.geo };
   }
 
   /**
-   * Quantas células de cada classe há dentro de um círculo (raio em metros).
+   * Quantas células de cada classe há dentro de um círculo (raio em metros, medidos em PT-TM06).
+   * Conta as células cujo centro está no círculo.
    * `counts[c]` = células da classe c; `total` = células do círculo dentro da grelha.
    */
   async histogram(lon: number, lat: number, radiusM: number): Promise<{ counts: number[]; total: number } | null> {
@@ -64,26 +65,12 @@ export class ClassGrid {
     } catch {
       return null;
     }
-    if (!this.data) return null;
-    const { xmin, ymin, xmax, ymax } = this.extent;
-    const dLat = radiusM / 111320;
-    const dLon = radiusM / (111320 * Math.cos((lat * Math.PI) / 180));
-    const colOf = (x: number) => ((x - xmin) / (xmax - xmin)) * this.width;
-    const rowOf = (y: number) => ((ymax - y) / (ymax - ymin)) * this.height;
-    const c0 = Math.max(0, Math.floor(colOf(lon - dLon))), c1 = Math.min(this.width - 1, Math.ceil(colOf(lon + dLon)));
-    const r0 = Math.max(0, Math.floor(rowOf(lat + dLat))), r1 = Math.min(this.height - 1, Math.ceil(rowOf(lat - dLat)));
+    const data = this.data;
+    if (!data) return null;
     const counts = new Array<number>(256).fill(0);
-    let total = 0;
-    const cw = (xmax - xmin) / this.width, ch = (ymax - ymin) / this.height;
-    for (let r = r0; r <= r1; r++) {
-      const y = (ymax - (r + 0.5) * ch - lat) / dLat;
-      for (let c = c0; c <= c1; c++) {
-        const x = (xmin + (c + 0.5) * cw - lon) / dLon;
-        if (x * x + y * y > 1) continue;
-        counts[this.data[(r * this.width + c) * 4]]++;
-        total++;
-      }
-    }
+    const total = forEachCellInCircle(this.geo, lon, lat, radiusM, (i) => {
+      counts[data[i * 4]]++;
+    });
     return { counts, total };
   }
 
@@ -103,7 +90,6 @@ export class ClassGrid {
     if (!this.data) return null;
     let mask = this.masks.get(key);
     if (!mask) {
-      const { xmin, ymin, xmax, ymax } = this.extent;
       const canvas = document.createElement("canvas");
       canvas.width = this.width;
       canvas.height = this.height;
@@ -112,11 +98,11 @@ export class ClassGrid {
       ctx.beginPath();
       for (const rings of polygons) {
         for (const ring of rings) {
+          // cada vértice vai para PT-TM06 e daí para o píxel da grelha (projeção por vértice, não por célula)
           ring.forEach(([lon, lat], i) => {
-            const x = ((lon - xmin) / (xmax - xmin)) * this.width;
-            const y = ((ymax - lat) / (ymax - ymin)) * this.height;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+            const p = pixelOf(this.geo, lon, lat);
+            if (i === 0) ctx.moveTo(p.x, p.y);
+            else ctx.lineTo(p.x, p.y);
           });
           ctx.closePath();
         }
@@ -140,12 +126,9 @@ export class ClassGrid {
     return { counts, total };
   }
 
-  /** Área de uma célula em hectares, à latitude dada. */
-  cellHa(lat: number): number {
-    const { xmin, ymin, xmax, ymax } = this.extent;
-    const w = ((xmax - xmin) / this.width) * 111320 * Math.cos((lat * Math.PI) / 180);
-    const h = ((ymax - ymin) / this.height) * 111320;
-    return (w * h) / 10000;
+  /** Área de uma célula em hectares (lado² em PT-TM06; ver cellArea em src/geo/grid.ts). */
+  cellHa(): number {
+    return cellHa(this.geo);
   }
 
   /**
@@ -159,10 +142,9 @@ export class ClassGrid {
       return NO_DATA;
     }
     if (!this.data) return NO_DATA;
-    const { xmin, ymin, xmax, ymax } = this.extent;
-    if (lon < xmin || lon > xmax || lat < ymin || lat > ymax) return NO_DATA;
-    const col = Math.floor(((lon - xmin) / (xmax - xmin)) * this.width);
-    const row = Math.floor(((ymax - lat) / (ymax - ymin)) * this.height);
+    const cell = cellOf(this.geo, lon, lat);
+    if (!cell) return NO_DATA;
+    const { col, row } = cell;
     let best = 0;
     for (let dr = -radius; dr <= radius; dr++) {
       for (let dc = -radius; dc <= radius; dc++) {

@@ -1,20 +1,25 @@
 // "Só o concelho de Alijó": alguns mapas (ICNF, declive, sol, mato, quantas vezes ardeu) passam os limites
 // do concelho. Aqui faz-se uma cópia de cada imagem cortada pelo limite do concelho (uma vez, no browser)
 // e troca-se a imagem que a camada usa. As grelhas de leitura (Explorar, pistas) não mudam.
+// O limite (lon/lat) passa uma vez para PT-TM06 e daí, por aritmética, para os píxeis de cada grelha.
 import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
+import { pixelOfXY } from "../geo/grid";
+import { toTM06 } from "../geo/pttm06";
 
 const full: Record<string, string> = {};
 const clipped: Record<string, Promise<string | null>> = {};
 let onlyConcelho = true;
-let concelho: Promise<number[][][]> | null = null;
+let concelho: Promise<[number, number][][]> | null = null;
 
-function concelhoRings(): Promise<number[][][]> {
+/** Anéis do concelho em PT-TM06 [x, y] (projetados vértice a vértice, uma vez). */
+function concelhoRings(): Promise<[number, number][][]> {
   if (!concelho) {
     concelho = fetch("/data/alijo-concelho.geojson")
       .then((r) => r.json())
       .then((g) => {
         const geom = g.features[0].geometry;
-        return geom.type === "MultiPolygon" ? geom.coordinates.flat() : geom.coordinates;
+        const rings: number[][][] = geom.type === "MultiPolygon" ? geom.coordinates.flat() : geom.coordinates;
+        return rings.map((ring) => ring.map(([lon, lat]) => toTM06(lon, lat)));
       });
     concelho.catch(() => (concelho = null));
   }
@@ -36,18 +41,19 @@ function clippedUrl(key: string): Promise<string | null> {
     clipped[key] = (async () => {
       const model = DOURORISK_MODELS[key];
       const [rings, img] = await Promise.all([concelhoRings(), loadImage(full[key] ?? model.image)]);
-      const { xmin, ymin, xmax, ymax } = model.extent;
+      const grid = model.grid;
       const c = document.createElement("canvas");
       c.width = img.naturalWidth;
       c.height = img.naturalHeight;
+      // a imagem tem as dimensões da grelha (se não tiver, escala-se na mesma proporção)
+      const sx = c.width / grid.width, sy = c.height / grid.height;
       const ctx = c.getContext("2d")!;
       ctx.beginPath();
       for (const ring of rings) {
-        ring.forEach(([lon, lat], i) => {
-          const x = ((lon - xmin) / (xmax - xmin)) * c.width;
-          const y = ((ymax - lat) / (ymax - ymin)) * c.height;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+        ring.forEach(([x, y], i) => {
+          const p = pixelOfXY(grid, x, y);
+          if (i === 0) ctx.moveTo(p.x * sx, p.y * sy);
+          else ctx.lineTo(p.x * sx, p.y * sy);
         });
         ctx.closePath();
       }

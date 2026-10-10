@@ -1,1 +1,6 @@
-{"generated_by": "scripts/prepare_a11y_layers.py"}
+{
+  "generated_by": "scripts/pro_to_web.py",
+  "manifest": "src/data/dourorisk-grids.json",
+  "note": "Grelhas e imagens geradas a partir dos rasters nativos EPSG:3763; georreferenciação no manifest.",
+  "palette": "oficial"
+}

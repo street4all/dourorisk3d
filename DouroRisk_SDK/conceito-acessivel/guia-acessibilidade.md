@@ -33,7 +33,7 @@ Exposição e app para o Centro Interpretativo, feitas para todas as pessoas: al
 - **Letra:** Atkinson Hyperlegible (Braille Institute, licença OFL), só Regular e Bold. Perguntas 54 pt, frase principal 30 pt, passos 24–25 pt, legendas e nomes nos mapas 20–24 pt. Nada abaixo de 20 pt, exceto o marcador do código QR, que é só um espaço reservado.
 - **Cores:** texto #1C1C1C sobre papel #F7F3EA (15,4:1). Texto branco sobre as cores das estações (7,2:1 a 10,9:1). Rio #1F5C99.
 - **Estações:** cada uma tem número, verbo, cor e forma (círculo, triângulo, quadrado, losango, casa). A cor nunca é a única pista.
-- **Escalas:** do claro ao escuro, seguras para daltonismo. Nos mapas de classes, cada classe tem também uma textura (liso, pontos, riscas, quadriculado), e o perigo leva número, palavra e chamas.
+- **Escalas (painéis):** do claro ao escuro, seguras para daltonismo. Nos mapas de classes, cada classe tem também uma textura (liso, pontos, riscas, quadriculado), e o perigo leva número, palavra e chamas. Na app, os mapas de risco e perigo usam a paleta oficial verde→vermelho (decisão do projeto); a cor nunca vem sozinha: a legenda dá sempre número, palavra e chamas.
 - **Números:** sempre comparados com coisas conhecidas (1 campo de futebol = 105 × 68 m ≈ 0,71 ha; 10 quadrados; 22 verões).
 
 ## A app (Modo Visita, já implementado em `my-web-map`, commit c8d560c)
@@ -50,7 +50,7 @@ Exposição e app para o Centro Interpretativo, feitas para todas as pessoas: al
 - **E se uma faísca caísse hoje?** (no passo 4): toca-se no mapa e o fogo anda durante alguns segundos, mais depressa onde o perigo oficial é alto, nas encostas inclinadas, ao sol e a favor do vento de agora (ou sem vento / vento forte). Diz para onde foi e quantos campos de futebol ardeu. É um modelo simplificado para aprender, não uma previsão.
 - **Protege:** camada de risco 1–5; toca-se numa casa e aparece o anel de 50 m à volta. Ações em botões grandes (limpar 50 m, pastoreio, sem queimadas, 112, ponto de encontro); limpar e pastorear baixam o risco à volta da casa e o anel fica verde. "Passaram X anos" mostra o mato a voltar e o risco a subir outra vez (limpar é todos os anos). Frase "Eu vou…".
 - **Quiosque:** `?quiosque` no endereço — aviso de 20 s ao fim de 2 min sem uso e recomeço limpo.
-- **Camadas acessíveis:** `public/data/dourorisk/a11y/` (escala segura para daltonismo + grelhas de classes), geradas por `scripts/prepare_a11y_layers.py`.
+- **Camadas acessíveis:** `public/data/dourorisk/a11y/` (imagens na paleta oficial verde→vermelho, com alternativa segura para daltonismo em `--paleta segura`, + grelhas de classes), geradas por `scripts/pro_to_web.py` a partir dos rasters do ArcGIS Pro (manifest em `src/data/dourorisk-grids.json`).
 
 ## De onde vêm os números (projeto DOURORISK.aprx, concelho de Alijó, 297,6 km²)
 

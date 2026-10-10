@@ -1,12 +1,13 @@
-// As grelhas de 25 m do concelho, todas na mesma extensão (EXT_25M), lidas uma vez e partilhadas
+// As grelhas de 25 m do concelho, todas na mesma grelha PT-TM06 (g25), lidas uma vez e partilhadas
 // pelas pistas que se somam e pela faísca. O limite do concelho vem da grelha de risco (10 m).
-import { VISIT_LAYERS, EXT_25M } from "./layers";
-import type { Extent4326 } from "./sampler";
+import { VISIT_LAYERS } from "./layers";
+import { indexOf, type GridGeo } from "../geo/grid";
 
 export interface GridStack {
   width: number;
   height: number;
-  extent: Extent4326;
+  /** a grelha de 25 m (PT-TM06) de todas as camadas da pilha */
+  grid: GridGeo;
   /** 1 dentro do concelho */
   inside: Uint8Array;
   declive: Uint8Array;
@@ -27,21 +28,30 @@ export function loadStack(): Promise<GridStack> {
         VISIT_LAYERS.icnf_estrutural.grid.raw(),
         VISIT_LAYERS.risco_2025.grid.raw(),
       ]);
-      const { width, height } = d;
+      const g = d.grid;
+      // a pilha soma célula a célula: as quatro camadas têm de estar na mesma grelha
+      for (const o of [s, m, p]) if (o.grid !== g) throw new Error(`Grelhas diferentes na pilha: ${g.id} e ${o.grid.id}`);
+      const { width, height } = g;
+      // dentro do concelho = a célula de 10 m do risco que contém o centro da célula de 25 m tem risco > 0;
+      // a correspondência é aritmética em PT-TM06 (as duas grelhas são paralelas, só mudam a origem e o lado)
+      const rg = r.grid;
+      const rcol = new Int32Array(width);
+      for (let col = 0; col < width; col++) {
+        const x = g.x0 + (col + 0.5) * g.cell;
+        rcol[col] = Math.floor((x - rg.x0) / rg.cell);
+      }
       const inside = new Uint8Array(width * height);
-      const e = EXT_25M;
-      const re = r.extent;
       for (let row = 0; row < height; row++) {
-        const lat = e.ymax - ((row + 0.5) / height) * (e.ymax - e.ymin);
-        const rr = Math.floor(((re.ymax - lat) / (re.ymax - re.ymin)) * r.height);
-        if (rr < 0 || rr >= r.height) continue;
+        const y = g.y0 - (row + 0.5) * g.cell;
+        const rr = Math.floor((rg.y0 - y) / rg.cell);
+        if (rr < 0 || rr >= rg.height) continue;
+        const base = rr * rg.width;
         for (let col = 0; col < width; col++) {
-          const lon = e.xmin + ((col + 0.5) / width) * (e.xmax - e.xmin);
-          const rc = Math.floor(((lon - re.xmin) / (re.xmax - re.xmin)) * r.width);
-          if (rc >= 0 && rc < r.width && r.cls[rr * r.width + rc] > 0) inside[row * width + col] = 1;
+          const rc = rcol[col];
+          if (rc >= 0 && rc < rg.width && r.cls[base + rc] > 0) inside[row * width + col] = 1;
         }
       }
-      return { width, height, extent: e, inside, declive: d.cls, sol: s.cls, mato: m.cls, perigo: p.cls };
+      return { width, height, grid: g, inside, declive: d.cls, sol: s.cls, mato: m.cls, perigo: p.cls };
     })().catch((err) => {
       pending = null;
       throw err;
@@ -52,9 +62,5 @@ export function loadStack(): Promise<GridStack> {
 
 /** Índice da célula de 25 m que contém o ponto, ou -1 fora da grelha. */
 export function cellAt(g: GridStack, lon: number, lat: number): number {
-  const { xmin, ymin, xmax, ymax } = g.extent;
-  if (lon < xmin || lon > xmax || lat < ymin || lat > ymax) return -1;
-  const col = Math.min(g.width - 1, Math.floor(((lon - xmin) / (xmax - xmin)) * g.width));
-  const row = Math.min(g.height - 1, Math.floor(((ymax - lat) / (ymax - ymin)) * g.height));
-  return row * g.width + col;
+  return indexOf(g.grid, lon, lat);
 }

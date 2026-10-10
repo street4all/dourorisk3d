@@ -20,7 +20,8 @@ import { VisitMode } from "./visit/visitMode";
 let alijo3dManager: Alijo3DManager | null = null;
 
 async function initializeApp() {
-  // 0. Camadas DouroRisk com escala segura para daltonismo (antes de criar a cena)
+  // 0. Camadas DouroRisk acessíveis: imagens a11y e grelhas de classes (antes de criar a cena).
+  //    As cores vêm de scripts/pro_to_web.py (paleta oficial por omissão; --paleta segura para daltonismo)
   applyAccessibleLayers();
 
   // 1. Initialize dedicated 3D SceneView directly into container
