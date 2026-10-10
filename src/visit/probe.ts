@@ -278,6 +278,17 @@ export class Probe {
     }
   }
 
+  /** Quiosque: a pessoa seguinte encontra o Explorar como no início (ponto, sem raio nem freguesias escolhidas). */
+  reset(): void {
+    this.setActive(false);
+    this.sel = null;
+    this.picked.clear();
+    this.chipRadius = 0;
+    this.syncChips(0);
+    // a escala volta a "ponto ou círculo"; os botões e as listas acertam-se ao abrir (setScope)
+    this.scope = "local";
+  }
+
   // ------------------------------------------------------------------ escala: ponto/círculo, concelho, freguesias
   private async setScope(scope: Scope, read = true): Promise<void> {
     this.scope = scope;

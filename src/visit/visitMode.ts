@@ -1374,12 +1374,14 @@ export class VisitMode {
   // ------------------------------------------------------------------ quiosque: aviso e recomeço sem uso
   private resetVisit(): void {
     this.close();
-    this.probe.setActive(false);
-    this.maps?.setOpen(false);
+    this.probe.reset();
+    this.maps?.reset();
     this.resetGuess();
     this.visited.clear();
     this.clearCues();
     this.stopSpark(true);
+    this.sparkWind = "live";
+    document.querySelectorAll<HTMLButtonElement>("[data-wind]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.wind === "live")));
     this.setVisibleLayer(null);
     const turma = $("turma-input") as HTMLInputElement | null;
     if (turma) turma.value = "";

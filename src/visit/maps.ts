@@ -187,6 +187,26 @@ export class MapsPanel {
     }
   }
 
+  /** Quiosque: a pessoa seguinte encontra os Mapas como no início (força da cor, cortina e só o concelho). */
+  reset(): void {
+    this.setOpen(false);
+    this.stopCompare();
+    this.opacity = 0.8;
+    this.frac = 0.5;
+    this.left.layer.opacity = this.right.layer.opacity = this.opacity;
+    const op = $("maps-opacity") as HTMLInputElement | null;
+    if (op) op.value = "80";
+    const label = $("maps-opacity-label");
+    if (label) label.textContent = "80 %";
+    const curtain = $("maps-curtain") as HTMLInputElement | null;
+    if (curtain) curtain.value = "50";
+    const clip = $("maps-clip") as HTMLInputElement | null;
+    if (clip && !clip.checked) {
+      clip.checked = true;
+      clip.dispatchEvent(new Event("change"));
+    }
+  }
+
   /** A camada mudou (num passo, no "Mais" ou aqui): acerta os cartões; se veio de fora, a comparação acaba. */
   external(key: string | null): void {
     if (!this.internal && this.compareKey) this.stopCompare();
