@@ -188,8 +188,8 @@ export class Alijo3DManager {
         symbol: new SimpleFillSymbol({
           color: [0, 0, 0, 0],
           outline: new SimpleLineSymbol({
-            color: [255, 200, 40, 0.9],
-            width: 2.5,
+            color: [255, 175, 20, 1.0], // Dourado / Laranja quente forte
+            width: 3.5,
           }),
         }),
       }),
@@ -217,10 +217,10 @@ export class Alijo3DManager {
       labelingInfo: [parishLabel],
       renderer: new SimpleRenderer({
         symbol: new SimpleFillSymbol({
-          color: [0, 198, 255, 0.05],
+          color: [0, 198, 255, 0.02],
           outline: new SimpleLineSymbol({
-            color: [0, 220, 255, 0.75],
-            width: 1.5,
+            color: [0, 220, 255, 0.55], // Ciano / Azul suave translúcido
+            width: 1.0,
           }),
         }),
       }),
@@ -515,9 +515,9 @@ export class Alijo3DManager {
     this.setDouroRiskModel("risco_2025");
 
     // Add layers to map
-    if (this.concelhoBoundaryLayer) map.add(this.concelhoBoundaryLayer);
-    map.add(this.alijoParishesLayer);
     map.add(this.douroRiskLayer);
+    map.add(this.alijoParishesLayer);
+    if (this.concelhoBoundaryLayer) map.add(this.concelhoBoundaryLayer);
     if (this.alijoRoadsLayer) map.add(this.alijoRoadsLayer);
     map.add(this.sanfinsBuildingsLayer);
     map.add(this.sanfinsRoofsLayer);

@@ -49,14 +49,14 @@ npm run preview
 
 ## 🌐 Configuração de DNS (dourorisk3d.bvsd.pt)
 
-Para que o domínio personalizado aponte corretamente para as GitHub Pages da organização `street4all`:
+Para que o domínio personalizado aponte corretamente para a **Vercel**:
 
 | Tipo de Registo | Nome / Host | Destino / Valor | TTL |
 | :---: | :---: | :---: | :---: |
-| **CNAME** | `dourorisk3d` | `street4all.github.io` | Automático / 3600 |
+| **CNAME** | `dourorisk3d` | `cname.vercel-dns.com` | Automático / 3600 |
 
-* O ficheiro `public/CNAME` já contém `dourorisk3d.bvsd.pt` e é injetado automaticamente na raiz de `dist/` durante a compilação.
-* A GitHub Action `.github/workflows/deploy.yml` gere o build e a publicação automática a cada push para a branch `main`.
+* **Configuração na Vercel:** No dashboard do projeto na Vercel, aceda a **Settings** → **Domains** e adicione `dourorisk3d.bvsd.pt`.
+* O deploy é gerido automaticamente pela integração do Vercel com o GitHub a cada push para a branch `main`.
 
 ---
 
