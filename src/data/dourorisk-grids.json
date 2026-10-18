@@ -167,7 +167,10 @@
     "notas": {
       "altitude_m": "min = cova do MDT junto à foz do Tua (vizinhos de 39 a 81 m), não é o rio: não publicar; rio = mediana (inferior) do MDT nas células de rio_douro_25m dentro do concelho",
       "ha": "ha = células × lado² / 10 000 (plano PT-TM06), sem arredondar; % com 4 casas decimais",
-      "ha_por_ultimo_ano": "área cujo ÚLTIMO fogo foi nesse ano: é um mínimo da área ardida nesse ano, exceto no último ano (exato)"
+      "ha_por_ultimo_ano": "área cujo ÚLTIMO fogo foi nesse ano: é um mínimo da área ardida nesse ano, exceto no último ano (exato)",
+      "tempo.anos": "ha = células do concelho com o centro na união dos polígonos ICNF do ano (par-ímpar por polígono); ha_ja_ardido = dessas, as que arderam num ano anterior desde 1990; ha_ate = área ardida pelo menos uma vez de 1990 até ao ano; mapa=false = sem cartografia (ha null); um sítio que arde em dois anos conta nos dois",
+      "tempo.projecao": "ha por classe de mato (0 = sem conta) se nada voltar a arder nem for limpo: classe = mato.classe[min(ano − último ano, 19)]; ha_suposicao = células com 18 anos sem fogo (classe 4, limite de baixo: o estudo não tem valor)",
+      "tempo.veroes": "regra reconstruída (não documentada na tese): pontuação = declive_pct truncado × (1 + cos(exposição − 180°)), exposição sem dados → 0; vigiado = pontuação ≥ quantil 0,8 nas células do concelho com declive; acertou = fração da área ardida do ano no vigiado > fracao_vigiada; com o último ano reproduz a lista da v1.1.0 (21 verões, ✓ 2010, 2011, 2015, 2016)"
     },
     "resumo": {
       "altitude_m": {
@@ -225,6 +228,737 @@
       "rio_ha": 62.75,
       "risco_alto_pct": 16.0897,
       "ultimo_fogo_ano": 2025
+    },
+    "tempo": {
+      "ano_max": 2017,
+      "anos": [
+        {
+          "ano": 1990,
+          "ha": 251.375,
+          "ha_ate": 251.375,
+          "ha_ja_ardido": 0.0,
+          "mapa": true
+        },
+        {
+          "ano": 1991,
+          "ha": 796.8125,
+          "ha_ate": 1048.1875,
+          "ha_ja_ardido": 0.0,
+          "mapa": true
+        },
+        {
+          "ano": 1992,
+          "ha": 135.0,
+          "ha_ate": 1124.625,
+          "ha_ja_ardido": 58.5625,
+          "mapa": true
+        },
+        {
+          "ano": 1993,
+          "ha": null,
+          "ha_ate": 1124.625,
+          "ha_ja_ardido": null,
+          "mapa": false
+        },
+        {
+          "ano": 1994,
+          "ha": 1114.25,
+          "ha_ate": 2180.0,
+          "ha_ja_ardido": 58.875,
+          "mapa": true
+        },
+        {
+          "ano": 1995,
+          "ha": 836.625,
+          "ha_ate": 2895.0,
+          "ha_ja_ardido": 121.625,
+          "mapa": true
+        },
+        {
+          "ano": 1996,
+          "ha": 1492.875,
+          "ha_ate": 4101.625,
+          "ha_ja_ardido": 286.25,
+          "mapa": true
+        },
+        {
+          "ano": 1997,
+          "ha": 65.3125,
+          "ha_ate": 4166.9375,
+          "ha_ja_ardido": 0.0,
+          "mapa": true
+        },
+        {
+          "ano": 1998,
+          "ha": 1546.9375,
+          "ha_ate": 4900.3125,
+          "ha_ja_ardido": 813.5625,
+          "mapa": true
+        },
+        {
+          "ano": 1999,
+          "ha": 271.625,
+          "ha_ate": 5148.0,
+          "ha_ja_ardido": 23.9375,
+          "mapa": true
+        },
+        {
+          "ano": 2000,
+          "ha": 3213.625,
+          "ha_ate": 6995.0,
+          "ha_ja_ardido": 1366.625,
+          "mapa": true
+        },
+        {
+          "ano": 2001,
+          "ha": 418.75,
+          "ha_ate": 7392.4375,
+          "ha_ja_ardido": 21.3125,
+          "mapa": true
+        },
+        {
+          "ano": 2002,
+          "ha": 2345.1875,
+          "ha_ate": 8724.5,
+          "ha_ja_ardido": 1013.125,
+          "mapa": true
+        },
+        {
+          "ano": 2003,
+          "ha": 772.1875,
+          "ha_ate": 9335.0625,
+          "ha_ja_ardido": 161.625,
+          "mapa": true
+        },
+        {
+          "ano": 2004,
+          "ha": 1122.8125,
+          "ha_ate": 9409.5625,
+          "ha_ja_ardido": 1048.3125,
+          "mapa": true
+        },
+        {
+          "ano": 2005,
+          "ha": 725.375,
+          "ha_ate": 9635.9375,
+          "ha_ja_ardido": 499.0,
+          "mapa": true
+        },
+        {
+          "ano": 2006,
+          "ha": 710.125,
+          "ha_ate": 10012.0625,
+          "ha_ja_ardido": 334.0,
+          "mapa": true
+        },
+        {
+          "ano": 2007,
+          "ha": null,
+          "ha_ate": 10012.0625,
+          "ha_ja_ardido": null,
+          "mapa": false
+        },
+        {
+          "ano": 2008,
+          "ha": 0.0,
+          "ha_ate": 10012.0625,
+          "ha_ja_ardido": 0.0,
+          "mapa": true
+        },
+        {
+          "ano": 2009,
+          "ha": 1045.75,
+          "ha_ate": 10122.25,
+          "ha_ja_ardido": 935.5625,
+          "mapa": true
+        },
+        {
+          "ano": 2010,
+          "ha": 563.125,
+          "ha_ate": 10329.1875,
+          "ha_ja_ardido": 356.1875,
+          "mapa": true
+        },
+        {
+          "ano": 2011,
+          "ha": 331.6875,
+          "ha_ate": 10450.375,
+          "ha_ja_ardido": 210.5,
+          "mapa": true
+        },
+        {
+          "ano": 2012,
+          "ha": 577.25,
+          "ha_ate": 10598.125,
+          "ha_ja_ardido": 429.5,
+          "mapa": true
+        },
+        {
+          "ano": 2013,
+          "ha": 323.5,
+          "ha_ate": 10672.8125,
+          "ha_ja_ardido": 248.8125,
+          "mapa": true
+        },
+        {
+          "ano": 2014,
+          "ha": 6.5,
+          "ha_ate": 10677.875,
+          "ha_ja_ardido": 1.4375,
+          "mapa": true
+        },
+        {
+          "ano": 2015,
+          "ha": 413.0,
+          "ha_ate": 10720.0,
+          "ha_ja_ardido": 370.875,
+          "mapa": true
+        },
+        {
+          "ano": 2016,
+          "ha": 570.25,
+          "ha_ate": 10797.75,
+          "ha_ja_ardido": 492.5,
+          "mapa": true
+        },
+        {
+          "ano": 2017,
+          "ha": 4890.1875,
+          "ha_ate": 12555.8125,
+          "ha_ja_ardido": 3132.125,
+          "mapa": true
+        },
+        {
+          "ano": 2018,
+          "ha": 474.375,
+          "ha_ate": 12561.875,
+          "ha_ja_ardido": 468.3125,
+          "mapa": true
+        },
+        {
+          "ano": 2019,
+          "ha": 448.75,
+          "ha_ate": 12726.0,
+          "ha_ja_ardido": 284.625,
+          "mapa": true
+        },
+        {
+          "ano": 2020,
+          "ha": 881.5625,
+          "ha_ate": 12732.875,
+          "ha_ja_ardido": 874.6875,
+          "mapa": true
+        },
+        {
+          "ano": 2021,
+          "ha": 12.9375,
+          "ha_ate": 12732.875,
+          "ha_ja_ardido": 12.9375,
+          "mapa": true
+        },
+        {
+          "ano": 2022,
+          "ha": 409.1875,
+          "ha_ate": 12766.5625,
+          "ha_ja_ardido": 375.5,
+          "mapa": true
+        },
+        {
+          "ano": 2023,
+          "ha": 1.875,
+          "ha_ate": 12767.8125,
+          "ha_ja_ardido": 0.625,
+          "mapa": true
+        },
+        {
+          "ano": 2024,
+          "ha": 469.5625,
+          "ha_ate": 12838.875,
+          "ha_ja_ardido": 398.5,
+          "mapa": true
+        },
+        {
+          "ano": 2025,
+          "ha": 686.875,
+          "ha_ate": 12845.9375,
+          "ha_ja_ardido": 679.8125,
+          "mapa": true
+        }
+      ],
+      "anos_sem_mapa": [
+        1993,
+        2007
+      ],
+      "ha_soma": 27925.25,
+      "mato": {
+        "about": {
+          "ano": "2025–2045",
+          "fonte": "estudo DouroRisk (estimativa)",
+          "fonte_curta": "estimativa, 2025–2045",
+          "metodo": "Não é uma previsão. Conta os anos desde o último fogo até ao ano escolhido. Depois usa a tabela do mato do estudo.",
+          "nota": "Faz de conta que nada volta a arder e que ninguém limpa. Com 18 anos sem fogo, o estudo não tem número: é uma suposição. A partir de 19 anos sem fogo, o estudo dá sempre 40 toneladas por hectare. Este número é fixo: não sai da conta dos outros anos. Outros estudos ainda não confirmaram a tabela do mato. Onde os mapas não mostram fogo desde 1990, não há conta.",
+          "resolucao_m": 25,
+          "titulo": "Quanto mato haveria"
+        },
+        "classe": [
+          0,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          5
+        ],
+        "suposicao": [
+          18
+        ],
+        "t_ha": [
+          null,
+          0.22,
+          1.03,
+          2.32,
+          4.02,
+          6.05,
+          8.35,
+          10.83,
+          13.43,
+          16.07,
+          18.68,
+          21.2,
+          23.54,
+          25.63,
+          27.4,
+          28.78,
+          29.69,
+          30.07,
+          null,
+          40
+        ],
+        "t_muito_mato": 13,
+        "teto": 40,
+        "teto_desde": 19
+      },
+      "planos": [
+        "ardeu_1990_1997",
+        "ardeu_1998_2005",
+        "ardeu_2006_2013",
+        "ardeu_2014_2021",
+        "ardeu_2022_2025"
+      ],
+      "projecao": [
+        {
+          "ano": 2025,
+          "ha_classes": [
+            17599.6875,
+            710.3125,
+            5496.625,
+            704.625,
+            719.5,
+            4528.0
+          ],
+          "ha_suposicao": 0.0
+        },
+        {
+          "ano": 2026,
+          "ha_classes": [
+            16912.8125,
+            1396.9375,
+            1468.6875,
+            4609.3125,
+            843.0,
+            4528.0
+          ],
+          "ha_suposicao": 0.0
+        },
+        {
+          "ano": 2027,
+          "ha_classes": [
+            16912.8125,
+            1158.3125,
+            1458.4375,
+            4851.6875,
+            849.5,
+            4528.0
+          ],
+          "ha_suposicao": 131.5625
+        },
+        {
+          "ano": 2028,
+          "ha_classes": [
+            16912.8125,
+            1156.4375,
+            1096.25,
+            4999.25,
+            934.4375,
+            4659.5625
+          ],
+          "ha_suposicao": 277.8125
+        },
+        {
+          "ano": 2029,
+          "ha_classes": [
+            16912.8125,
+            686.875,
+            710.3125,
+            5496.625,
+            1014.75,
+            4937.375
+          ],
+          "ha_suposicao": 77.3125
+        },
+        {
+          "ano": 2030,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            1396.9375,
+            1468.6875,
+            4965.625,
+            5014.6875
+          ],
+          "ha_suposicao": 232.8125
+        },
+        {
+          "ano": 2031,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            1158.3125,
+            1458.4375,
+            4981.6875,
+            5247.5
+          ],
+          "ha_suposicao": 123.5
+        },
+        {
+          "ano": 2032,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            1156.4375,
+            1096.25,
+            5222.25,
+            5371.0
+          ],
+          "ha_suposicao": 6.5
+        },
+        {
+          "ano": 2033,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            686.875,
+            710.3125,
+            6071.25,
+            5377.5
+          ],
+          "ha_suposicao": 216.5
+        },
+        {
+          "ano": 2034,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            1396.9375,
+            5855.0,
+            5594.0
+          ],
+          "ha_suposicao": 358.125
+        },
+        {
+          "ano": 2035,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            1158.3125,
+            5735.5,
+            5952.125
+          ],
+          "ha_suposicao": 4028.1875
+        },
+        {
+          "ano": 2036,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            1156.4375,
+            1709.1875,
+            9980.3125
+          ],
+          "ha_suposicao": 248.875
+        },
+        {
+          "ano": 2037,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            686.875,
+            1929.875,
+            10229.1875
+          ],
+          "ha_suposicao": 364.0625
+        },
+        {
+          "ano": 2038,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            0.0,
+            2252.6875,
+            10593.25
+          ],
+          "ha_suposicao": 855.5
+        },
+        {
+          "ano": 2039,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            0.0,
+            1397.1875,
+            11448.75
+          ],
+          "ha_suposicao": 0.25
+        },
+        {
+          "ano": 2040,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            0.0,
+            1396.9375,
+            11449.0
+          ],
+          "ha_suposicao": 238.625
+        },
+        {
+          "ano": 2041,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            0.0,
+            1158.3125,
+            11687.625
+          ],
+          "ha_suposicao": 1.875
+        },
+        {
+          "ano": 2042,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            0.0,
+            1156.4375,
+            11689.5
+          ],
+          "ha_suposicao": 469.5625
+        },
+        {
+          "ano": 2043,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            0.0,
+            686.875,
+            12159.0625
+          ],
+          "ha_suposicao": 686.875
+        },
+        {
+          "ano": 2044,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            12845.9375
+          ],
+          "ha_suposicao": 0.0
+        },
+        {
+          "ano": 2045,
+          "ha_classes": [
+            16912.8125,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            12845.9375
+          ],
+          "ha_suposicao": 0.0
+        }
+      ],
+      "salto": {
+        "ano": 2030,
+        "ha": 4028.1875,
+        "ultimo_fogo": 2017
+      },
+      "veroes": {
+        "acertos": 3,
+        "anos": [
+          {
+            "acertou": false,
+            "ano": 2001,
+            "fracao": 0.1837,
+            "ha": 418.75
+          },
+          {
+            "acertou": false,
+            "ano": 2002,
+            "fracao": 0.1167,
+            "ha": 2345.1875
+          },
+          {
+            "acertou": false,
+            "ano": 2003,
+            "fracao": 0.0841,
+            "ha": 772.1875
+          },
+          {
+            "acertou": false,
+            "ano": 2004,
+            "fracao": 0.1408,
+            "ha": 1122.8125
+          },
+          {
+            "acertou": false,
+            "ano": 2005,
+            "fracao": 0.0535,
+            "ha": 725.375
+          },
+          {
+            "acertou": false,
+            "ano": 2006,
+            "fracao": 0.1465,
+            "ha": 710.125
+          },
+          {
+            "acertou": false,
+            "ano": 2009,
+            "fracao": 0.1577,
+            "ha": 1045.75
+          },
+          {
+            "acertou": true,
+            "ano": 2010,
+            "fracao": 0.218,
+            "ha": 563.125
+          },
+          {
+            "acertou": false,
+            "ano": 2011,
+            "fracao": 0.146,
+            "ha": 331.6875
+          },
+          {
+            "acertou": false,
+            "ano": 2012,
+            "fracao": 0.1117,
+            "ha": 577.25
+          },
+          {
+            "acertou": false,
+            "ano": 2013,
+            "fracao": 0.0543,
+            "ha": 323.5
+          },
+          {
+            "acertou": false,
+            "ano": 2014,
+            "fracao": 0.0,
+            "ha": 6.5
+          },
+          {
+            "acertou": true,
+            "ano": 2015,
+            "fracao": 0.2442,
+            "ha": 413.0
+          },
+          {
+            "acertou": true,
+            "ano": 2016,
+            "fracao": 0.2963,
+            "ha": 570.25
+          },
+          {
+            "acertou": false,
+            "ano": 2017,
+            "fracao": 0.1279,
+            "ha": 4890.1875
+          },
+          {
+            "acertou": false,
+            "ano": 2018,
+            "fracao": 0.1128,
+            "ha": 474.375
+          },
+          {
+            "acertou": false,
+            "ano": 2019,
+            "fracao": 0.1104,
+            "ha": 448.75
+          },
+          {
+            "acertou": false,
+            "ano": 2020,
+            "fracao": 0.0917,
+            "ha": 881.5625
+          },
+          {
+            "acertou": false,
+            "ano": 2021,
+            "fracao": 0.029,
+            "ha": 12.9375
+          },
+          {
+            "acertou": false,
+            "ano": 2022,
+            "fracao": 0.166,
+            "ha": 409.1875
+          },
+          {
+            "acertou": false,
+            "ano": 2024,
+            "fracao": 0.0791,
+            "ha": 469.5625
+          },
+          {
+            "acertou": false,
+            "ano": 2025,
+            "fracao": 0.1495,
+            "ha": 686.875
+          }
+        ],
+        "ate": 2025,
+        "de": 2001,
+        "fracao_vigiada": 0.2001,
+        "minimo_ha": 5,
+        "total": 22
+      }
     }
   },
   "cornersWgs84": {
@@ -312,6 +1046,172 @@
     }
   },
   "layers": {
+    "ardeu_1990_1997": {
+      "about": {
+        "ano": "1990–2025",
+        "fonte": "mapas do ICNF das áreas ardidas (licença CC BY 4.0)",
+        "fonte_curta": "ICNF, 1990–2025",
+        "metodo": "O ICNF desenha num mapa o que ardeu em cada ano. Um quadrado conta se o seu centro estiver dentro do desenho.",
+        "nota": "O estudo não tem mapa de 1993 nem de 2007. Fogos muito pequenos podem não estar no mapa. Noutros estudos, os números podem ser um pouco diferentes.",
+        "resolucao_m": 25,
+        "titulo": "O que ardeu em cada ano"
+      },
+      "classes": [],
+      "encoding": {
+        "bits": {
+          "0": 1990,
+          "1": 1991,
+          "2": 1992,
+          "3": 1993,
+          "4": 1994,
+          "5": 1995,
+          "6": 1996,
+          "7": 1997
+        },
+        "format": "png-l8-bits",
+        "note": "bit b (0 = o menos significativo) = 1 se o centro da célula está dentro de um polígono ICNF do ano bits[b] (união do ano, par-ímpar por polígono); 0 fora do concelho; 1993 e 2007 sem cartografia (bit sempre 0)"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/ardeu_1990_1997.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/ardeu_1990_1997.png": "6d4d4aeb7098d7d8aa19570f26c165d1feb7d9ddad5872f6d4cb3d436d67e653"
+      },
+      "source": "ICNF, áreas ardidas 1990–2025 (ardida_*.json, EPSG:3763)"
+    },
+    "ardeu_1998_2005": {
+      "about": {
+        "ano": "1990–2025",
+        "fonte": "mapas do ICNF das áreas ardidas (licença CC BY 4.0)",
+        "fonte_curta": "ICNF, 1990–2025",
+        "metodo": "O ICNF desenha num mapa o que ardeu em cada ano. Um quadrado conta se o seu centro estiver dentro do desenho.",
+        "nota": "O estudo não tem mapa de 1993 nem de 2007. Fogos muito pequenos podem não estar no mapa. Noutros estudos, os números podem ser um pouco diferentes.",
+        "resolucao_m": 25,
+        "titulo": "O que ardeu em cada ano"
+      },
+      "classes": [],
+      "encoding": {
+        "bits": {
+          "0": 1998,
+          "1": 1999,
+          "2": 2000,
+          "3": 2001,
+          "4": 2002,
+          "5": 2003,
+          "6": 2004,
+          "7": 2005
+        },
+        "format": "png-l8-bits",
+        "note": "bit b (0 = o menos significativo) = 1 se o centro da célula está dentro de um polígono ICNF do ano bits[b] (união do ano, par-ímpar por polígono); 0 fora do concelho; 1993 e 2007 sem cartografia (bit sempre 0)"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/ardeu_1998_2005.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/ardeu_1998_2005.png": "d40efc201d725d72b131f2bb7a08e72ce4987c4304d18fda42d4adb45a438cac"
+      },
+      "source": "ICNF, áreas ardidas 1990–2025 (ardida_*.json, EPSG:3763)"
+    },
+    "ardeu_2006_2013": {
+      "about": {
+        "ano": "1990–2025",
+        "fonte": "mapas do ICNF das áreas ardidas (licença CC BY 4.0)",
+        "fonte_curta": "ICNF, 1990–2025",
+        "metodo": "O ICNF desenha num mapa o que ardeu em cada ano. Um quadrado conta se o seu centro estiver dentro do desenho.",
+        "nota": "O estudo não tem mapa de 1993 nem de 2007. Fogos muito pequenos podem não estar no mapa. Noutros estudos, os números podem ser um pouco diferentes.",
+        "resolucao_m": 25,
+        "titulo": "O que ardeu em cada ano"
+      },
+      "classes": [],
+      "encoding": {
+        "bits": {
+          "0": 2006,
+          "1": 2007,
+          "2": 2008,
+          "3": 2009,
+          "4": 2010,
+          "5": 2011,
+          "6": 2012,
+          "7": 2013
+        },
+        "format": "png-l8-bits",
+        "note": "bit b (0 = o menos significativo) = 1 se o centro da célula está dentro de um polígono ICNF do ano bits[b] (união do ano, par-ímpar por polígono); 0 fora do concelho; 1993 e 2007 sem cartografia (bit sempre 0)"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/ardeu_2006_2013.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/ardeu_2006_2013.png": "c8ddc425916f099d393b2dcf40f79b9a443f5862508b421d5638608c20ace5c8"
+      },
+      "source": "ICNF, áreas ardidas 1990–2025 (ardida_*.json, EPSG:3763)"
+    },
+    "ardeu_2014_2021": {
+      "about": {
+        "ano": "1990–2025",
+        "fonte": "mapas do ICNF das áreas ardidas (licença CC BY 4.0)",
+        "fonte_curta": "ICNF, 1990–2025",
+        "metodo": "O ICNF desenha num mapa o que ardeu em cada ano. Um quadrado conta se o seu centro estiver dentro do desenho.",
+        "nota": "O estudo não tem mapa de 1993 nem de 2007. Fogos muito pequenos podem não estar no mapa. Noutros estudos, os números podem ser um pouco diferentes.",
+        "resolucao_m": 25,
+        "titulo": "O que ardeu em cada ano"
+      },
+      "classes": [],
+      "encoding": {
+        "bits": {
+          "0": 2014,
+          "1": 2015,
+          "2": 2016,
+          "3": 2017,
+          "4": 2018,
+          "5": 2019,
+          "6": 2020,
+          "7": 2021
+        },
+        "format": "png-l8-bits",
+        "note": "bit b (0 = o menos significativo) = 1 se o centro da célula está dentro de um polígono ICNF do ano bits[b] (união do ano, par-ímpar por polígono); 0 fora do concelho; 1993 e 2007 sem cartografia (bit sempre 0)"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/ardeu_2014_2021.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/ardeu_2014_2021.png": "44569a3bfd4f514eccb8015811b8fccc06a99de5ae0eda9da6548e484dfb5431"
+      },
+      "source": "ICNF, áreas ardidas 1990–2025 (ardida_*.json, EPSG:3763)"
+    },
+    "ardeu_2022_2025": {
+      "about": {
+        "ano": "1990–2025",
+        "fonte": "mapas do ICNF das áreas ardidas (licença CC BY 4.0)",
+        "fonte_curta": "ICNF, 1990–2025",
+        "metodo": "O ICNF desenha num mapa o que ardeu em cada ano. Um quadrado conta se o seu centro estiver dentro do desenho.",
+        "nota": "O estudo não tem mapa de 1993 nem de 2007. Fogos muito pequenos podem não estar no mapa. Noutros estudos, os números podem ser um pouco diferentes.",
+        "resolucao_m": 25,
+        "titulo": "O que ardeu em cada ano"
+      },
+      "classes": [],
+      "encoding": {
+        "bits": {
+          "0": 2022,
+          "1": 2023,
+          "2": 2024,
+          "3": 2025
+        },
+        "format": "png-l8-bits",
+        "note": "bit b (0 = o menos significativo) = 1 se o centro da célula está dentro de um polígono ICNF do ano bits[b] (união do ano, par-ímpar por polígono); 0 fora do concelho; 1993 e 2007 sem cartografia (bit sempre 0)"
+      },
+      "files": {
+        "values": "/data/dourorisk/valores/ardeu_2022_2025.png"
+      },
+      "grid": "g25",
+      "sha256": {
+        "/data/dourorisk/valores/ardeu_2022_2025.png": "b61bf72936b2cd35a152a7b35c9b0d27ddc893173be98bece0b97d55af70514b"
+      },
+      "source": "ICNF, áreas ardidas 1990–2025 (ardida_*.json, EPSG:3763)"
+    },
     "biomassa_2025": {
       "about": {
         "ano": "2025",
@@ -996,6 +1896,172 @@
   "script": "scripts/pro_to_web.py",
   "source": {
     "gdb": "~/Documents/ArcGIS/Packages/DouroRisk_Alijo_aec603/commondata/raster_data.gdb",
+    "icnf": {
+      "entidade": "ICNF",
+      "ficheiros": {
+        "ardida_1990_1999.json": {
+          "anos": [
+            1990,
+            1999
+          ],
+          "poligonos": 133,
+          "sha256": "af4349e61212c613155d91d1a513adebf118168f2b22766e4f6334576b262674"
+        },
+        "ardida_2000_2008.json": {
+          "anos": [
+            2000,
+            2008
+          ],
+          "poligonos": 95,
+          "sha256": "fb773173e892caa11baf5ebd6920e7f1a86b9cae2190bfc057b945f239a7a91b"
+        },
+        "ardida_2009.json": {
+          "anos": [
+            2009,
+            2009
+          ],
+          "poligonos": 12,
+          "sha256": "8bd1e175c811d2218e7c450ee0f953ae1530bd801a2ef6a8faca1dec4b0c82b2"
+        },
+        "ardida_2010.json": {
+          "anos": [
+            2010,
+            2010
+          ],
+          "poligonos": 12,
+          "sha256": "9169e0df368df15ff7e27896fec37c5d40aee0e8a5509c1dbb49d64aeb65a27d"
+        },
+        "ardida_2011.json": {
+          "anos": [
+            2011,
+            2011
+          ],
+          "poligonos": 11,
+          "sha256": "e1196645ff201dcd7f55836345b7a01d971b8e9fedb0c8c9f3cd8a93edfd06aa"
+        },
+        "ardida_2012.json": {
+          "anos": [
+            2012,
+            2012
+          ],
+          "poligonos": 12,
+          "sha256": "e36f3852c2e4eb5a4ecfef2b008904315c388b97ca06bf66b6896981010a9ff0"
+        },
+        "ardida_2013.json": {
+          "anos": [
+            2013,
+            2013
+          ],
+          "poligonos": 8,
+          "sha256": "19e18368d9983912811861106390499bec64525191c6236a089b99e60acc3529"
+        },
+        "ardida_2014.json": {
+          "anos": [
+            2014,
+            2014
+          ],
+          "poligonos": 1,
+          "sha256": "ad1b5dbb70af8bdcf9d617e497f2c1578be88c9dfc485ba2eb87f1ff36dd7188"
+        },
+        "ardida_2015.json": {
+          "anos": [
+            2015,
+            2015
+          ],
+          "poligonos": 3,
+          "sha256": "3c44d69f5334e3bd1ee9842bc535b67416f0eebf0f92c249c400b6bf05c1f924"
+        },
+        "ardida_2016.json": {
+          "anos": [
+            2016,
+            2016
+          ],
+          "poligonos": 7,
+          "sha256": "60ab624c2c6af6d3dec0964eae5196540fbc3f93023638ba40e5fa39e9c0a085"
+        },
+        "ardida_2017.json": {
+          "anos": [
+            2017,
+            2017
+          ],
+          "poligonos": 9,
+          "sha256": "0a6380699cea93a0182ad92097b4acc62c54340991bcc3452f2508599aedc39f"
+        },
+        "ardida_2018.json": {
+          "anos": [
+            2018,
+            2018
+          ],
+          "poligonos": 2,
+          "sha256": "1160ed1963a01054f42227f62b7ad735bf532590238194a45ef39a25c23dd72f"
+        },
+        "ardida_2019.json": {
+          "anos": [
+            2019,
+            2019
+          ],
+          "poligonos": 6,
+          "sha256": "cb073912602d27aaee3951c57a41ae0a790d6a4a03663e882035b49eb88e1653"
+        },
+        "ardida_2020.json": {
+          "anos": [
+            2020,
+            2020
+          ],
+          "poligonos": 10,
+          "sha256": "5081fd59b2cf1190f645b542ae277d11b1d0328e0e51d392077a22f6c0503b79"
+        },
+        "ardida_2021.json": {
+          "anos": [
+            2021,
+            2021
+          ],
+          "poligonos": 1,
+          "sha256": "03f1df3876ba96c36bd2de4b7e39fc11e09199fa9130661e29121bcabd08b015"
+        },
+        "ardida_2022.json": {
+          "anos": [
+            2022,
+            2022
+          ],
+          "poligonos": 7,
+          "sha256": "6c978a9d8185c0e5c67b8ed638d540bab6073190b06dd652e9f4cffeb2945a23"
+        },
+        "ardida_2023.json": {
+          "anos": [
+            2023,
+            2023
+          ],
+          "poligonos": 7,
+          "sha256": "2a3bbf870da2dac19e2cb54857b173edca3b75a4decaca929e4eceb7b94957bb"
+        },
+        "ardida_2024.json": {
+          "anos": [
+            2024,
+            2024
+          ],
+          "poligonos": 5,
+          "sha256": "c0ca4fbd3c0156256368be9632c28fd235bee515fd9d8c67c757fa6763dd2072"
+        },
+        "ardida_2025.json": {
+          "anos": [
+            2025,
+            2025
+          ],
+          "poligonos": 9,
+          "sha256": "feadaef7b18ad15e445606ea6b16df481476c001eeff18812cd7ade58b956115"
+        }
+      },
+      "licenca": "CC BY 4.0",
+      "pasta": "~/Documents/ArcGIS/Projects/MyProject2/dados_ICNF/servicos",
+      "portal": "dados.gov.pt",
+      "titulo": "Áreas ardidas desde 1975",
+      "url": null,
+      "verificacao": {
+        "dif_concelho": 0,
+        "dif_fora": 3
+      }
+    },
     "rasters": {
       "Biomassa_Metodo_Original_2025_25m": {
         "cell": 25,

@@ -22,6 +22,7 @@ import { VALUES, decode, preloadValues } from "./values";
 import { fichaHtml, readPoint } from "./point";
 import { INTRO_ESTUDO, aboutOf, fonteSr, renderHow, type HowGroup } from "./how";
 import { TECNICO } from "./tecnico";
+import { aimPoint, placeCrosshair } from "./aim";
 
 type Scope = "local" | "concelho" | "freguesias";
 type Rings = number[][][];
@@ -239,9 +240,11 @@ export class Probe {
     $("btn-probe")?.addEventListener("click", () => this.setActive(!this.active));
     $("probe-close")?.addEventListener("click", () => this.setActive(false));
     $("probe-center")?.addEventListener("click", () => {
-      const pt = view.toMap({ x: view.width / 2, y: view.height / 2 });
+      // o mesmo ponto da mira (fora do centro do ecrã quando a janela aberta o tapa)
+      placeCrosshair(view);
+      const pt = view.toMap(aimPoint(view));
       if (!pt) {
-        this.setHint("O centro do ecrã não está sobre o terreno. Move o mapa e tenta outra vez.");
+        this.setHint("O centro do mapa não está sobre o terreno. Move o mapa e tenta outra vez.");
         return;
       }
       void this.select(pt.longitude ?? 0, pt.latitude ?? 0, this.chipRadius);

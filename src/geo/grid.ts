@@ -58,6 +58,8 @@ export interface LayerAbout {
 export interface LayerEncoding {
   format: string; nodata?: number; scale?: number; offset?: number; unit?: string;
   lut?: readonly number[]; special?: Readonly<Record<string, string>>; note?: string;
+  /** png-l8-bits: ano de cada bit ("0" = o menos significativo) */
+  bits?: Readonly<Record<string, number>>;
 }
 
 export interface ManifestLayer {

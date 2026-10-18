@@ -71,15 +71,18 @@ export function emCada10(pct: number): { n: number; frase: string } {
 export interface NumerosConcelho {
   area_ha: number;
   resumo: { altitude_m: { max: number; rio: number }; ardeu_pct: number; ha_por_ultimo_ano: Readonly<Record<string, number>>; periodo: readonly number[] };
+  /** área que ardeu em cada ano (mapas anuais do ICNF), escrita por scripts/pro_to_web.py */
+  tempo?: { anos: readonly { ano: number; ha: number | null }[] };
 }
 
 /** Números do HTML estático (marcadores <!--n:chave-->…<!--/n-->), a partir do manifest inteiro. */
 export function numerosApresentacao(m: { concelho?: NumerosConcelho }): Record<string, string> {
   const c = m.concelho;
   if (!c?.resumo) throw new Error("[numeros] o manifest não tem o bloco concelho: corre scripts/pro_to_web.py");
-  const r = c.resumo, ha2017 = r.ha_por_ultimo_ano["2017"];
-  if (ha2017 == null) throw new Error("[numeros] falta concelho.resumo.ha_por_ultimo_ano[\"2017\"]");
-  const e = emCada10(r.ardeu_pct), c2017 = sig2(ha2017 / HA_POR_CAMPO, "minimo");
+  // 2017: a área que ardeu nesse ano (a mesma da Máquina do tempo), não só a que teve aí o último fogo
+  const r = c.resumo, ha2017 = c.tempo?.anos.find((a) => a.ano === 2017)?.ha;
+  if (ha2017 == null) throw new Error("[numeros] falta concelho.tempo.anos[2017]: corre scripts/pro_to_web.py");
+  const e = emCada10(r.ardeu_pct), c2017 = sig2(ha2017 / HA_POR_CAMPO);
   return {
     area_km2: fmtDec1(c.area_ha / 100),
     rio_m: fmtInt(r.altitude_m.rio),
@@ -88,8 +91,8 @@ export function numerosApresentacao(m: { concelho?: NumerosConcelho }): Record<s
     ardeu_n10: String(e.n),
     ardeu_frase: e.frase,
     grid10_ardeu: '<i class="on"></i>'.repeat(e.n) + "<i></i>".repeat(10 - e.n),
-    campos_2017_min: fmtInt(c2017),
-    campos_2017_min_sr: srInt(c2017),
+    campos_2017: fmtInt(c2017),
+    campos_2017_sr: srInt(c2017),
     ano_inicio: String(r.periodo[0]),
     ano_fim: String(r.periodo[1]),
   };

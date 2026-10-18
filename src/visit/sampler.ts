@@ -6,6 +6,9 @@ import { cellHa, cellOf, forEachCellInCircle, pixelOf, type GridGeo } from "../g
 /** Valor devolvido quando o ponto está fora da grelha ou a grelha não carregou. */
 export const NO_DATA = -1;
 
+/** A imagem leu-se, mas não tem as dimensões da grelha do manifest (não é falha de rede: tentar outra vez não ajuda). */
+export class GridSizeError extends Error {}
+
 /** Máscaras de polígonos já desenhadas, por grelha e pela chave da seleção (concelho, freguesias). */
 const masks = new Map<string, Map<string, Uint8Array>>();
 /** só as últimas seleções ficam guardadas em cada grelha (as grelhas de 10 m têm 5 milhões de células) */
@@ -68,7 +71,7 @@ export class ClassGrid {
           const { width: gw, height: gh, id } = this.geo;
           // uma imagem com outras dimensões já não corresponde à grelha: melhor não ler do que ler mal
           if (img.naturalWidth !== gw || img.naturalHeight !== gh) {
-            return reject(new Error(`${this.url}: ${img.naturalWidth}×${img.naturalHeight}, a grelha ${id} tem ${gw}×${gh}`));
+            return reject(new GridSizeError(`${this.url}: ${img.naturalWidth}×${img.naturalHeight}, a grelha ${id} tem ${gw}×${gh}`));
           }
           const canvas = document.createElement("canvas");
           canvas.width = img.naturalWidth;

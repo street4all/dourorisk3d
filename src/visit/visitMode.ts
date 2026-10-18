@@ -22,10 +22,13 @@ import { MapsPanel, loadImage } from "./maps";
 import { HA_PER_CELL, HA_PER_FIELD, renderSpread, simulateSpread, type SpreadResult } from "./spread";
 import { RISK_WORDS, rumo } from "./words";
 import { TECNICO } from "./tecnico";
-import { A0, A1 } from "../data/concelho";
+import { TimeMachine } from "./timeMachine";
+import { T_HA_MAX, classeMato, matoAosAnos } from "./values";
+import { aimPoint, placeCrosshair } from "./aim";
+import { A0, A1, CONCELHO } from "../data/concelho";
 import { fmtInt } from "../data/numeros";
 
-type PopName = "olha" | "escolhe" | "guarda" | "compara" | "protege" | "mais" | "ajuda";
+type PopName = "olha" | "escolhe" | "guarda" | "compara" | "protege" | "mais" | "ajuda" | "tempo";
 type Mark = "ok" | "no" | null;
 const STEPS: PopName[] = ["olha", "escolhe", "guarda", "compara", "protege"];
 const MAX_TOKENS = 3;
@@ -39,17 +42,6 @@ const BURNED_GRID = gridOfLayer(BURNED);
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const RISK_COLORS = ["#036403", "#88B302", "#FFFE06", "#FE9900", "#DD2203"];
 const FLAME_PATH = "M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4-1-6 1-9z";
-
-// Verões de 2001 a 2025 com mais de 5 ha ardidos no concelho; true = o mapa só com relevo
-// (declive + exposição, 20 % do território) apanhou mais área ardida do que o acaso.
-const SUMMERS: [number, boolean][] = [
-  [2001, false], [2002, false], [2003, false], [2004, false], [2005, false], [2006, false], [2009, false],
-  [2010, true], [2011, true], [2012, false], [2013, false], [2014, false], [2015, true], [2016, true],
-  [2017, false], [2018, false], [2019, false], [2020, false], [2022, false], [2024, false], [2025, false],
-];
-
-// Biomassa (estudo DouroRisk) por anos desde o fogo; mato maduro = 40.
-const REGROW: [number, number][] = [[0, 0], [2, 1.03], [5, 6.05], [10, 18.68]];
 
 const PLEDGES: Record<string, string> = {
   limpar: "limpar o mato 50 m à volta da casa",
@@ -86,15 +78,6 @@ function windWords(kmh: number): string {
   if (kmh < 40) return "moderado";
   if (kmh < 60) return "forte";
   return "muito forte";
-}
-
-function regrowAt(years: number): number {
-  for (let i = 1; i < REGROW.length; i++) {
-    const [y0, v0] = REGROW[i - 1];
-    const [y1, v1] = REGROW[i];
-    if (years <= y1) return v0 + ((years - y0) / (y1 - y0)) * (v1 - v0);
-  }
-  return REGROW[REGROW.length - 1][1];
 }
 
 export class VisitMode {
@@ -148,6 +131,8 @@ export class VisitMode {
   private probe: Probe;
   // Mapas de risco: escolher, ver e comparar
   private maps: MapsPanel | null = null;
+  // 4 · máquina do tempo: o fogo e o mato, ano a ano (janela própria, depois de revelar)
+  private time: TimeMachine | null = null;
 
   constructor(private manager: Alijo3DManager) {
     // em ecrãs estreitos o cartão do Explorar e a janela do passo não cabem os dois
@@ -169,6 +154,7 @@ export class VisitMode {
       this.cueOverlay = new CanvasOverlay(map, "Pistas que se somam", G25, 0.85);
       this.revealOverlay = new CanvasOverlay(map, "Onde ardeu (revelação)", BURNED_GRID, 0.85);
       this.sparkOverlay = new CanvasOverlay(map, "Faísca (modelo simplificado)", G25, 0.9);
+      this.time = new TimeMachine(map, { say: (m) => this.say(m) });
       map.addMany([this.markLayer, this.tokenLayer]);
       // as janelas do ArcGIS (freguesias com dados económicos) não fazem parte da visita
       view.popupEnabled = false;
@@ -217,14 +203,17 @@ export class VisitMode {
     document.body.appendChild(this.mapLegend);
 
     this.wireDock();
+    this.wireAim();
     this.wireTools();
     this.wireEscolhe();
     this.wireGuarda();
     this.wireCompara();
+    this.wireTempo();
     this.wireSpark();
     this.wireProtege();
     this.renderTokenSlots();
     this.renderSummers();
+    this.time?.init();
     renderLegend($("burned-legend"), BURNED);
     renderLegend($("risk-legend"), RISK);
     this.setYears(0);
@@ -261,10 +250,18 @@ export class VisitMode {
     document.querySelectorAll<HTMLElement>("[data-goto]").forEach((btn) =>
       btn.addEventListener("click", () => this.open(btn.dataset.goto as PopName)),
     );
-    document.querySelectorAll<HTMLElement>(".pop-close").forEach((btn) => btn.addEventListener("click", () => this.close()));
+    // só os × das janelas dos passos (o Explorar e os Mapas fecham-se com os seus próprios ×, sem fechar a janela aberta)
+    document.querySelectorAll<HTMLElement>(".pop .pop-close").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        // o × da máquina do tempo volta ao passo 4 (os outros × fecham como sempre)
+        if (this.current === "tempo" && btn.closest("#pop-tempo")) this.backFromTime();
+        else this.close();
+      }),
+    );
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && this.current) {
-        this.close();
+        if (this.current === "tempo") this.backFromTime();
+        else this.close();
         return;
       }
       if (e.key === "Escape" && this.probe.active) {
@@ -285,10 +282,34 @@ export class VisitMode {
     });
   }
 
+  /** A mira fica no centro do mapa que se vê (a janela aberta pode tapar o centro do ecrã). */
+  private wireAim(): void {
+    const view = this.manager.view;
+    if (!view) return;
+    const place = () => placeCrosshair(view);
+    window.addEventListener("resize", place);
+    const pops = document.querySelectorAll<HTMLElement>(".pop");
+    // a janela muda de tamanho (texto, letra maior, detalhes abertos) ou acaba de entrar (animação)
+    if ("ResizeObserver" in window) {
+      const ro = new ResizeObserver(place);
+      pops.forEach((p) => ro.observe(p));
+    }
+    pops.forEach((p) => p.addEventListener("animationend", place));
+  }
+
   open(name: PopName, opener?: HTMLElement): void {
+    // a máquina do tempo só abre depois de revelar onde ardeu (não estraga o palpite)
+    if (name === "tempo" && !this.compared) {
+      this.open("compara");
+      this.say("Primeiro revela onde ardeu.");
+      return;
+    }
     if (this.current && this.current !== name) this.hide(this.current);
     if (!matchMedia("(min-width: 900px)").matches) {
       this.probe.setActive(false);
+      this.maps?.setOpen(false);
+    } else if (name === "tempo") {
+      // a máquina pinta o mapa: o cartão dos Mapas ao lado diria «Sem mapa» (e a legenda dele ficaria vazia)
       this.maps?.setOpen(false);
     }
     const pop = $(`pop-${name}`);
@@ -299,12 +320,15 @@ export class VisitMode {
     this.visited.add(name);
     document.body.dataset.mode = name;
     this.manager.view?.closePopup();
-    this.lastOpener = opener || document.querySelector<HTMLElement>(`.dock [data-pop="${name}"]`);
+    // a máquina do tempo pertence ao passo 4: o botão 4 da barra fica marcado (só à vista) e recebe o foco ao fechar
+    const dock4 = document.querySelector<HTMLElement>('.dock [data-pop="compara"]');
+    this.lastOpener = name === "tempo" ? dock4 : opener || document.querySelector<HTMLElement>(`.dock [data-pop="${name}"]`);
     document.querySelectorAll<HTMLElement>("[data-pop]").forEach((b) => {
       const on = b.dataset.pop === name;
       b.setAttribute("aria-expanded", String(on));
       b.classList.toggle("active", on);
     });
+    if (name === "tempo") dock4?.classList.add("active");
     const status = pop.querySelector(".pop-status");
     if (status) status.textContent = "";
     const q = pop.querySelector<HTMLElement>(".pop-q");
@@ -319,10 +343,13 @@ export class VisitMode {
     if (name === "escolhe" && this.sealed) this.say("O palpite já está guardado. Para mudar, faz um novo palpite no passo 3.");
     this.updateNext();
     this.syncLayerUI();
+    if (this.manager.view) placeCrosshair(this.manager.view);
   }
 
-  close(): void {
+  /** Fecha a janela aberta. `restoreFocus` = false quando outro controlo fica com o foco (por exemplo, um cartão dos Mapas). */
+  close(restoreFocus = true): void {
     if (!this.current) return;
+    if (this.current === "tempo") this.time?.leave();
     this.hide(this.current);
     this.current = null;
     delete document.body.dataset.mode;
@@ -332,9 +359,17 @@ export class VisitMode {
     });
     this.setSparkArmed(false);
     this.hideThermo();
-    this.lastOpener?.focus({ preventScroll: true });
+    if (restoreFocus) this.lastOpener?.focus({ preventScroll: true });
     this.updateNext();
     this.syncLayerUI();
+  }
+
+  /** ×, Esc e «Voltar ao passo 4» da máquina do tempo: volta ao passo 4, com o foco no botão que a abriu. */
+  private backFromTime(): void {
+    this.open("compara");
+    const b = $("btn-time-open");
+    b?.scrollIntoView({ block: "nearest" });
+    b?.focus({ preventScroll: true });
   }
 
   private hide(name: PopName): void {
@@ -399,6 +434,16 @@ export class VisitMode {
 
   /** Acerta todos os sítios que mostram o estado das camadas. */
   private syncLayerUI(): void {
+    // só um mapa colorido de cada vez: outro mapa à vista (Mapas, Mais, Sanfins) fecha a máquina do tempo.
+    // A janela aberta conta, e não só a camada à vista: a máquina pode ainda estar a ler os mapas (ou desligada)
+    // e pintaria depois por cima do mapa escolhido.
+    if (this.visibleKey && (this.time?.visible || this.current === "tempo")) {
+      this.time?.leave();
+      if (this.current === "tempo") {
+        this.close(false);
+        this.toast(`A máquina do tempo fechou. O mapa mostra agora: ${VISIT_LAYERS[this.visibleKey]?.title ?? this.visibleKey}.`);
+      }
+    }
     const key = this.visibleKey;
     document.querySelectorAll<HTMLButtonElement>(".cue").forEach((b) => b.setAttribute("aria-pressed", String(this.cueKeys.has(b.dataset.cue!))));
     const hideBtn = $("btn-hide-cue");
@@ -426,6 +471,7 @@ export class VisitMode {
 
   /** Cada passo mostra as camadas que lhe pertencem: a legenda à vista corresponde sempre ao mapa. */
   private layerForStep(name: PopName): void {
+    if (name !== "tempo") this.time?.leave();
     const key = this.visibleKey;
     const keepCues = name === "escolhe" || name === "guarda";
     if (!keepCues && this.cueKeys.size) this.clearCues();
@@ -447,6 +493,10 @@ export class VisitMode {
     } else if (name === "protege") {
       this.setVisibleLayer(RISK, 0.7);
       this.drawHouse();
+    } else if (name === "tempo") {
+      // a máquina tem a sua camada: nenhum outro mapa fica à vista ao mesmo tempo
+      this.setVisibleLayer(null);
+      void this.time?.enter();
     }
   }
 
@@ -459,7 +509,7 @@ export class VisitMode {
       return;
     }
     const mode = this.current;
-    if (mode !== "escolhe" && mode !== "compara" && mode !== "protege") return;
+    if (mode !== "escolhe" && mode !== "compara" && mode !== "protege" && mode !== "tempo") return;
     e.stopPropagation();
     const pt = e.mapPoint;
     if (!pt) return;
@@ -478,24 +528,33 @@ export class VisitMode {
     await this.readAt(mode, pt.longitude ?? 0, pt.latitude ?? 0);
   }
 
-  /** Ponto do terreno ao centro do ecrã (alternativa ao toque, para quem usa teclado). */
+  /** Ponto do terreno debaixo da mira (alternativa ao toque, para quem usa teclado). */
   private centerPoint(): { lon: number; lat: number } | null {
     const view = this.manager.view;
     if (!view) return null;
-    const pt = view.toMap({ x: view.width / 2, y: view.height / 2 });
+    placeCrosshair(view);
+    const pt = view.toMap(aimPoint(view));
     if (!pt) {
-      this.say("O centro do ecrã não está sobre o terreno. Move o mapa e tenta outra vez.");
+      const msg = "O centro do mapa não está sobre o terreno. Move o mapa e tenta outra vez.";
+      this.say(msg);
+      // na máquina do tempo, a resposta também fica à vista junto de «Ler o centro do mapa»
+      if (this.current === "tempo") this.time?.mostrarResposta(msg);
       return null;
     }
     return { lon: pt.longitude ?? 0, lat: pt.latitude ?? 0 };
   }
 
-  private async readCenter(mode: "escolhe" | "compara" | "protege"): Promise<void> {
+  private async readCenter(mode: "escolhe" | "compara" | "protege" | "tempo"): Promise<void> {
     const c = this.centerPoint();
     if (c) await this.readAt(mode, c.lon, c.lat);
   }
 
-  private async readAt(mode: "escolhe" | "compara" | "protege", lon: number, lat: number): Promise<void> {
+  private async readAt(mode: "escolhe" | "compara" | "protege" | "tempo", lon: number, lat: number): Promise<void> {
+    if (mode === "tempo") {
+      const msg = await this.time?.readAt(lon, lat);
+      if (msg && this.current === "tempo") this.say(msg);
+      return;
+    }
     if (mode === "escolhe") {
       if (this.sealed) {
         this.say("O palpite já está guardado. Para mudar, faz um novo palpite no passo 3.");
@@ -805,6 +864,9 @@ export class VisitMode {
   private resetGuess(): void {
     this.sealed = false;
     this.compared = false;
+    const entry = $("time-entry");
+    if (entry) entry.hidden = true;
+    this.time?.reset();
     this.certainty = 0;
     this.faces().forEach((f, i) => {
       f.setAttribute("aria-checked", "false");
@@ -892,6 +954,12 @@ export class VisitMode {
     $("btn-read-burned")?.addEventListener("click", () => void this.readCenter("compara"));
   }
 
+  private wireTempo(): void {
+    $("btn-time-open")?.addEventListener("click", () => this.open("tempo"));
+    $("btn-time-back")?.addEventListener("click", () => this.backFromTime());
+    $("btn-time-read")?.addEventListener("click", () => void this.readCenter("tempo"));
+  }
+
   private async loadBurnedImage(): Promise<ImageData> {
     if (this.burnedFull) return this.burnedFull;
     const img = await loadImage(DOURORISK_MODELS[BURNED].image);
@@ -938,6 +1006,12 @@ export class VisitMode {
       if (!this.compared) {
         this.compared = true;
         this.updateNext();
+        // já se viu onde ardeu: a máquina do tempo aparece e os mapas dos anos leem-se sem pressa
+        const entry = $("time-entry");
+        if (entry) entry.hidden = false;
+        const pre = () => this.time?.preload();
+        if (typeof requestIdleCallback === "function") requestIdleCallback(pre, { timeout: 5000 });
+        else setTimeout(pre, 2000);
       }
     } else {
       if (this.visibleKey === BURNED) this.setVisibleLayer(null);
@@ -1040,12 +1114,33 @@ export class VisitMode {
     );
   }
 
+  /**
+   * «O mapa acerta sempre?»: um círculo por ano, com o ano à vista (números de concelho.tempo.veroes). A área de
+   * cada ano é a do ano inteiro (o atributo Ano do ICNF), não só a do verão: por isso os textos dizem «ano».
+   */
   private renderSummers(): void {
+    const v = CONCELHO.tempo.veroes;
+    const list = new Intl.ListFormat("pt-PT", { type: "conjunction" });
+    const wins = v.anos.filter((a) => a.acertou).map((a) => String(a.ano));
     const el = $("summers");
-    if (!el) return;
-    el.innerHTML = SUMMERS.map(
-      ([y, win]) => `<span class="summer${win ? " win" : ""}" title="${y}${win ? ": acertou" : ""}">${win ? "✓" : ""}</span>`,
-    ).join("");
+    if (el) {
+      el.innerHTML = v.anos
+        .map((a) => `<span class="summer${a.acertou ? " win" : ""}"><span class="summer-dot" aria-hidden="true">${a.acertou ? "✓" : ""}</span><span class="summer-ano">${a.ano}</span></span>`)
+        .join("");
+      el.setAttribute("aria-label", `Anos de ${v.de} a ${v.ate} com mais de ${v.minimo_ha} hectares ardidos. ${wins.length ? `Com visto: ${list.format(wins)}.` : "Nenhum tem visto."}`);
+    }
+    const semMapa = CONCELHO.tempo.anos_sem_mapa.filter((y) => y >= v.de && y <= v.ate).map(String);
+    const txt = $("summers-text");
+    if (txt) {
+      txt.innerHTML = [
+        `Cada círculo é um ano com mais de ${v.minimo_ha} hectares ardidos.`,
+        `Um mapa feito só com a forma dos montes acertou em <strong>${v.acertos} de ${v.total} anos</strong>.`,
+        "Acertar quer dizer: apanhou mais fogo do que à sorte.",
+        ...(semMapa.length ? [`Não conta ${list.format(semMapa)}: o estudo não tem mapa ${semMapa.length === 1 ? "desse ano" : "desses anos"}.`] : []),
+      ]
+        .map((t) => `<p>${t}</p>`)
+        .join("");
+    }
   }
 
   private renderWeather(w: LiveWeatherReport): void {
@@ -1252,18 +1347,22 @@ export class VisitMode {
     const range = $<HTMLInputElement>("regrow-range");
     if (range && Number(range.value) !== years) range.value = String(years);
     this.text($("regrow-years"), years === 1 ? "1 ano" : `${years} anos`);
-    const v = regrowAt(years);
+    // tabela do mato do estudo (t/ha pelos anos desde o fogo) e a mesma classe de «Quanto mato há»
+    const v = matoAosAnos(years) ?? 0;
     const fill = $("regrow-fill");
-    if (fill) fill.style.width = `${(v / 40) * 100}%`;
+    if (fill) fill.style.width = `${(v / T_HA_MAX) * 100}%`;
+    const c = classeMato(years);
     const words =
-      years === 0
+      years <= 0
         ? "Acabado de limpar: quase não há mato."
-        : years < 4
-          ? "Ainda há pouco mato."
-          : years < 8
+        : c <= 1
+          ? "Ainda há muito pouco mato."
+          : c === 2
             ? "O mato já está a voltar."
-            : "O mato voltou a quase metade. É preciso limpar outra vez.";
-    this.text($("regrow-text"), `${words} (Contas do estudo DouroRisk.)`);
+            : c === 3
+              ? "Já há algum mato. É preciso limpar outra vez."
+              : "Já há muito mato. É preciso limpar outra vez.";
+    this.text($("regrow-text"), `${words} (Contas do estudo DouroRisk para o mato depois do fogo.)`);
     this.renderHouse();
     this.drawHouse();
   }
@@ -1272,7 +1371,11 @@ export class VisitMode {
   private houseRisk(): number {
     if (!this.house) return 0;
     let r = this.house.base;
-    if (this.actions.has("limpar")) r -= this.years < 4 ? 2 : this.years < 8 ? 1 : 0;
+    // a mesma classe do mato que a frase do passo 5: o texto e a cor do anel não se contradizem
+    if (this.actions.has("limpar")) {
+      const c = classeMato(this.years);
+      r -= c <= 1 ? 2 : c === 2 ? 1 : 0;
+    }
     if (this.actions.has("pastorear")) r -= 1;
     return Math.max(1, Math.min(5, r));
   }
@@ -1313,7 +1416,8 @@ export class VisitMode {
     this.markLayer.removeMany(this.markLayer.graphics.filter((g) => g.attributes?.kind === "house").toArray());
     if (!this.house || this.current !== "protege") return;
     const clean = this.actions.has("limpar");
-    const color: [number, number, number] = !clean ? [247, 243, 234] : this.years < 4 ? [123, 209, 72] : this.years < 8 ? [255, 176, 0] : [238, 90, 26];
+    const c = classeMato(this.years);
+    const color: [number, number, number] = !clean ? [247, 243, 234] : c <= 1 ? [123, 209, 72] : c === 2 ? [255, 176, 0] : [238, 90, 26];
     this.markLayer.add(
       new Graphic({
         geometry: new Circle({ center: new Point({ longitude: this.house.lon, latitude: this.house.lat }), radius: 50, radiusUnit: "meters", geodesic: true, numberOfPoints: 72 }),
@@ -1377,6 +1481,7 @@ export class VisitMode {
 
   // ------------------------------------------------------------------ quiosque: aviso e recomeço sem uso
   private resetVisit(): void {
+    this.time?.reset();
     this.close();
     this.probe.reset();
     this.maps?.reset();
@@ -1426,6 +1531,7 @@ export class VisitMode {
       idle = window.setTimeout(() => {
         // 20 s de aviso, com um botão para continuar (WCAG 2.2.1)
         if (warn) warn.hidden = false;
+        this.time?.stop(); // nada se mexe sozinho enquanto o aviso está à vista
         $("btn-idle-continue")?.focus();
         final = window.setTimeout(() => {
           if (warn) warn.hidden = true;

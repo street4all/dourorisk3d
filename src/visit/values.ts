@@ -3,6 +3,7 @@
 // manifest. Os PNG usam o mesmo leitor das classes (ClassGrid); a altitude vem de um Int16 (mdt.bin).
 import { GRID_MANIFEST, gridOfLayer, indexOf, type GridGeo } from "../geo/grid";
 import { ClassGrid, NO_DATA } from "./sampler";
+import { CONCELHO } from "../data/concelho";
 
 const file = (k: string) => GRID_MANIFEST.layers[k].files.values!;
 const enc = (k: string) => GRID_MANIFEST.layers[k].encoding!;
@@ -28,6 +29,51 @@ export function decode(key: string, raw: number): number | null {
 
 /** O máximo do cálculo do mato, em t/ha (o último valor da tabela: 40). */
 export const T_HA_MAX = Math.max(...enc("biomassa_t_ha").lut!);
+
+/** Máquina do tempo (bloco concelho.tempo do manifest): números exatos contados pelo pipeline. */
+export const TEMPO = CONCELHO.tempo;
+
+export interface FogoPlano {
+  key: string;
+  grid: ClassGrid;
+  /** bit → ano (de encoding.bits); undefined se o manifest não o tiver */
+  bits: Readonly<Record<string, number>> | undefined;
+}
+
+let fogoPlanosCache: FogoPlano[] | null = null;
+
+/**
+ * O que ardeu em cada ano: um PNG por plano de até 8 anos, um bit por ano (encoding.bits diz o ano de
+ * cada bit). Lidos só pela máquina do tempo (fora de preloadValues). Feito só quando a máquina lê os
+ * dados: um manifest sem estas camadas desliga a máquina, sem parar o resto da app (o Explorar usa este módulo).
+ */
+export function fogoPlanos(): FogoPlano[] {
+  if (!fogoPlanosCache) {
+    fogoPlanosCache = TEMPO.planos.map((k) => {
+      const l = GRID_MANIFEST.layers[k];
+      if (!l?.files?.values) throw new Error(`o manifest não tem a camada ${k}`);
+      return { key: k, grid: new ClassGrid(l.files.values, gridOfLayer(k)), bits: l.encoding?.bits };
+    });
+  }
+  return fogoPlanosCache;
+}
+
+/** Mato do estudo (t/ha) com t anos desde o último fogo; null = sem número (t ≤ 0, ou um ano que o estudo não tem). */
+export function matoAosAnos(t: number): number | null {
+  if (t <= 0) return null;
+  const m = TEMPO.mato;
+  return t < m.t_ha.length ? m.t_ha[t] : m.teto;
+}
+
+/** Classe do mato (1 a 5) com t anos desde o último fogo; 0 = sem conta (t ≤ 0). */
+export function classeMato(t: number): number {
+  if (t <= 0) return 0;
+  const c = TEMPO.mato.classe;
+  return c[Math.min(t, c.length - 1)];
+}
+
+/** t anos sem fogo é um ano sem número no estudo (a classe é o limite de baixo)? */
+export const suposicaoMato = (t: number): boolean => TEMPO.mato.suposicao.includes(t);
 
 /** byte no ponto: undefined = fora da grelha ou não carregou */
 export async function rawAt(g: ClassGrid, lon: number, lat: number): Promise<number | undefined> {

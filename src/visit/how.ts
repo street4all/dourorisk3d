@@ -3,7 +3,8 @@
 import { GRID_MANIFEST, type LayerAbout, type LayerEncoding } from "../geo/grid";
 import { esc, periodo } from "./words";
 
-export interface HowGroup { keys: string[]; titulo?: string }
+/** Um grupo de camadas numa entrada. `about` substitui o das camadas (por exemplo, uma estimativa feita a partir delas). */
+export interface HowGroup { keys: readonly string[]; titulo?: string; about?: LayerAbout }
 
 /** O que quer dizer «estudo», com «tese» explicada (Leitura Fácil). Nos Mapas só entra se algum mapa vem do estudo. */
 export const INTRO_ESTUDO = ["\"Estudo\" quer dizer o estudo DouroRisk.", "É uma tese: um trabalho da universidade sobre o risco de incêndio em Alijó."];
@@ -25,13 +26,17 @@ export function fonteSr(key: string): string {
   return a.fonte + (a.ano ? `, ${periodo(a.ano)}` : "");
 }
 
-const FORMATOS: Record<string, string> = { "png-l8": "PNG 8 bits", int16le: "Int16 LE" };
+const FORMATOS: Record<string, string> = { "png-l8": "PNG 8 bits", "png-l8-bits": "PNG 8 bits, um bit por ano", int16le: "Int16 LE" };
 
 /** A codificação de uma camada em palavras (modo técnico). */
 function encTxt(e: LayerEncoding | undefined, nClasses: number): string {
   if (!e) return "";
   const out = [FORMATOS[e.format] ?? e.format];
   if (e.lut) out.push(`tabela de ${e.lut.length} valores`);
+  if (e.bits) {
+    const anos = Object.values(e.bits);
+    out.push(`anos ${Math.min(...anos)}–${Math.max(...anos)}`);
+  }
   const scale = e.scale ?? 1, offset = e.offset ?? 0;
   if (scale !== 1 || offset !== 0) out.push(`valor × ${scale} + ${offset}`);
   for (const [k, t] of Object.entries(e.special ?? {})) out.push(`${k} = ${t}`);
@@ -76,7 +81,7 @@ export function renderHow(el: HTMLElement | null, grupos: (HowGroup | "edificios
       const e = EDIFICIOS;
       return `<dt>${titulo(e.titulo)}</dt><dd><p>Fonte: ${esc(e.fonte)}.</p><p>${esc(e.metodo)}</p><p>${esc(e.nota)}</p></dd>`;
     }
-    const abouts = g.keys.map(aboutOf);
+    const abouts = g.about ? [g.about] : g.keys.map(aboutOf);
     const a = abouts[0];
     const linhas = [`<p>Fonte: ${esc(a.fonte)}.</p>`];
     if (a.ano != null) linhas.push(`<p>${esc(a.ano.includes("–") ? `Período: ${periodo(a.ano)}.` : `Ano: ${a.ano}.`)}</p>`);

@@ -256,9 +256,17 @@
           <p><strong><!--n:ardeu_frase-->Mais de 4 em cada 10<!--/n--> sítios do concelho já arderam.</strong></p>
         </div>
 
+        <!-- máquina do tempo: só depois de revelar onde ardeu (não estraga o palpite) -->
+        <div class="time-entry" id="time-entry" hidden>
+          <h3>Ano a ano</h3>
+          <p>Vê o que ardeu em cada ano, de <!--n:ano_inicio-->1990<!--/n--> a <!--n:ano_fim-->2025<!--/n-->.</p>
+          <p>Vê também quanto mato voltaria a crescer.</p>
+          <button type="button" class="big-btn wide" id="btn-time-open">Abrir a máquina do tempo</button>
+        </div>
+
         <h3>O mapa acerta sempre?</h3>
-        <div class="summers" id="summers" role="img" aria-label="21 verões com mais de 5 hectares ardidos, de 2001 a 2025. Em 4 o mapa acertou mais do que à sorte."></div>
-        <p>Só com a forma dos montes, o mapa acertou mais do que à sorte em <strong>4 de 21 verões</strong>. Nos outros, acertou menos.</p>
+        <div class="summers" id="summers" role="img"></div>
+        <div id="summers-text"></div>
 
         <h3>O que o mapa não sabe: o tempo de hoje</h3>
         <p id="weather-plain" class="weather-plain">A ler o tempo no Pinhão…</p>
@@ -289,6 +297,54 @@
         </div>
         <p class="hint">Modelo simplificado para aprender: o fogo anda mais depressa onde o perigo é alto, nas encostas inclinadas, ao sol e a favor do vento. Não é uma previsão.</p>
         <button type="button" class="big-btn primary wide next-btn" data-goto="protege">Seguinte: 5 · Protege</button>
+      </div>
+    </section>
+
+    <!-- ============================================================ 4 · MÁQUINA DO TEMPO (sem números escritos à mão: vêm do manifest) -->
+    <section class="pop" id="pop-tempo" data-station="4" role="dialog" aria-modal="false" aria-labelledby="pop-tempo-q" hidden>
+      <header class="pop-head">
+        <div class="pop-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><polygon points="24,1 47,24 24,47 1,24"/><text x="24" y="32">4</text></svg><span>Compara</span></div>
+        <h2 id="pop-tempo-q" class="pop-q">Máquina do tempo<span class="q-extra">: o fogo e o mato</span></h2>
+        <button type="button" class="pop-close" aria-label="Fechar e voltar ao passo 4">×</button>
+      </header>
+      <div class="pop-body" id="time-body">
+        <p class="pop-status" role="status" aria-live="polite"></p>
+        <div class="notice" id="time-error" hidden><p id="time-error-text"></p><button type="button" class="big-btn" id="btn-time-retry">Tentar outra vez</button></div>
+        <!-- aria-busy só aqui dentro: a mensagem acima (role=status) nunca fica numa zona ocupada -->
+        <div id="time-main">
+        <div class="regrow time-modes" role="group" aria-label="O que queres ver?">
+          <button type="button" class="chip" data-time-mode="fogo" aria-pressed="true">O fogo <span class="chip-sub" id="time-sub-fogo"></span></button>
+          <button type="button" class="chip" data-time-mode="mato" aria-pressed="false">O mato <span class="chip-sub" id="time-sub-mato"></span></button>
+        </div>
+        <h3 id="time-title" tabindex="-1"></h3>
+        <div id="time-intro"></div>
+        <div class="notice" id="time-notice" hidden></div>
+        <!-- as barras ficam logo por cima do cursor; a legenda do mapa vem logo a seguir aos botões dos anos -->
+        <figure class="time-bars" id="time-bars">
+          <figcaption id="time-bars-cap"></figcaption>
+          <p class="time-year" id="time-year" aria-hidden="true"></p>
+          <div class="time-plot"><svg id="time-bars-svg" aria-hidden="true" focusable="false"></svg><span class="time-bar-label" id="time-bar-label" aria-hidden="true"></span></div>
+          <div class="time-ticks" id="time-ticks" aria-hidden="true"></div>
+        </figure>
+        <label class="time-label" for="time-range">Escolhe o ano</label>
+        <input type="range" id="time-range" class="time-range" step="1" />
+        <div class="row-btns two">
+          <button type="button" class="big-btn" id="btn-time-prev"><span aria-hidden="true">‹ </span>Ano antes</button>
+          <button type="button" class="big-btn" id="btn-time-next">Ano depois<span aria-hidden="true"> ›</span></button>
+        </div>
+        <button type="button" class="big-btn wide" id="btn-time-play" hidden>Ver os anos a passar</button>
+        <p class="hint" id="time-motion-hint" hidden>Para mudar de ano, usa os botões ou o cursor.</p>
+        <!-- respostas à vista de quem usa os botões (o leitor de ecrã ouve-as pela mensagem do topo) -->
+        <p class="time-answer" id="time-msg" aria-hidden="true"></p>
+        <div class="legend" id="time-legend"></div>
+        <div class="time-text" id="time-text"></div>
+        <button type="button" class="big-btn wide" id="btn-time-read">Ler o centro do mapa</button>
+        <p class="time-answer" id="time-answer" aria-hidden="true"></p>
+        <p class="hint" id="time-source"></p>
+        <details class="time-table" id="time-table"><summary>Ver os números numa tabela</summary><div id="time-table-body"></div></details>
+        <details class="probe-how" id="time-how"><summary>Como sabemos?</summary><div class="probe-how-body" id="time-how-body"></div></details>
+        <button type="button" class="big-btn primary wide" id="btn-time-back">Voltar ao passo 4</button>
+        </div>
       </div>
     </section>
 

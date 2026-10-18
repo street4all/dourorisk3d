@@ -13,6 +13,15 @@ nunca cores de PNG antigos, e escreve:
                                                  codificações, sha256, layers.*.about = «Como sabemos?»
                                                  e bloco "concelho" com as contagens exatas do concelho)
      public/data/dourorisk/a11y/README.json
+  e) public/data/dourorisk/valores/ardeu_<a>_<b>.png   máquina do tempo: o que ardeu em cada ano (PNG L, um bit
+                                                 por ano, 8 anos por ficheiro, 0 fora do concelho), a partir dos
+                                                 polígonos anuais do ICNF (--icnf, Esri JSON EPSG:3763, só leitura);
+                                                 números em concelho.tempo e proveniência em source.icnf
+
+A máquina do tempo só é exportada se os polígonos anuais, rasterizados pelo centro da célula, reproduzirem
+Recorrencia, Ultimo_Ano e Tempo_Pos_Fogo sem nenhuma diferença dentro do concelho (V1 a V9 em calcular_tempo,
+todas antes de gravar qualquer ficheiro). A gdb e os JSON do ICNF são só de leitura: nenhuma ferramenta de
+geoprocessamento, só Describe/Raster/RasterToNumPyArray/SearchCursor e open(..., "rb").
 
 Cada PNG tem as MESMAS dimensões da grelha nativa: píxel (coluna, linha) = célula (coluna, linha),
 linha 0 a norte. A georreferenciação está no manifest (x0 = xmin, y0 = ymax, cell em metros, EPSG:3763).
@@ -30,7 +39,7 @@ Só reescreve um ficheiro quando o conteúdo muda.
 
 Uso (Python do ArcGIS Pro):
     "C:\\Program Files\\ArcGIS\\Pro\\bin\\Python\\Scripts\\propy.bat" scripts\\pro_to_web.py [--paleta oficial|segura]
-        [--gdb RASTER_DATA.gdb] [--repo RAIZ_DO_REPO] [--out-root PASTA_DE_TESTE]
+        [--gdb RASTER_DATA.gdb] [--icnf PASTA_ICNF] [--repo RAIZ_DO_REPO] [--out-root PASTA_DE_TESTE]
 ou dentro do ArcGIS Pro (janela Python):
     import runpy, sys
     sys.argv = ["pro_to_web.py", "--out-root", r"C:\\tmp\\teste"]
@@ -153,6 +162,25 @@ MDT_SEM_DADOS = -32768          # mdt.bin: Int16 little-endian; o raster não te
 RIO_MAX_M = 90
 
 # ---------------------------------------------------------------------------
+# Máquina do tempo: polígonos anuais das áreas ardidas do ICNF (Esri JSON, EPSG:3763), só de leitura.
+# ---------------------------------------------------------------------------
+ICNF_POR_OMISSAO = "C:/Users/PcVIP/Documents/ArcGIS/Projects/MyProject2/dados_ICNF/servicos"
+ANO_INICIO = ULTIMO_ANO_BASE + 1          # 1990: primeiro ano dos rasters do estudo
+# artigo, secção 2: «não existe cartografia disponível para 1993 e 2007 na série utilizada»: tratados como valores em
+# falta e não como anos sem fogo. Atenção: nos JSON do ICNF, 1993 não tem nenhum polígono, mas 2007 tem 1 (10,66 ha,
+# a cerca de 2,5 km do limite, fora do concelho), como 2008 (2 polígonos, fora). Por isso os textos dizem que «o estudo
+# não tem mapa» desses anos, e não que o ICNF não o tem. Se os autores confirmarem o mapa de 2007, tira-se 2007 daqui
+# (V2 passa a exigir só 1993) e 2007 fica como 2008: 0 ha.
+ANOS_SEM_MAPA = {1993: "sem cartografia do ICNF", 2007: "sem cartografia na série do estudo (o ICNF tem 1 polígono fora do concelho)"}
+PROJECAO_ANOS = 20                        # modo «O mato»: de ano_fim a ano_fim + 20
+VEROES = {"de": 2001, "minimo_ha": 5.0, "quantil": 0.8}
+# lista escrita à mão em visitMode.ts até à v1.1.0 (SUMMERS): 21 verões, com acerto em 2010, 2011, 2015 e 2016
+VEROES_ANTIGOS = (21, (2010, 2011, 2015, 2016))
+RE_ICNF = re.compile(r"^ardida_(\d{4})(?:_(\d{4}))?\.json$")
+# source.icnf: o URL do serviço não ficou registado (url = None; não se inventa um)
+ICNF_ORIGEM = {"titulo": "Áreas ardidas desde 1975", "entidade": "ICNF", "portal": "dados.gov.pt", "licenca": "CC BY 4.0", "url": None}
+
+# ---------------------------------------------------------------------------
 # «Como sabemos?»: proveniência de cada camada, em Leitura Fácil (pt-PT). É escrita em layers.<chave>.about.
 # "ano": "AAAA", "AAAA–AAAA" (travessão U+2013) ou None (terreno, limite). {max_t_ha} e {rio_m} vêm dos dados
 # (verificar_dados e o rio, em main). camada() confirma que cada ano está no nome do raster e que nenhuma
@@ -203,6 +231,23 @@ SOBRE = {
     "concelho": dict(titulo="Limite do concelho", fonte="Carta Administrativa Oficial de Portugal", fonte_curta="limite oficial", ano=None,
                      metodo="Um quadrado conta como dentro se o seu centro estiver dentro do limite.",
                      nota="O limite é aproximado. Junto à linha, um ponto pode ficar do lado errado."),
+    # máquina do tempo (V9 confirma: 15 palavras por frase, sem «incêndio», anos sem mapa na nota, 18/19 = dados)
+    "ardeu_por_ano": dict(titulo="O que ardeu em cada ano", fonte="mapas do ICNF das áreas ardidas (licença CC BY 4.0)",
+                          fonte_curta="ICNF, 1990–2025", ano="1990–2025",
+                          metodo="O ICNF desenha num mapa o que ardeu em cada ano. "
+                                 "Um quadrado conta se o seu centro estiver dentro do desenho.",
+                          nota="O estudo não tem mapa de 1993 nem de 2007. Fogos muito pequenos podem não estar no mapa. "
+                               "Noutros estudos, os números podem ser um pouco diferentes."),
+    # só em concelho.tempo.mato.about (não é uma camada)
+    "mato_projecao": dict(titulo="Quanto mato haveria", fonte=ESTUDO + " (estimativa)", fonte_curta="estimativa, 2025–2045", ano="2025–2045",
+                          metodo="Não é uma previsão. Conta os anos desde o último fogo até ao ano escolhido. "
+                                 "Depois usa a tabela do mato do estudo.",
+                          nota="Faz de conta que nada volta a arder e que ninguém limpa. "
+                               "Com 18 anos sem fogo, o estudo não tem número: é uma suposição. "
+                               "A partir de 19 anos sem fogo, o estudo dá sempre {max_t_ha} toneladas por hectare. "
+                               "Este número é fixo: não sai da conta dos outros anos. "
+                               "Outros estudos ainda não confirmaram a tabela do mato. "
+                               "Onde os mapas não mostram fogo desde 1990, não há conta."),
 }
 
 # Bloco "concelho" do manifest: textos fixos para quem mantém os dados (não são mostrados na app).
@@ -217,6 +262,16 @@ CONCELHO_NOTAS = {
                   "rio = mediana (inferior) do MDT nas células de rio_douro_25m dentro do concelho",
     "ha": "ha = células × lado² / 10 000 (plano PT-TM06), sem arredondar; % com 4 casas decimais",
     "ha_por_ultimo_ano": "área cujo ÚLTIMO fogo foi nesse ano: é um mínimo da área ardida nesse ano, exceto no último ano (exato)",
+    "tempo.anos": "ha = células do concelho com o centro na união dos polígonos ICNF do ano (par-ímpar por polígono); "
+                  "ha_ja_ardido = dessas, as que arderam num ano anterior desde 1990; ha_ate = área ardida pelo menos uma vez "
+                  "de 1990 até ao ano; mapa=false = sem cartografia (ha null); um sítio que arde em dois anos conta nos dois",
+    "tempo.projecao": "ha por classe de mato (0 = sem conta) se nada voltar a arder nem for limpo: "
+                      "classe = mato.classe[min(ano − último ano, 19)]; ha_suposicao = células com 18 anos sem fogo "
+                      "(classe 4, limite de baixo: o estudo não tem valor)",
+    "tempo.veroes": "regra reconstruída (não documentada na tese): pontuação = declive_pct truncado × (1 + cos(exposição − 180°)), "
+                    "exposição sem dados → 0; vigiado = pontuação ≥ quantil 0,8 nas células do concelho com declive; "
+                    "acertou = fração da área ardida do ano no vigiado > fracao_vigiada; com o último ano reproduz a lista "
+                    "da v1.1.0 (21 verões, ✓ 2010, 2011, 2015, 2016)",
 }
 # Área do concelho: a soma das células (base de todas as percentagens) tem de bater com a área do polígono
 # (plano PT-TM06) a menos desta fração (hoje 29 758,75 ha contra 29 760,65 ha: 0,006 %).
@@ -366,17 +421,19 @@ def area_poligono_ha(geojson):
     return abs(s) / 1e4
 
 
-def mascara_concelho(geojson, g):
-    """1 = centro da célula dentro do limite do concelho (GeoJSON lon/lat projetado para 3763 com arcpy).
-    Ponto-no-polígono par-ímpar, linha a linha: cruzamentos da horizontal do centro com as arestas."""
-    aneis = aneis_tm06(geojson)
+def mascara_aneis(aneis, g):
+    """1 = centro da célula dentro dos anéis (lista de arrays (n, 2) em metros PT-TM06). Ponto-no-polígono par-ímpar
+    entre todos os anéis dados (um buraco é um anel dentro de outro), linha a linha: cruzamentos da horizontal do
+    centro com as arestas. Só se varrem as linhas entre o y mínimo e o y máximo dos anéis (fora não há cruzamentos)."""
     xa = np.concatenate([a[:, 0] for a in aneis])
     ya = np.concatenate([a[:, 1] for a in aneis])
     xb = np.concatenate([np.roll(a[:, 0], -1) for a in aneis])
     yb = np.concatenate([np.roll(a[:, 1], -1) for a in aneis])
     cx = g["x0"] + (np.arange(g["width"]) + 0.5) * g["cell"]
     m = np.zeros((g["height"], g["width"]), np.uint8)
-    for row in range(g["height"]):
+    r0 = max(0, int(np.floor((g["y0"] - ya.max()) / g["cell"] - 0.5)))
+    r1 = min(g["height"], int(np.ceil((g["y0"] - ya.min()) / g["cell"] - 0.5)) + 1)
+    for row in range(r0, r1):
         cy = g["y0"] - (row + 0.5) * g["cell"]
         cruza = (ya > cy) != (yb > cy)
         if not cruza.any():
@@ -384,6 +441,89 @@ def mascara_concelho(geojson, g):
         xi = np.sort(xa[cruza] + (cy - ya[cruza]) * (xb[cruza] - xa[cruza]) / (yb[cruza] - ya[cruza]))
         m[row] = (np.searchsorted(xi, cx, side="left") % 2).astype(np.uint8)
     return m
+
+
+def mascara_concelho(geojson, g):
+    """1 = centro da célula dentro do limite do concelho (GeoJSON lon/lat projetado para 3763 com arcpy)."""
+    return mascara_aneis(aneis_tm06(geojson), g)
+
+
+# ---------------------------------------------------------------------------
+# Máquina do tempo (polígonos anuais do ICNF)
+# ---------------------------------------------------------------------------
+def _e(xs):
+    """1993, 2007 e 2010 (lista com «e» antes do último)."""
+    xs = [str(x) for x in xs]
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " e " + xs[-1]
+
+
+def ler_icnf(pasta, ano0, ano_fim):
+    """Polígonos anuais das áreas ardidas do ICNF (Esri JSON EPSG:3763, um ficheiro por ano ou por período), só de
+    leitura (open(..., "rb") e json.loads). Devolve (por_ano, ficheiros, sem_aneis): por_ano = ano -> lista de
+    features (cada uma = lista de anéis (n, 2) em metros); ficheiros = nome -> {sha256, poligonos, anos};
+    sem_aneis = features sem nenhum anel com 4 ou mais vértices (contadas e impressas, não fazem parar)."""
+    assert os.path.isdir(pasta), f"falta a pasta dos mapas do ICNF: {pasta} (usa --icnf)"
+    feito = None                 # estado.json do descarregamento: polígonos por ficheiro (o mesmo que o serviço deu)
+    p_estado = os.path.join(pasta, "estado.json")
+    if os.path.exists(p_estado):
+        with open(p_estado, "rb") as f:
+            estado = json.loads(f.read().decode("utf-8"))
+        if estado.get("concluido") is True:
+            feito = {str(nome): int(n) for nome, n in estado.get("feito", [])}
+        else:
+            print("  aviso: estado.json diz que o descarregamento do ICNF não foi concluído", flush=True)
+    por_ano, ficheiros, sem_aneis, cobertos = {}, {}, 0, set()
+    for nome in sorted(os.listdir(pasta)):
+        m = RE_ICNF.match(nome)
+        if not m:
+            continue
+        a = int(m.group(1))
+        b = int(m.group(2) or m.group(1))
+        assert a <= b, f"{nome}: intervalo de anos ao contrário"
+        if b < ano0:
+            continue                 # antes do estudo (ardida_1975_1989.json)
+        if a > ano_fim:
+            print(f"  aviso: {nome} é depois do fim dos dados ({ano_fim}): fica de fora", flush=True)
+            continue
+        assert a >= ano0 and b <= ano_fim, f"{nome}: os anos {a}-{b} saem do período {ano0}-{ano_fim}"
+        with open(os.path.join(pasta, nome), "rb") as f:
+            raw = f.read()
+        j = json.loads(raw.decode("utf-8"))
+        assert not j.get("exceededTransferLimit"), f"{nome}: resposta cortada pelo serviço (exceededTransferLimit)"
+        sr = j.get("spatialReference") or {}
+        assert WKID in (sr.get("wkid"), sr.get("latestWkid")), f"{nome}: esperava EPSG:{WKID}, tem {sr}"
+        assert j.get("geometryType") == "esriGeometryPolygon", f"{nome}: esperava polígonos, tem {j.get('geometryType')}"
+        feats = j["features"]
+        if feito is not None:
+            base = nome[:-len(".json")]
+            assert base in feito, f"{nome}: não está registado em estado.json"
+            assert len(feats) == feito[base], f"{nome}: {len(feats)} polígonos, mas estado.json regista {feito[base]}"
+        for f in feats:
+            ano = f["attributes"]["Ano"]
+            assert isinstance(ano, int) and not isinstance(ano, bool) and a <= ano <= b, f"{nome}: Ano inválido {ano!r}"
+            aneis = [np.asarray(r, dtype=np.float64)[:, :2] for r in (f.get("geometry") or {}).get("rings", []) if len(r) >= 4]
+            if not aneis:
+                sem_aneis += 1
+                continue
+            por_ano.setdefault(ano, []).append(aneis)
+        ficheiros[nome] = {"sha256": hashlib.sha256(raw).hexdigest(), "poligonos": len(feats), "anos": [a, b]}
+        cobertos.update(range(a, b + 1))
+    faltam = sorted(set(range(ano0, ano_fim + 1)) - cobertos)
+    assert not faltam, f"ICNF: nenhum ficheiro cobre os anos {faltam}"
+    vazios = [y for y in range(ano0, ano_fim + 1) if not por_ano.get(y)]
+    assert set(vazios) <= set(ANOS_SEM_MAPA), \
+        f"ICNF: anos sem nenhum polígono fora de ANOS_SEM_MAPA: {sorted(set(vazios) - set(ANOS_SEM_MAPA))} (ficheiro cortado?)"
+    return por_ano, ficheiros, sem_aneis
+
+
+def rasterizar_anos(por_ano, g, anos):
+    """ardeu[k] = centro da célula dentro de algum polígono do ano anos[k]: par-ímpar só entre os anéis de cada
+    feature (é assim que ficam os buracos) e OU entre features (dois polígonos sobrepostos no mesmo ano não se anulam)."""
+    ardeu = np.zeros((len(anos), g["height"], g["width"]), bool)
+    for k, ano in enumerate(anos):
+        for aneis in por_ano.get(ano, ()):
+            ardeu[k] |= mascara_aneis(aneis, g) == 1
+    return ardeu
 
 
 # ---------------------------------------------------------------------------
@@ -456,6 +596,202 @@ def valores_biomassa(v, nd):
     return out.astype(np.uint8), [_num(x) for x in lut]
 
 
+def calcular_tempo(dados, nodata, dentro, g, ano_fim, por_ano, about_mato):
+    """Máquina do tempo: rasteriza os polígonos anuais do ICNF, corre as verificações V1 a V8 (antes de gravar
+    qualquer ficheiro) e devolve (tempo, planos, verificacao): tempo = bloco concelho.tempo do manifest; planos =
+    [{chave, anos, png}] (PNG L, bit b = ano anos[b], 0 fora do concelho); verificacao = {dif_concelho, dif_fora}."""
+    anos = list(range(ANO_INICIO, ano_fim + 1))
+    n = len(anos)
+    k_de = {y: k for k, y in enumerate(anos)}
+
+    def ha(c):
+        return float(c) * g["cell"] ** 2 / 10000          # exato (múltiplos de 0,0625)
+
+    ua_ano = np.where(nodata[R_ULTIMO_ANO], 0, dados[R_ULTIMO_ANO]).astype(np.int32)
+    rec = dados[R_RECORRENCIA].astype(np.int32)
+    tpf = dados[R_TEMPO_POS_FOGO].astype(np.int32)
+    ardeu = rasterizar_anos(por_ano, g, anos)
+
+    # V1, reprodução do estudo: contagem = recorrência, último bit = último ano, ano_fim - último = tempo pós-fogo
+    cont = ardeu.sum(0, dtype=np.int32)
+    ult = np.where(cont > 0, np.asarray(anos, np.int32)[n - 1 - np.argmax(ardeu[::-1], axis=0)], 0)
+    mau = (cont != rec) | (ult != ua_ano) | ((ult > 0) & (ano_fim - ult != tpf))
+    dif_conc, dif_fora = int((mau & dentro).sum()), int((mau & ~dentro).sum())
+    print(f"  dif concelho {dif_conc}\n  dif fora {dif_fora} (fora do concelho, não faz parar)", flush=True)
+    assert dif_conc == 0, f"V1: os polígonos do ICNF não reproduzem recorrência/último ano/tempo pós-fogo em {dif_conc} células do concelho"
+    ardeu_c = ardeu & dentro
+    del ardeu
+
+    cel = [int(ardeu_c[k].sum()) for k in range(n)]
+    ja, ate_c = [], []
+    ate = np.zeros(dentro.shape, bool)
+    for k in range(n):                                   # ciclo (sem cumsum): ja = ardeu no ano e num ano anterior
+        ja.append(int((ardeu_c[k] & ate).sum()))
+        ate |= ardeu_c[k]
+        ate_c.append(int(ate.sum()))
+    ult_fogo = {y: int(((ua_ano == y) & dentro).sum()) for y in anos}
+
+    # V2, anos sem mapa: nenhuma célula do concelho
+    for y in sorted(ANOS_SEM_MAPA):
+        if y in k_de:
+            print(f"  {y}: {len(por_ano.get(y, ()))} polígonos, {cel[k_de[y]]} células no concelho ({ANOS_SEM_MAPA[y]})", flush=True)
+            assert cel[k_de[y]] == 0, f"V2: o ICNF tem fogo em {y} no concelho: atualiza ANOS_SEM_MAPA e a nota de SOBRE[\"ardeu_por_ano\"]"
+
+    # V3, somas
+    soma = sum(cel)
+    assert soma == int(rec[dentro].sum()), f"V3: soma anual {ha(soma)} ha != soma da recorrência {ha(int(rec[dentro].sum()))} ha"
+    ardeu_cel = int((dentro & (rec > 0)).sum())
+    assert sum(c - j for c, j in zip(cel, ja)) == ardeu_cel == ate_c[-1], "V3: primeira vez desde 1990 != área que ardeu"
+
+    # V4, último ano: área do ano >= área cujo último fogo foi nesse ano; iguais no último ano
+    for y in anos:
+        assert cel[k_de[y]] >= ult_fogo[y], f"V4: {y} tem menos área ardida do que área com último fogo nesse ano"
+    assert cel[-1] == ult_fogo[ano_fim], f"V4: em {ano_fim} a área ardida tem de ser a do último ano"
+
+    # P4 + V5, planos de bits (8 anos por ficheiro, bit 0 = o menos significativo)
+    planos = []
+    for k0 in range(0, n, 8):
+        anos_k = anos[k0:k0 + 8]
+        byte = np.zeros(dentro.shape, np.uint8)
+        for b in range(len(anos_k)):
+            byte |= ardeu_c[k0 + b].astype(np.uint8) << np.uint8(b)
+        planos.append({"chave": f"ardeu_{anos_k[0]}_{anos_k[-1]}", "anos": anos_k, "arr": byte, "png": png_bytes(byte)})
+    cont2 = np.zeros(dentro.shape, np.int32)
+    ult2 = np.zeros(dentro.shape, np.int32)
+    for p in planos:
+        im = Image.open(io.BytesIO(p["png"]))
+        assert im.mode == "L" and im.size == (g["width"], g["height"]), f"V5: {p['chave']}: {im.mode} {im.size}"
+        dec = np.array(im)
+        assert np.array_equal(dec, p["arr"]), f"V5: {p['chave']}: o PNG não devolve o array"
+        assert not dec[~dentro].any(), f"V5: {p['chave']}: bits fora do concelho"
+        if len(p["anos"]) < 8:
+            assert not (dec >> np.uint8(len(p["anos"]))).any(), f"V5: {p['chave']}: bits depois de {ano_fim}"
+        for b, y in enumerate(p["anos"]):
+            bit = (dec >> np.uint8(b)) & np.uint8(1)
+            assert not (y in ANOS_SEM_MAPA and bit.any()), f"V5: {p['chave']}: bit de {y} (sem mapa) ligado"
+            cont2 += bit
+            ult2[bit == 1] = y
+    assert np.array_equal(cont2[dentro], rec[dentro]), "V5: popcount dos planos != recorrência"
+    assert np.array_equal(ult2[dentro], ua_ano[dentro]), "V5: bit mais alto dos planos != último ano"
+    tamanho = sum(len(p["png"]) for p in planos)
+    assert tamanho < 100_000, f"V5: os planos têm {tamanho} bytes (limite 100 kB)"
+    print(f"  planos: {len(planos)} PNG, {tamanho} bytes", flush=True)
+
+    # V6, curva do mato (grelha inteira onde a biomassa tem dados): um valor por anos sem fogo
+    bio, bio_nd = dados[R_BIOMASSA], nodata[R_BIOMASSA]
+    okb = ~bio_nd
+    val_t = {}
+    for t in np.unique(tpf[okb]).tolist():
+        v = np.unique(bio[okb & (tpf == t)])
+        assert v.size == 1, f"V6: biomassa com mais de um valor aos {t} anos sem fogo"
+        val_t[int(t)] = v[0]
+    ts = set(val_t)
+    assert 18 not in ts, "V6: o estudo passou a ter 18 anos: rever SOBRE e mato.suposicao"
+    assert set(range(1, 18)) <= ts, f"V6: faltam valores do mato para {sorted(set(range(1, 18)) - ts)} anos sem fogo"
+    teto = max(val_t.values())
+    teto_desde = min(t for t in ts if val_t[t] == teto)
+    assert all(val_t[t] == teto for t in ts if t >= teto_desde), "V6: depois do teto o mato tem de ficar no teto"
+    t_ha = [None] + [(_num(val_t[t]) if t in ts else None) for t in range(1, teto_desde)] + [_num(teto)]
+    suposicao = [t for t in range(1, teto_desde) if t not in ts]
+    curva = [val_t[t] for t in range(1, teto_desde) if t in ts] + [teto]
+    assert all(a < b for a, b in zip(curva, curva[1:])), "V6: o mato tem de subir sempre com os anos sem fogo"
+
+    def classe_de(v):
+        return int(classes_por_limiares(np.asarray([v], dtype=bio.dtype), np.zeros(1, bool), BIOMASSA_LIMIARES)[0])
+
+    classe = [0]
+    for t in range(1, teto_desde + 1):                  # sem valor (suposição): o limite de baixo, a classe de t - 1
+        classe.append(classe_de(val_t[t]) if t in ts else classe[-1])
+    assert all(a <= b for a, b in zip(classe, classe[1:])), "V6: a classe do mato não pode descer"
+    assert all(classe[t] >= 4 for t in suposicao), "V6: a suposição tem de ser já «muito mato, ou mais» (classe >= 4)"
+    t_muito_mato = min(t for t, c in enumerate(classe) if c >= 4)
+    print("  curva do mato (anos sem fogo -> t/ha -> classe): "
+          + ", ".join(f"{t}:{'?' if t_ha[t] is None else t_ha[t]}:{classe[t]}" for t in range(1, len(classe)))
+          + f"; teto {t_ha[-1]} desde {teto_desde}; faltam {sorted(set(range(1, max(ts) + 1)) - ts)}", flush=True)
+
+    # projeção: classe no ano P = classe[min(P - último ano, teto_desde)]; nunca ardeu ou ardeu em P = 0 (sem conta)
+    L = ua_ano[dentro]
+    classe_a = np.asarray(classe, np.int32)
+    proj = []
+    for P in range(ano_fim, ano_fim + PROJECAO_ANOS + 1):
+        t = P - L
+        c = np.where((L > 0) & (t > 0), classe_a[np.clip(t, 0, len(classe) - 1)], 0)
+        hc = np.bincount(c, minlength=6)
+        assert hc.size == 6
+        proj.append((P, [int(x) for x in hc], int(((L > 0) & np.isin(t, suposicao)).sum())))
+    c_bio = np.bincount(classes_por_limiares(bio, bio_nd, BIOMASSA_LIMIARES)[dentro], minlength=6)
+    assert proj[0][1] == [int(x) for x in c_bio], f"V6: a projeção de {ano_fim} não dá as classes de biomassa_2025"
+
+    # V7, projeção
+    total = int(dentro.sum())
+    muito = [sum(hc[4:]) for _, hc, _ in proj]
+    assert all(sum(hc) == total for _, hc, _ in proj), "V7: as classes da projeção não somam a área do concelho"
+    assert all(a <= b for a, b in zip(muito, muito[1:])), "V7: «muito mato, ou mais» não pode descer"
+    for i in range(1, len(proj)):
+        y0 = proj[i][0] - t_muito_mato
+        assert muito[i] - muito[i - 1] == ult_fogo.get(y0, 0), f"V7: a subida de {proj[i][0]} não é a área com último fogo em {y0}"
+    i_s = max(range(1, len(proj)), key=lambda i: (muito[i] - muito[i - 1], -i))     # empate: o primeiro
+    print("  projeção (ano: ha muito mato ou mais / ha suposição): "
+          + ", ".join(f"{P}:{ha(m)}/{ha(s)}" for (P, _, s), m in zip(proj, muito)), flush=True)
+
+    # verões: a regra «só com a forma dos montes» (reconstruída) aplicada à área ardida em cada ano
+    dec_v = valores_declive(dados[R_DECLIVE], nodata[R_DECLIVE])
+    exp_v = valores_exposicao(dados[R_EXPOSICAO], nodata[R_EXPOSICAO])
+    ok = dentro & (dec_v != SEM_DADOS)
+    asp = np.where(exp_v < EXPOSICAO_PLANO, exp_v.astype(np.float64) * EXPOSICAO_PASSO, np.nan)
+    cosv = np.where(np.isnan(asp), 0.0, np.cos(np.radians(np.nan_to_num(asp, nan=0.0) - 180.0)))
+    score = dec_v.astype(np.float64) * (1.0 + cosv)
+    top = ok & (score >= np.quantile(score[ok], VEROES["quantil"]))
+    fv = float(top.sum()) / float(ok.sum())
+
+    def fracao(mascara):
+        b = mascara & ok
+        nb = int(b.sum())
+        assert nb > 0, "verões: ano sem células com declive"
+        f = float((b & top).sum()) / nb
+        return f, f > fv
+
+    veroes = []
+    for y in range(VEROES["de"], ano_fim + 1):
+        if y in ANOS_SEM_MAPA or not ha(cel[k_de[y]]) > VEROES["minimo_ha"]:
+            continue
+        f, acertou = fracao(ardeu_c[k_de[y]])
+        veroes.append({"ano": y, "ha": ha(cel[k_de[y]]), "fracao": round(f, 4), "acertou": bool(acertou)})
+    # V8: a mesma regra com o ÚLTIMO ano reproduz a lista antiga (prova que a regra reconstruída é a mesma)
+    antigos = []
+    for y in range(VEROES["de"], ano_fim + 1):
+        if ha(ult_fogo[y]) > VEROES["minimo_ha"]:
+            antigos.append((y, fracao(ua_ano == y)[1]))
+    reprod = (len(antigos), tuple(y for y, a in antigos if a))
+    print(f"  verões (fração vigiada {fv:.4f}): " + ", ".join(f"{v['ano']}:{v['ha']}:{v['fracao']}:{'✓' if v['acertou'] else '-'}" for v in veroes)
+          + f"\n  acertos {sum(v['acertou'] for v in veroes)} de {len(veroes)}"
+          + f"\n  reprodução com o último ano: {reprod[0]} verões, ✓ {list(reprod[1])} (lista antiga: {VEROES_ANTIGOS[0]}, ✓ {list(VEROES_ANTIGOS[1])})", flush=True)
+    assert reprod == VEROES_ANTIGOS, f"V8: a regra com o último ano dá {reprod}, a lista antiga é {VEROES_ANTIGOS}"
+    assert 0.19 <= fv <= 0.21, f"V8: fração vigiada {fv:.4f} fora de 0,19-0,21"
+
+    print("  ano  ha  ha_ja_ardido  ha_ate  ha_ultimo_fogo", flush=True)
+    for k, y in enumerate(anos):
+        print(f"  {y}  " + ("sem mapa" if y in ANOS_SEM_MAPA else f"{ha(cel[k])}  {ha(ja[k])}") + f"  {ha(ate_c[k])}  {ha(ult_fogo[y])}", flush=True)
+
+    tempo = {
+        "planos": [p["chave"] for p in planos],
+        "anos_sem_mapa": sorted(ANOS_SEM_MAPA),
+        "anos": [{"ano": y, "mapa": y not in ANOS_SEM_MAPA,
+                  "ha": None if y in ANOS_SEM_MAPA else ha(cel[k]),
+                  "ha_ja_ardido": None if y in ANOS_SEM_MAPA else ha(ja[k]),
+                  "ha_ate": ha(ate_c[k])} for k, y in enumerate(anos)],
+        "ha_soma": ha(soma),
+        "ano_max": anos[int(np.argmax(cel))],
+        "mato": {"t_ha": t_ha, "classe": classe, "suposicao": suposicao, "teto": _num(teto), "teto_desde": teto_desde,
+                 "t_muito_mato": t_muito_mato, "about": about_mato},
+        "projecao": [{"ano": P, "ha_classes": [ha(x) for x in hc], "ha_suposicao": ha(s)} for P, hc, s in proj],
+        "salto": {"ano": proj[i_s][0], "ha": ha(muito[i_s] - muito[i_s - 1]), "ultimo_fogo": proj[i_s][0] - t_muito_mato},
+        "veroes": {"de": VEROES["de"], "ate": ano_fim, "minimo_ha": _num(VEROES["minimo_ha"]), "fracao_vigiada": round(fv, 4),
+                   "anos": veroes, "acertos": sum(v["acertou"] for v in veroes), "total": len(veroes)},
+    }
+    return tempo, [{k: p[k] for k in ("chave", "anos", "png")} for p in planos], {"dif_concelho": dif_conc, "dif_fora": dif_fora}
+
+
 # ---------------------------------------------------------------------------
 # Escrita
 # ---------------------------------------------------------------------------
@@ -497,6 +833,7 @@ def main(argv=None):
     raiz = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ap = argparse.ArgumentParser(description="Gera os produtos web DouroRisk a partir dos rasters do ArcGIS Pro.")
     ap.add_argument("--gdb", default=GDB_POR_OMISSAO)
+    ap.add_argument("--icnf", default=ICNF_POR_OMISSAO, help="pasta dos mapas das áreas ardidas do ICNF (ardida_*.json, EPSG:3763; só leitura)")
     ap.add_argument("--repo", default=raiz, help="raiz do repo (lê public/data/alijo-concelho.geojson)")
     ap.add_argument("--out-root", default=None, help="raiz onde escrever (por omissão a do repo)")
     ap.add_argument("--paleta", choices=sorted(PALETAS), default="oficial")
@@ -504,7 +841,7 @@ def main(argv=None):
     out_root = args.out_root or args.repo
     cores = PALETAS[args.paleta]
     esc = Escritor(out_root)
-    print(f"gdb: {args.gdb}\nrepo: {args.repo}\nsaída: {out_root}\npaleta: {args.paleta}", flush=True)
+    print(f"gdb: {args.gdb}\nicnf: {args.icnf}\nrepo: {args.repo}\nsaída: {out_root}\npaleta: {args.paleta}", flush=True)
 
     # --- leitura -------------------------------------------------------------
     nomes = [n for ns in GRELHAS.values() for n in ns]
@@ -536,6 +873,38 @@ def main(argv=None):
     textos = textos_dados | {"rio_m": str(rio_m)}
     print(f"  rio: {int(rio.sum())} células na grelha, {int((rio & dentro).sum())} no concelho, a {rio_m} m", flush=True)
 
+    def _about(sobre, grid="g25"):
+        """«Como sabemos?» de SOBRE[sobre]: textos formatados com os números dos dados, resolução da grelha e
+        a regra das 15 palavras por frase em "metodo" e "nota"."""
+        assert sobre in SOBRE, f"falta a entrada de SOBRE: {sobre}"
+        about = {k: (v.format(**textos) if isinstance(v, str) else v) for k, v in SOBRE[sobre].items()}
+        about["resolucao_m"] = grids[grid]["cell"]
+        for campo in ("metodo", "nota"):
+            for frase in re.split(r"(?<=[.!?])\s+", (about[campo] or "").strip()):
+                assert len(frase.split()) <= 15, f"{sobre}.{campo}: frase com mais de 15 palavras: {frase}"
+        return about
+
+    # --- máquina do tempo: polígonos anuais do ICNF e verificações V1-V9 (antes de gravar qualquer ficheiro) ---
+    por_ano, icnf_ficheiros, sem_aneis = ler_icnf(args.icnf, ANO_INICIO, ano_fim)
+    print(f"  ICNF: {len(icnf_ficheiros)} ficheiros, {sum(len(v) for v in por_ano.values())} polígonos com anéis de "
+          f"{ANO_INICIO} a {ano_fim}; sem_aneis {sem_aneis}", flush=True)
+    tempo, planos, verif_icnf = calcular_tempo(dados, nodata, dentro, grids["g25"], ano_fim, por_ano, _about("mato_projecao"))
+    # V9, textos novos
+    for sobre in ("ardeu_por_ano", "mato_projecao"):
+        for campo, v in _about(sobre).items():
+            if isinstance(v, str):
+                assert "incêndio" not in v.lower(), f"V9: {sobre}.{campo}: usa «fogo», não «incêndio»"
+                assert not re.search(r"\bhá \d+ anos\b", v), f"V9: {sobre}.{campo}: datas absolutas, não «há N anos»"
+    assert SOBRE["ardeu_por_ano"]["ano"] == f"{ANO_INICIO}–{ano_fim}", "V9: SOBRE[\"ardeu_por_ano\"][\"ano\"] não é o período dos dados"
+    for y in ANOS_SEM_MAPA:
+        assert str(y) in SOBRE["ardeu_por_ano"]["nota"], f"V9: a nota de SOBRE[\"ardeu_por_ano\"] não diz que {y} não tem mapa"
+    mato = tempo["mato"]
+    nota_mato = SOBRE["mato_projecao"]["nota"]
+    assert mato["suposicao"] == [18] and "18" in nota_mato, f"V9: mato.suposicao = {mato['suposicao']}: rever a nota de SOBRE[\"mato_projecao\"]"
+    assert mato["teto_desde"] == 19 and "19" in nota_mato, f"V9: mato.teto_desde = {mato['teto_desde']}: rever a nota de SOBRE[\"mato_projecao\"]"
+    assert SOBRE["mato_projecao"]["ano"] == f"{ano_fim}–{ano_fim + PROJECAO_ANOS}", "V9: SOBRE[\"mato_projecao\"][\"ano\"] não é o da projeção"
+    print("  V1-V9: ok", flush=True)
+
     a11y = os.path.join(PASTA, "a11y")
     val = os.path.join(PASTA, "valores")
     layers = {}
@@ -543,13 +912,9 @@ def main(argv=None):
 
     def camada(chave, grid, fonte, files, encoding, classes=(), sobre=None):
         assert sobre in SOBRE, f"{chave}: falta a entrada de SOBRE"
-        about = {k: (v.format(**textos) if isinstance(v, str) else v) for k, v in SOBRE[sobre].items()}
-        about["resolucao_m"] = grids[grid]["cell"]
+        about = _about(sobre, grid)
         for ano in re.findall(r"\d{4}", about["ano"] or ""):
             assert ano in fonte, f"{chave}: o ano {ano} do texto não está no nome do raster {fonte}"
-        for campo in ("metodo", "nota"):
-            for frase in re.split(r"(?<=[.!?])\s+", (about[campo] or "").strip()):
-                assert len(frase.split()) <= 15, f"{chave}.{campo}: frase com mais de 15 palavras: {frase}"
         layers[chave] = {
             "grid": grid,
             "source": fonte,
@@ -747,19 +1112,37 @@ def main(argv=None):
             "risco_alto_pct": pct(sum(r10["contagem"][4:6]), r10["total"]),
             "ultimo_fogo_ano": ULTIMO_ANO_BASE + fim,
         },
+        "tempo": tempo,
     }
+    assert tempo["anos"][-1]["ha_ate"] == concelho["resumo"]["ardeu_ha"], "tempo: área ardida até ao fim != resumo.ardeu_ha"
+
+    # --- f) máquina do tempo: o que ardeu em cada ano (um bit por ano, cortado ao concelho). Só se grava depois de
+    # V1-V9 e da conferência com resumo.ardeu_ha: nunca ficam planos novos ao lado de um manifest antigo.
+    fonte_icnf = f"ICNF, áreas ardidas {ANO_INICIO}–{ano_fim} (ardida_*.json, EPSG:{WKID})"
+    nota_bits = ("bit b (0 = o menos significativo) = 1 se o centro da célula está dentro de um polígono ICNF do ano bits[b] "
+                 f"(união do ano, par-ímpar por polígono); 0 fora do concelho; {_e(sorted(ANOS_SEM_MAPA))} sem cartografia (bit sempre 0)")
+    for p in planos:
+        rel = os.path.join(val, p["chave"] + ".png")
+        camada(p["chave"], "g25", fonte_icnf, {"values": esc.gravar(rel, p["png"], web_de(rel))},
+               {"format": "png-l8-bits", "bits": {str(b): y for b, y in enumerate(p["anos"])}, "note": nota_bits},
+               sobre="ardeu_por_ano")
 
     # --- d) manifest e README -------------------------------------------------
     casa = os.path.expanduser("~")
+
+    def sem_casa(p):
+        return ("~" + p[len(casa):] if p.lower().startswith(casa.lower()) else p).replace("\\", "/")
+
     gdb_txt = args.gdb
     if gdb_txt.lower().startswith(casa.lower()):
         gdb_txt = "~" + gdb_txt[len(casa):]
+    icnf = {"pasta": sem_casa(os.path.normpath(args.icnf))} | ICNF_ORIGEM | {"ficheiros": icnf_ficheiros, "verificacao": verif_icnf}
     manifest = {
         "version": 2,
         "generated": max(f["modified"] for f in fontes.values()),
         "script": "scripts/pro_to_web.py",
         "palette": args.paleta,
-        "source": {"gdb": gdb_txt.replace("\\", "/"), "rasters": fontes},
+        "source": {"gdb": gdb_txt.replace("\\", "/"), "icnf": icnf, "rasters": fontes},
         "crs": {"wkid": WKID, "name": "ETRS89 / Portugal TM06"},
         "grids": grids,
         "layers": layers,
@@ -771,6 +1154,12 @@ def main(argv=None):
     readme = {"generated_by": "scripts/pro_to_web.py", "manifest": "src/data/dourorisk-grids.json", "palette": args.paleta,
               "note": "Grelhas e imagens geradas a partir dos rasters nativos EPSG:3763; georreferenciação no manifest."}
     esc.gravar(os.path.join(a11y, "README.json"), (json.dumps(readme, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+
+    # só leitura: os JSON do ICNF ficaram iguais ao que foi lido
+    for nome, f in icnf_ficheiros.items():
+        with open(os.path.join(args.icnf, nome), "rb") as fh:
+            assert hashlib.sha256(fh.read()).hexdigest() == f["sha256"], f"ICNF: {nome} mudou durante a execução"
+    print(f"  ICNF: sha256 dos {len(icnf_ficheiros)} ficheiros confirmado no fim", flush=True)
 
     for rel, estado, n in esc.estado:
         print(f"  {estado:8s} {n:>9d}  {rel}")

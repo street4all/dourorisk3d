@@ -730,7 +730,13 @@ calcite-slider {
   gap: 5px;
   margin: 6px 0 4px;
 }
+/* um verão: o círculo (com ✓ quando acertou) e o ano por baixo, sempre à vista */
 .summer {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+.summer-dot {
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -740,10 +746,15 @@ calcite-slider {
   font-size: 0.8em;
   font-weight: 700;
 }
-.summer.win {
+.summer.win .summer-dot {
   background: var(--ok);
   border-color: #fff;
   color: #fff;
+}
+.summer-ano {
+  font-size: 0.75em;
+  color: var(--fg-2);
+  font-variant-numeric: tabular-nums;
 }
 .weather-plain {
   font-weight: 700;
@@ -975,7 +986,8 @@ body.calcite-mode-light { color-scheme: light; }
 .crosshair::after { width: 60px; height: 2px; }
 body[data-mode="escolhe"] .crosshair,
 body[data-mode="compara"] .crosshair,
-body[data-mode="protege"] .crosshair { display: block; }
+body[data-mode="protege"] .crosshair,
+body[data-mode="tempo"] .crosshair { display: block; }
 
 /* legenda sobre o mapa quando não há janela aberta */
 .map-legend {
@@ -1025,13 +1037,23 @@ body[data-mode="protege"] .crosshair { display: block; }
   .pop { max-height: calc(100dvh - 106px - 72px); }
   body[data-mode="escolhe"] .pop,
   body[data-mode="compara"] .pop,
-  body[data-mode="protege"] .pop { max-height: 46dvh; }
+  body[data-mode="protege"] .pop,
+  body[data-mode="tempo"] .pop { max-height: 46dvh; }
+  /* máquina do tempo: título curto, para o cabeçalho não ocupar metade da janela */
+  #pop-tempo .q-extra { display: none; }
+  /* cabeçalho: o título encolhe (e parte palavras se for preciso) e o × fica sempre inteiro dentro da janela;
+     o losango fica mais pequeno e sem a palavra do passo (a barra de baixo já a mostra) */
+  .pop-head { grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; padding: 10px 10px 10px 12px; }
+  .pop-q { overflow-wrap: break-word; hyphens: auto; }
+  .pop-mark span { display: none; }
+  .pop-mark svg { width: 34px; height: 34px; }
+  .pop-close { flex-shrink: 0; }
   .map-legend { bottom: 112px; left: 10px; }
 }
 
 /* Alto Contraste do Windows: os estados ficam visíveis e as amostras de cor mantêm a cor */
 @media (forced-colors: active) {
-  .legend .sw, .grid10 i.on, .summer.win, .slot.on, .probe-table .sw, .probe-bar i { forced-color-adjust: none; }
+  .legend .sw, .grid10 i.on, .summer.win .summer-dot, .slot.on, .probe-table .sw, .probe-bar i, .time-bars svg { forced-color-adjust: none; }
   .dock-btn.active, .chip[aria-pressed="true"], .cue[aria-pressed="true"], .face[aria-checked="true"], .big-btn[aria-pressed="true"],
   .probe-scope button[aria-pressed="true"], .map-card[aria-pressed="true"], .tool-btn[aria-pressed="true"] {
     outline: 3px solid Highlight;
@@ -1080,9 +1102,10 @@ body[data-mode="protege"] .crosshair { display: block; }
   background: color-mix(in srgb, var(--st1) 55%, transparent);
 }
 
-/* 2 · pistas que se somam: amostra com riscas para 3 ou mais pistas */
+/* 2 · pistas que se somam (3 ou mais) e 4 · «ardeu neste ano»: amostra com riscas na diagonal do mapa
+   ((linha+coluna)%6<2 desenha «/», que em CSS é um gradiente a -45°); --sw-risca muda a cor da risca */
 .legend .sw.striped {
-  background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.55) 0 3px, transparent 3px 8px);
+  background-image: repeating-linear-gradient(-45deg, var(--sw-risca, rgba(0, 0, 0, 0.55)) 0 3px, transparent 3px 8px);
 }
 
 /* termómetro ao lado da ficha */
@@ -1991,4 +2014,240 @@ body.probing #alijo-scene-container {
 .probe-card { container: probe-card / inline-size; }
 @container probe-card (max-width: 17em) {
   .probe-table.point th { white-space: normal; width: auto; }
+}
+
+/* ------------------------------------------------------------------ 4 · máquina do tempo: o fogo e o mato, ano a ano */
+.time-entry {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--soft);
+  border-left: 6px solid var(--st);
+}
+.pop-body .time-entry h3 { margin-top: 0; }
+.time-modes { margin: 2px 0 4px; }
+.time-modes .chip { flex: 1 1 9em; line-height: 1.2; padding: 8px 14px; }
+.chip-sub { display: block; font-weight: 400; font-size: 0.85em; }
+.pop-body .time-year {
+  font-size: 2.4em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  margin: 4px 0;
+}
+.time-label {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  color: var(--fg-2);
+  font-weight: 700;
+}
+
+/* cursor dos anos: botão de 28 px (as barras alinham-se com o centro dele) e alvo de 44 px de altura */
+.time-range {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.time-range::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--fg-2);
+}
+.time-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: var(--st);
+  border: 3px solid var(--fg);
+}
+.time-range::-moz-range-track {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--fg-2);
+}
+.time-range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--st);
+  border: 3px solid var(--fg);
+}
+.time-range:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.time-range[aria-disabled="true"] { cursor: not-allowed; }
+.big-btn[aria-disabled="true"],
+.chip[aria-disabled="true"] {
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* barras por cima do cursor */
+.pop-body .time-bars { margin: 8px 0 0; }
+.time-plot {
+  position: relative;
+  height: calc(96px * var(--ui-scale));
+  overflow: hidden; /* o rótulo e as marcas nunca fazem a janela deslizar para o lado */
+}
+.time-plot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.time-bar-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 0.9em;
+  line-height: 1.2;
+  pointer-events: none;
+}
+.time-ticks {
+  position: relative;
+  overflow: hidden;
+  height: calc(1.4em + 6px);
+  line-height: 1.4;
+  font-size: 0.8em;
+  color: var(--fg-2);
+  font-variant-numeric: tabular-nums;
+}
+.time-ticks span {
+  position: absolute;
+  top: 0;
+  padding-top: 6px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+/* traço no sítio exato do ano (o número pode ficar desviado para caber dentro da figura) */
+.time-ticks span::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(50% + var(--dx, 0px));
+  width: 2px;
+  height: 5px;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+.time-bars figcaption {
+  margin-bottom: 4px;
+  font-size: 0.92em;
+  color: var(--fg-2);
+}
+.pop-body .time-bars figcaption p { margin: 0 0 2px; }
+.time-bars .bar { fill: var(--fg-2); }
+.time-bars .bar.sel { fill: url(#time-sel-riscas); stroke: var(--fg); stroke-width: 2; }
+.time-bars .sel-fundo { fill: var(--fg); }
+.time-bars .sel-risca { fill: var(--hud-solid); }
+.time-bars .col { fill: var(--soft); }
+.time-bars .base { stroke: var(--line); stroke-width: 1; }
+.time-bars .tri { fill: var(--fg); }
+.time-bars .nomap { fill: var(--fg-2); font: 700 calc(13px * var(--ui-scale)) var(--font); }
+
+.time-text p { font-weight: 700; }
+.time-text p + p { font-weight: 400; }
+
+/* tabela: a alternativa completa às barras */
+.time-table { margin: 12px 0 4px; }
+.time-table > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 2px solid var(--fg-2);
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.time-table > summary::-webkit-details-marker { display: none; }
+.time-table > summary::after { content: "▾"; content: "▾" / ""; font-size: 1.2em; }
+.time-table[open] > summary::after { content: "▴"; content: "▴" / ""; }
+.time-tab {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 0.92em;
+  font-variant-numeric: tabular-nums;
+}
+.time-tab caption { text-align: left; font-weight: 700; margin-bottom: 6px; }
+.time-tab th,
+.time-tab td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  vertical-align: top;
+}
+.time-tab tbody th,
+.time-tab td { white-space: nowrap; }
+.time-tab thead th { overflow-wrap: break-word; }
+.time-table { overflow-x: auto; }
+.time-tab th:first-child { text-align: left; }
+.time-tab thead th { font-size: 0.9em; color: var(--fg-2); }
+.time-tab tbody th { font-weight: 400; }
+.time-tab tr.sel th,
+.time-tab tr.sel td { font-weight: 700; background: var(--soft); }
+
+/* legendas: «sem cor» e as riscas claras da suposição (diagonal contrária à do fogo: «\», gradiente a 45°) */
+.legend .sw.none { background: transparent; border-style: dashed; }
+.legend .sw.striped-light {
+  background-image: repeating-linear-gradient(45deg, rgba(247, 243, 234, 0.9) 0 3px, transparent 3px 8px);
+}
+/* pontos das classes 4 e 5 do mato («muito mato, ou mais»), como no mapa; o número fica sobre a cor lisa */
+.legend .sw.dotted {
+  background-image: radial-gradient(circle, var(--sw-ponto) 0 2px, transparent 2.6px);
+  background-size: 7px 7px;
+}
+.legend .sw.striped-light.dotted {
+  background-image: repeating-linear-gradient(45deg, rgba(247, 243, 234, 0.9) 0 3px, transparent 3px 8px),
+    radial-gradient(circle, var(--sw-ponto) 0 2px, transparent 2.6px);
+  background-size: auto, 7px 7px;
+}
+.legend .sw.dotted .sw-num {
+  padding: 0 3px;
+  border-radius: 4px;
+  background-color: inherit;
+}
+
+/* respostas à vista junto de quem as pediu (limites, parar, ler um ponto); o leitor de ecrã ouve a do topo */
+.pop-body .time-answer {
+  margin: 10px 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--soft);
+  border-left: 6px solid var(--st);
+  font-weight: 700;
+}
+.pop-body .time-answer:empty { display: none; }
+
+/* Alto Contraste do Windows: o cursor, as barras e o ano escolhido continuam visíveis */
+@media (forced-colors: active) {
+  .time-range { forced-color-adjust: none; }
+  .time-range::-webkit-slider-runnable-track { background: CanvasText; }
+  .time-range::-moz-range-track { background: CanvasText; }
+  .time-range::-webkit-slider-thumb { background: Highlight; border-color: CanvasText; }
+  .time-range::-moz-range-thumb { background: Highlight; border-color: CanvasText; }
+  .time-bars .bar { fill: CanvasText; }
+  .time-bars .bar.sel { fill: Highlight; stroke: CanvasText; }
+  .time-bars .tri, .time-bars .nomap { fill: CanvasText; }
+  .time-bars .base { stroke: CanvasText; }
+  .time-bars .col { fill: transparent; stroke: Highlight; stroke-width: 1; }
+  /* a amostra «sem cor» mantém as cores do tema (forced-color-adjust: none): a borda segue o texto do sistema */
+  .legend .sw.none { border-color: CanvasText; }
 }

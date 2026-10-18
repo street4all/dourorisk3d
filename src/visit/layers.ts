@@ -5,7 +5,7 @@
 import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
 import { gridOfLayer } from "../geo/grid";
 import { ClassGrid } from "./sampler";
-import { DECL_WORDS, RISK_WORDS } from "./words";
+import { DECL_WORDS, RISK_WORDS, esc } from "./words";
 import { aboutOf } from "./how";
 import { A0, A1 } from "../data/concelho";
 
@@ -20,7 +20,17 @@ export interface LegendItem {
   number?: number;
   /** quantas chamas desenhar (escalas de perigo) */
   flames?: number;
+  /** textura da amostra: riscas escuras, riscas claras ou sem cor */
+  pattern?: "striped" | "striped-light" | "none";
+  /** cor das riscas escuras (a mesma do mapa); sem ela, preto a 55 % */
+  stripe?: string;
+  /** pontos na amostra, com esta cor (os mesmos do mapa: «muito mato, ou mais» na máquina do tempo) */
+  dots?: string;
 }
+
+/** Classes de «Quanto mato há» (1 a 5): as mesmas palavras e cores em toda a app. */
+export const BIO_WORDS = ["muito pouco mato", "pouco mato", "algum mato", "muito mato", "mato muito denso"];
+export const BIO_COLORS = ["#EDF8E9", "#BAE4B3", "#74C476", "#31A354", "#006D2C"];
 
 export interface VisitLayer {
   key: string;
@@ -118,40 +128,50 @@ export function applyAccessibleLayers(): void {
           : "Aqui a encosta apanha menos sol.",
   });
 
-  const BIO_WORDS = ["muito pouco mato", "pouco mato", "algum mato", "muito mato", "mato muito denso"];
   add({
     key: "biomassa_2025",
     title: `Quanto mato há (${aboutOf("biomassa_2025").ano})`,
     question: "Quanto mato há para arder",
-    legend: [
-      { classes: [1], color: "#EDF8E9", label: BIO_WORDS[0] },
-      { classes: [2], color: "#BAE4B3", label: BIO_WORDS[1] },
-      { classes: [3], color: "#74C476", label: BIO_WORDS[2] },
-      { classes: [4], color: "#31A354", label: BIO_WORDS[3] },
-      { classes: [5], color: "#006D2C", label: BIO_WORDS[4] },
-    ],
+    legend: BIO_WORDS.map((w, i) => ({ classes: [i + 1], color: BIO_COLORS[i], label: w })),
     grid: new ClassGrid(`${A11Y}/biomassa_classes.png`, gridOfLayer("biomassa_2025")),
     empty: "Aqui não há dados de mato.",
     describe: (c) => `Aqui há ${BIO_WORDS[c - 1] || "pouco mato"}.`,
   });
 }
 
-/** Desenha uma legenda acessível: amostra de cor + número + palavra (+ chamas). */
+/** Luminância relativa (WCAG) de uma cor #RRGGBB. */
+function luminance(hex: string): number {
+  const ch = [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+
+/** O número dentro da amostra vai a branco quando o branco contrasta mais do que o texto escuro (#1C1C1C). */
+function numeroBranco(hex: string): boolean {
+  const l = luminance(hex);
+  return 1.05 / (l + 0.05) > (l + 0.05) / (luminance("#1C1C1C") + 0.05);
+}
+
+const FLAME = `<svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c-5 0-7-4-6-8 .5-3 3-4 3-8 3 2 4 4 3.5 7 1.5-1 2-2.5 2-4 3 2.5 4.5 6 3.5 9-.5 2.5-3 4-6 4z"/></svg>`;
+
+/** Legenda acessível em HTML: amostra de cor (+ textura) + número + palavra (+ chamas). */
+export function legendHtml(titulo: string, itens: readonly LegendItem[]): string {
+  const rows = itens
+    .map((it) => {
+      const num = it.number ? `<span class="sw-num">${it.number}</span>` : "";
+      const fl = it.flames ? `<span class="flames" aria-hidden="true">${FLAME.repeat(it.flames)}</span>` : "";
+      const none = it.pattern === "none";
+      const cls = `sw${!none && numeroBranco(it.color) ? " dark" : ""}${it.pattern ? ` ${it.pattern}` : ""}${it.dots ? " dotted" : ""}`;
+      // background-color (e não background): as riscas e os pontos são um background-image da classe
+      const style = none ? "" : ` style="background-color:${it.color}${it.stripe ? `;--sw-risca:${it.stripe}` : ""}${it.dots ? `;--sw-ponto:${it.dots}` : ""}"`;
+      return `<li><span class="${cls}"${style}>${num}</span><span class="lg-label">${esc(it.label)}</span>${fl}</li>`;
+    })
+    .join("");
+  return `<p class="lg-title">${esc(titulo)}</p><ul>${rows}</ul>`;
+}
+
+/** Desenha a legenda acessível de uma camada da visita. */
 export function renderLegend(el: HTMLElement | null, key: string): void {
   if (!el) return;
   const layer = VISIT_LAYERS[key];
-  if (!layer) {
-    el.innerHTML = "";
-    return;
-  }
-  const flame = `<svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c-5 0-7-4-6-8 .5-3 3-4 3-8 3 2 4 4 3.5 7 1.5-1 2-2.5 2-4 3 2.5 4.5 6 3.5 9-.5 2.5-3 4-6 4z"/></svg>`;
-  const rows = layer.legend
-    .map((it) => {
-      const num = it.number ? `<span class="sw-num">${it.number}</span>` : "";
-      const fl = it.flames ? `<span class="flames" aria-hidden="true">${flame.repeat(it.flames)}</span>` : "";
-      const dark = ["#036403", "#DD2203", "#006837", "#47180D", "#983519", "#006D2C", "#31A354"].includes(it.color);
-      return `<li><span class="sw${dark ? " dark" : ""}" style="background:${it.color}">${num}</span><span class="lg-label">${it.label}</span>${fl}</li>`;
-    })
-    .join("");
-  el.innerHTML = `<p class="lg-title">${layer.question}</p><ul>${rows}</ul>`;
+  el.innerHTML = layer ? legendHtml(layer.question, layer.legend) : "";
 }
