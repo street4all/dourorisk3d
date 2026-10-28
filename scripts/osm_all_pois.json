@@ -1,0 +1,2966 @@
+[
+  {
+    "id": 892569337,
+    "type": "node",
+    "name": "Pousada de Alijó - Barão de Forrester",
+    "tourism": "hotel",
+    "lat": 41.2753945,
+    "lon": -7.4747548,
+    "tags": {
+      "email": "recepcao.barao@pousadas.pt",
+      "fax": "+351 259 959 304",
+      "name": "Pousada de Alijó - Barão de Forrester",
+      "operator": "Pousadas de Portugal",
+      "phone": "+351 259 959 467",
+      "tourism": "hotel",
+      "website": "https://www.pousadas.pt/historicalhotels/EN/pousadas/Portugal/Norte/BaraodeForrester/home/"
+    }
+  },
+  {
+    "id": 1723064803,
+    "type": "node",
+    "amenity": "hunting_stand",
+    "lat": 41.2863385,
+    "lon": -7.4888457,
+    "tags": {
+      "amenity": "hunting_stand"
+    }
+  },
+  {
+    "id": 1723064961,
+    "type": "node",
+    "name": "Café da Paz",
+    "amenity": "cafe",
+    "lat": 41.2765123,
+    "lon": -7.474839,
+    "tags": {
+      "amenity": "cafe",
+      "name": "Café da Paz"
+    }
+  },
+  {
+    "id": 1723064974,
+    "type": "node",
+    "name": "Pelourinho",
+    "amenity": "restaurant",
+    "lat": 41.2765924,
+    "lon": -7.4751485,
+    "tags": {
+      "amenity": "restaurant",
+      "name": "Pelourinho"
+    }
+  },
+  {
+    "id": 1723065002,
+    "type": "node",
+    "name": "Tabu",
+    "amenity": "bar",
+    "lat": 41.2751862,
+    "lon": -7.479192,
+    "tags": {
+      "amenity": "bar",
+      "name": "Tabu"
+    }
+  },
+  {
+    "id": 1723086206,
+    "type": "node",
+    "name": "Expresso",
+    "shop": "butcher",
+    "lat": 41.2767583,
+    "lon": -7.4748445,
+    "tags": {
+      "name": "Expresso",
+      "shop": "butcher"
+    }
+  },
+  {
+    "id": 1723086276,
+    "type": "node",
+    "name": "CTT - Correios de Alijó",
+    "amenity": "post_office",
+    "lat": 41.2755832,
+    "lon": -7.4743665,
+    "tags": {
+      "amenity": "post_office",
+      "brand": "CTT",
+      "brand:wikidata": "Q1024518",
+      "brand:wikipedia": "pt:CTT Correios de Portugal",
+      "name": "CTT - Correios de Alijó",
+      "operator": "CTT",
+      "operator:wikidata": "Q1024518",
+      "operator:wikipedia": "en:CTT Correios de Portugal, S.A."
+    }
+  },
+  {
+    "id": 1723086341,
+    "type": "node",
+    "name": "Covirán",
+    "shop": "supermarket",
+    "lat": 41.2755544,
+    "lon": -7.4725936,
+    "tags": {
+      "brand": "Covirán",
+      "brand:wikidata": "Q61070539",
+      "name": "Covirán",
+      "name:pt": "Coviran",
+      "shop": "supermarket"
+    }
+  },
+  {
+    "id": 1723086343,
+    "type": "node",
+    "name": "Novo Banco",
+    "amenity": "bank",
+    "lat": 41.2757262,
+    "lon": -7.4746299,
+    "tags": {
+      "addr:city": "Alijó",
+      "addr:postcode": "5070-031",
+      "addr:street": "Rua Comendador José Rufino",
+      "amenity": "bank",
+      "atm": "yes",
+      "brand": "Novo Banco",
+      "brand:wikidata": "Q17488861",
+      "brand:wikipedia": "pt:Novo Banco",
+      "contact:fax": "+351 259959477",
+      "contact:phone": "+351 259959364",
+      "name": "Novo Banco",
+      "operator": "Novo Banco",
+      "operator:old_name": "Banco Espírito Santo",
+      "operator:old_name:short": "BES",
+      "operator:wikidata": "Q17488861",
+      "operator:wikipedia": "pt:Novo Banco",
+      "ref": "B0613",
+      "ref_name": "Alijó"
+    }
+  },
+  {
+    "id": 1723086352,
+    "type": "node",
+    "shop": "butcher",
+    "lat": 41.2764402,
+    "lon": -7.4745482,
+    "tags": {
+      "shop": "butcher"
+    }
+  },
+  {
+    "id": 1723367548,
+    "type": "node",
+    "name": "Quinta da Seixeda",
+    "tourism": "hotel",
+    "lat": 41.2807466,
+    "lon": -7.4733078,
+    "tags": {
+      "addr:postcode": "5070 Alijó",
+      "addr:street": "Bairro do Pombal",
+      "name": "Quinta da Seixeda",
+      "phone": "+351 259 957 350",
+      "tourism": "hotel"
+    }
+  },
+  {
+    "id": 1997968024,
+    "type": "node",
+    "name": "Ribadouro",
+    "tourism": "hotel",
+    "lat": 41.2759532,
+    "lon": -7.4757782,
+    "tags": {
+      "addr:housenumber": "16",
+      "addr:street": "Avenida Doutor Francisco Sá Carneiro",
+      "description": "Hospitalidade e conforto",
+      "email": "mail.geral@hotel-ribadouro.com",
+      "internet_access": "wlan",
+      "internet_access:fee": "yes",
+      "name": "Ribadouro",
+      "phone": "+351 259959452",
+      "smoking": "no",
+      "stars": "1",
+      "tourism": "hotel",
+      "website": "https://hotel-ribadouro.com/",
+      "wheelchair": "no"
+    }
+  },
+  {
+    "id": 2704652632,
+    "type": "node",
+    "name": "Junta de Freguesia de Alijó",
+    "amenity": "townhall",
+    "lat": 41.2767598,
+    "lon": -7.4737588,
+    "tags": {
+      "amenity": "townhall",
+      "name": "Junta de Freguesia de Alijó",
+      "townhall:type": "village"
+    }
+  },
+  {
+    "id": 2704652664,
+    "type": "node",
+    "name": "Santos Teixeira e Filhos",
+    "shop": "doityourself",
+    "lat": 41.2763551,
+    "lon": -7.4746299,
+    "tags": {
+      "addr:housenumber": "32",
+      "addr:postcode": "5070-051 Alijó",
+      "addr:street": "Rua General Alves Pedrosa",
+      "name": "Santos Teixeira e Filhos",
+      "official_name": "Santos Teixeira e Filhos, Lda.",
+      "phone": "+351 259 950 014",
+      "shop": "doityourself",
+      "website": "http://www.stf.pt"
+    }
+  },
+  {
+    "id": 2704652697,
+    "type": "node",
+    "name": "Farmácia do Hospital",
+    "amenity": "pharmacy",
+    "healthcare": "pharmacy",
+    "lat": 41.2769261,
+    "lon": -7.4748827,
+    "tags": {
+      "addr:city": "Alijó",
+      "addr:country": "PT",
+      "addr:postcode": "5070-023",
+      "addr:street": "Largo de Santo António",
+      "alt_name": "Farmácia do Hospital da Santa Casa da Misericórdia de Alijó",
+      "amenity": "pharmacy",
+      "healthcare": "pharmacy",
+      "name": "Farmácia do Hospital",
+      "operator": "Santa Casa da Misericórdia de Alijó",
+      "source": "Infarmed"
+    }
+  },
+  {
+    "id": 2704652723,
+    "type": "node",
+    "name": "Farmácia José Rodrigues",
+    "amenity": "pharmacy",
+    "healthcare": "pharmacy",
+    "lat": 41.2765476,
+    "lon": -7.4745333,
+    "tags": {
+      "addr:city": "Alijó",
+      "addr:country": "PT",
+      "addr:floor": "0",
+      "addr:housenumber": "42",
+      "addr:postcode": "5070-051",
+      "addr:street": "Rua General Alves Pedrosa",
+      "amenity": "pharmacy",
+      "healthcare": "pharmacy",
+      "name": "Farmácia José Rodrigues",
+      "operator": "José Rodrigues - Farmácia Lda",
+      "phone": "+351 259959122",
+      "source": "Infarmed"
+    }
+  },
+  {
+    "id": 2704652976,
+    "type": "node",
+    "amenity": "recycling",
+    "lat": 41.2758794,
+    "lon": -7.4742374,
+    "tags": {
+      "amenity": "recycling",
+      "recycling_type": "container"
+    }
+  },
+  {
+    "id": 2704653085,
+    "type": "node",
+    "amenity": "recycling",
+    "lat": 41.2750042,
+    "lon": -7.4758213,
+    "tags": {
+      "amenity": "recycling",
+      "recycling_type": "container"
+    }
+  },
+  {
+    "id": 2791579330,
+    "type": "node",
+    "name": "Ecoponto",
+    "amenity": "recycling",
+    "lat": 41.2760891,
+    "lon": -7.4773574,
+    "tags": {
+      "amenity": "recycling",
+      "name": "Ecoponto",
+      "recycling_type": "container"
+    }
+  },
+  {
+    "id": 2791579355,
+    "type": "node",
+    "name": "Crédito Agrícola",
+    "amenity": "bank",
+    "lat": 41.2760868,
+    "lon": -7.4761717,
+    "tags": {
+      "amenity": "bank",
+      "atm": "yes",
+      "brand": "Crédito Agrícola",
+      "brand:wikidata": "Q10262017",
+      "brand:wikipedia": "pt:Crédito Agrícola",
+      "name": "Crédito Agrícola",
+      "opening_hours": "Mo-Fr 08:30-15:30",
+      "operator": "Crédito Agrícola",
+      "operator:alt_name": "Caixa de Crédito Agrícola",
+      "operator:wikidata": "Q10262017",
+      "operator:wikipedia": "pt:Crédito Agrícola",
+      "short_name": "CA"
+    }
+  },
+  {
+    "id": 2791579387,
+    "type": "node",
+    "name": "Residencial Oásis",
+    "tourism": "hotel",
+    "lat": 41.275843,
+    "lon": -7.4754536,
+    "tags": {
+      "name": "Residencial Oásis",
+      "tourism": "hotel"
+    }
+  },
+  {
+    "id": 2791579399,
+    "type": "node",
+    "name": "Oásis",
+    "amenity": "restaurant",
+    "lat": 41.2758923,
+    "lon": -7.4755989,
+    "tags": {
+      "amenity": "restaurant",
+      "name": "Oásis"
+    }
+  },
+  {
+    "id": 2791579400,
+    "type": "node",
+    "name": "Oasis",
+    "amenity": "cafe",
+    "lat": 41.2758659,
+    "lon": -7.475521,
+    "tags": {
+      "amenity": "cafe",
+      "name": "Oasis"
+    }
+  },
+  {
+    "id": 2791579432,
+    "type": "node",
+    "name": "Monumento ao Homem do Douro",
+    "tourism": "artwork",
+    "lat": 41.2755104,
+    "lon": -7.4752903,
+    "tags": {
+      "artwork_type": "statue",
+      "name": "Monumento ao Homem do Douro",
+      "tourism": "artwork"
+    }
+  },
+  {
+    "id": 2792121359,
+    "type": "node",
+    "amenity": "fountain",
+    "lat": 41.2767737,
+    "lon": -7.4746356,
+    "tags": {
+      "amenity": "fountain",
+      "drinking_water": "no",
+      "fountain": "decorative"
+    }
+  },
+  {
+    "id": 2984914081,
+    "type": "node",
+    "name": "Ecoponto",
+    "amenity": "recycling",
+    "lat": 41.2782679,
+    "lon": -7.4752721,
+    "tags": {
+      "amenity": "recycling",
+      "name": "Ecoponto",
+      "recycling_type": "container"
+    }
+  },
+  {
+    "id": 3165388569,
+    "type": "node",
+    "name": "Churrasqueira Pito da Lola",
+    "amenity": "restaurant",
+    "lat": 41.2768228,
+    "lon": -7.4782991,
+    "tags": {
+      "addr:city": "Alijó",
+      "addr:housenumber": "112",
+      "addr:postcode": "5070-013",
+      "addr:street": "Avenida Sá Carneiro",
+      "amenity": "restaurant",
+      "name": "Churrasqueira Pito da Lola",
+      "phone": "+351 259106621"
+    }
+  },
+  {
+    "id": 3370160652,
+    "type": "node",
+    "name": "Ribeiro",
+    "amenity": "cafe",
+    "lat": 41.3833313,
+    "lon": -7.5019023,
+    "tags": {
+      "amenity": "cafe",
+      "name": "Ribeiro"
+    }
+  },
+  {
+    "id": 3482248740,
+    "type": "node",
+    "amenity": "parking",
+    "lat": 41.2765137,
+    "lon": -7.473844,
+    "tags": {
+      "amenity": "parking"
+    }
+  },
+  {
+    "id": 3626656087,
+    "type": "node",
+    "name": "Brás",
+    "shop": "optician",
+    "lat": 41.2769001,
+    "lon": -7.4747006,
+    "tags": {
+      "name": "Brás",
+      "shop": "optician"
+    }
+  },
+  {
+    "id": 3669087041,
+    "type": "node",
+    "amenity": "fountain",
+    "lat": 41.2763816,
+    "lon": -7.4778414,
+    "tags": {
+      "amenity": "fountain"
+    }
+  },
+  {
+    "id": 3669087042,
+    "type": "node",
+    "amenity": "bench",
+    "lat": 41.2763332,
+    "lon": -7.4778915,
+    "tags": {
+      "amenity": "bench"
+    }
+  },
+  {
+    "id": 3669095892,
+    "type": "node",
+    "amenity": "bench",
+    "lat": 41.2764723,
+    "lon": -7.4777922,
+    "tags": {
+      "amenity": "bench"
+    }
+  },
+  {
+    "id": 3762869586,
+    "type": "node",
+    "historic": "wayside_shrine",
+    "lat": 41.2833726,
+    "lon": -7.509711,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_shrine",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 3762981470,
+    "type": "node",
+    "amenity": "vending_machine",
+    "lat": 41.2766082,
+    "lon": -7.4744933,
+    "tags": {
+      "amenity": "vending_machine",
+      "brand": "Control",
+      "vending": "condoms"
+    }
+  },
+  {
+    "id": 3762981471,
+    "type": "node",
+    "name": "Europa",
+    "amenity": "cafe",
+    "lat": 41.3825355,
+    "lon": -7.5048653,
+    "tags": {
+      "amenity": "cafe",
+      "name": "Europa"
+    }
+  },
+  {
+    "id": 3804800983,
+    "type": "node",
+    "name": "Multibanco (Minipreço)",
+    "amenity": "atm",
+    "lat": 41.2766499,
+    "lon": -7.4693378,
+    "tags": {
+      "amenity": "atm",
+      "name": "Multibanco (Minipreço)"
+    }
+  },
+  {
+    "id": 3804801228,
+    "type": "node",
+    "name": "WC (Minipreço)",
+    "amenity": "toilets",
+    "lat": 41.2766548,
+    "lon": -7.4692844,
+    "tags": {
+      "amenity": "toilets",
+      "name": "WC (Minipreço)"
+    }
+  },
+  {
+    "id": 3956023557,
+    "type": "node",
+    "name": "Avia",
+    "amenity": "fuel",
+    "lat": 41.3201525,
+    "lon": -7.4618344,
+    "tags": {
+      "amenity": "fuel",
+      "fuel:diesel": "yes",
+      "fuel:octane_95": "yes",
+      "fuel:octane_98": "yes",
+      "name": "Avia"
+    }
+  },
+  {
+    "id": 3994226683,
+    "type": "node",
+    "name": "Anta da Fonte Coberta",
+    "historic": "archaeological_site",
+    "tourism": "attraction",
+    "lat": 41.33484,
+    "lon": -7.47158,
+    "tags": {
+      "alt_name": "Anta de Fonte Coberta da Chã de Alijó",
+      "archaeological_site": "megalith",
+      "heritage": "2",
+      "heritage:operator": "pc",
+      "heritage:website": "https://servicos.dgpc.gov.pt/pesquisapatrimonioimovel/detalhes.php?code=70347",
+      "heritage:website:arqueologia": "http://arqueologia.patrimoniocultural.pt/?sid=sitios&subsid=48603",
+      "heritage:website:sipa": "http://monumentos.pt/Site/APP_PagesUser/SIPA.aspx?id=5828",
+      "historic": "archaeological_site",
+      "historic:civilization": "prehistoric",
+      "historic:era": "neo-chalcolithic",
+      "historic:period": "bronze-age",
+      "megalith_type": "dolmen",
+      "name": "Anta da Fonte Coberta",
+      "operator": "Sem afectação",
+      "pc:inscription_date": "1910-06-23",
+      "protection_title": "Monumento Nacional",
+      "ref:cns": "878",
+      "ref:ipa": "5828",
+      "ref:pc": "70347",
+      "short_protection_title": "MN",
+      "tourism": "attraction",
+      "wikidata": "Q16490864",
+      "wikipedia": "pt:Anta de Fonte Coberta"
+    }
+  },
+  {
+    "id": 3995961409,
+    "type": "node",
+    "name": "Pelourinho de Alijó",
+    "historic": "pillory",
+    "tourism": "attraction",
+    "lat": 41.276411,
+    "lon": -7.474923,
+    "tags": {
+      "disused": "yes",
+      "historic": "pillory",
+      "name": "Pelourinho de Alijó",
+      "start_date": "C20",
+      "tourism": "attraction",
+      "wikidata": "Q10348049"
+    }
+  },
+  {
+    "id": 3995965069,
+    "type": "node",
+    "name": "Pelourinho de Vila Chã",
+    "historic": "pillory",
+    "tourism": "attraction",
+    "lat": 41.326435,
+    "lon": -7.489572,
+    "tags": {
+      "alt_name": "Cruzeiro de Vila Chã",
+      "disused": "yes",
+      "historic": "pillory",
+      "name": "Pelourinho de Vila Chã",
+      "start_date": "C16",
+      "tourism": "attraction"
+    }
+  },
+  {
+    "id": 4004456062,
+    "type": "node",
+    "name": "Alto da Muralha / Cabeça Murada",
+    "historic": "archaeological_site",
+    "lat": 41.33114,
+    "lon": -7.532024,
+    "tags": {
+      "archaeological_site": "fortification",
+      "fortification_type": "hill_fort",
+      "historic": "archaeological_site",
+      "historic:civilization": "iron_age, ancient_roman",
+      "name": "Alto da Muralha / Cabeça Murada"
+    }
+  },
+  {
+    "id": 4215956576,
+    "type": "node",
+    "name": "O Centavo",
+    "shop": "variety_store",
+    "lat": 41.27665,
+    "lon": -7.4778949,
+    "tags": {
+      "name": "O Centavo",
+      "shop": "variety_store"
+    }
+  },
+  {
+    "id": 4215956892,
+    "type": "node",
+    "name": "Euroloja",
+    "shop": "variety_store",
+    "lat": 41.2763676,
+    "lon": -7.4769986,
+    "tags": {
+      "name": "Euroloja",
+      "shop": "variety_store"
+    }
+  },
+  {
+    "id": 4215957189,
+    "type": "node",
+    "name": "Sapataria Moderna",
+    "shop": "shoes",
+    "lat": 41.2763902,
+    "lon": -7.4770651,
+    "tags": {
+      "name": "Sapataria Moderna",
+      "shop": "shoes"
+    }
+  },
+  {
+    "id": 4216004779,
+    "type": "node",
+    "shop": "baby_goods",
+    "lat": 41.2766992,
+    "lon": -7.4779876,
+    "tags": {
+      "shop": "baby_goods"
+    }
+  },
+  {
+    "id": 4216063289,
+    "type": "node",
+    "name": "Tien21",
+    "shop": "electronics",
+    "lat": 41.2764479,
+    "lon": -7.4772352,
+    "tags": {
+      "name": "Tien21",
+      "shop": "electronics"
+    }
+  },
+  {
+    "id": 4216064098,
+    "type": "node",
+    "name": "Diamond's Bar",
+    "amenity": "bar",
+    "lat": 41.2764126,
+    "lon": -7.4771311,
+    "tags": {
+      "amenity": "bar",
+      "name": "Diamond's Bar",
+      "opening_hours": "Mo-Fr 08:00-02:00; Sa, Su 13:00-02:00"
+    }
+  },
+  {
+    "id": 4216071316,
+    "type": "node",
+    "name": "Clínica Dentária",
+    "amenity": "clinic",
+    "lat": 41.2763002,
+    "lon": -7.4768001,
+    "tags": {
+      "amenity": "clinic",
+      "name": "Clínica Dentária",
+      "opening_hours": "Mo-Fr 09:00-12:00, 14:00-19:00; Sa 09:00-13:00",
+      "phone": "+351 259 959 693"
+    }
+  },
+  {
+    "id": 4216071854,
+    "type": "node",
+    "name": "Marco António",
+    "shop": "hairdresser",
+    "lat": 41.2763474,
+    "lon": -7.4769393,
+    "tags": {
+      "name": "Marco António",
+      "opening_hours": "Mo-Sa 09:00-12:45, 14:15-19:00",
+      "shop": "hairdresser"
+    }
+  },
+  {
+    "id": 4216072598,
+    "type": "node",
+    "name": "Requinte",
+    "amenity": "driving_school",
+    "lat": 41.2762665,
+    "lon": -7.4767008,
+    "tags": {
+      "amenity": "driving_school",
+      "education": "driving_school",
+      "name": "Requinte"
+    }
+  },
+  {
+    "id": 4216073104,
+    "type": "node",
+    "name": "Papelaria Avenida",
+    "shop": "kiosk",
+    "lat": 41.2763224,
+    "lon": -7.4768656,
+    "tags": {
+      "name": "Papelaria Avenida",
+      "shop": "kiosk"
+    }
+  },
+  {
+    "id": 4216078752,
+    "type": "node",
+    "name": "Instituto Óptico RealVisão",
+    "shop": "optician",
+    "lat": 41.2762289,
+    "lon": -7.4765902,
+    "tags": {
+      "name": "Instituto Óptico RealVisão",
+      "opening_hours": "Mo-Fr 09:00-12:30, 14:30-19:00; Sa 09:30-13:00",
+      "shop": "optician"
+    }
+  },
+  {
+    "id": 4216080130,
+    "type": "node",
+    "name": "AliPãoQuente",
+    "shop": "bakery",
+    "lat": 41.2762062,
+    "lon": -7.4765232,
+    "tags": {
+      "name": "AliPãoQuente",
+      "shop": "bakery"
+    }
+  },
+  {
+    "id": 4216083920,
+    "type": "node",
+    "name": "Foto Morais",
+    "shop": "photo",
+    "lat": 41.2761728,
+    "lon": -7.4764248,
+    "tags": {
+      "name": "Foto Morais",
+      "shop": "photo"
+    }
+  },
+  {
+    "id": 4216084448,
+    "type": "node",
+    "name": "O Américo",
+    "amenity": "cafe",
+    "lat": 41.2761406,
+    "lon": -7.4763301,
+    "tags": {
+      "amenity": "cafe",
+      "name": "O Américo"
+    }
+  },
+  {
+    "id": 4216085252,
+    "type": "node",
+    "name": "Móveis Rogério",
+    "shop": "furniture",
+    "lat": 41.2760155,
+    "lon": -7.4759617,
+    "tags": {
+      "name": "Móveis Rogério",
+      "shop": "furniture"
+    }
+  },
+  {
+    "id": 4216087427,
+    "type": "node",
+    "name": "Clínica de Fisioterapia Santa Maria Maior",
+    "amenity": "clinic",
+    "lat": 41.2760465,
+    "lon": -7.476053,
+    "tags": {
+      "amenity": "clinic",
+      "name": "Clínica de Fisioterapia Santa Maria Maior"
+    }
+  },
+  {
+    "id": 4216927421,
+    "type": "node",
+    "name": "Cafetaria Ribadouro",
+    "shop": "bakery",
+    "lat": 41.2759749,
+    "lon": -7.475842,
+    "tags": {
+      "name": "Cafetaria Ribadouro",
+      "shop": "bakery"
+    }
+  },
+  {
+    "id": 4216931430,
+    "type": "node",
+    "name": "Papelaria O Miminho",
+    "shop": "stationery",
+    "lat": 41.2759154,
+    "lon": -7.4756669,
+    "tags": {
+      "name": "Papelaria O Miminho",
+      "shop": "stationery"
+    }
+  },
+  {
+    "id": 4216947432,
+    "type": "node",
+    "amenity": "bench",
+    "lat": 41.2757865,
+    "lon": -7.4759229,
+    "tags": {
+      "amenity": "bench",
+      "description": "varios bancos em pedra de granito, com encosto em traves de madeira"
+    }
+  },
+  {
+    "id": 4394800716,
+    "type": "node",
+    "name": "Conservatória",
+    "office": "government",
+    "lat": 41.2762896,
+    "lon": -7.473987,
+    "tags": {
+      "addr:city": "Alijó",
+      "addr:country": "PT",
+      "addr:housename": "Palácio da Justiça",
+      "addr:postcode": "5070-031",
+      "addr:street": "Rua Comendador Doutor José Rufino",
+      "email": "crcpcom.alijo@dgrn.mj.pt",
+      "fax": "+351 259 957 029",
+      "government": "register_office",
+      "name": "Conservatória",
+      "office": "government",
+      "phone": "+351 259 957 020"
+    }
+  },
+  {
+    "id": 5185621123,
+    "type": "node",
+    "name": "Pioledo",
+    "amenity": "clinic",
+    "lat": 41.2758,
+    "lon": -7.4752533,
+    "tags": {
+      "amenity": "clinic",
+      "name": "Pioledo"
+    }
+  },
+  {
+    "id": 5185658536,
+    "type": "node",
+    "name": "Salvador",
+    "shop": "clothes",
+    "lat": 41.2758099,
+    "lon": -7.4749517,
+    "tags": {
+      "name": "Salvador",
+      "shop": "clothes"
+    }
+  },
+  {
+    "id": 5185658988,
+    "type": "node",
+    "name": "Talho Soraia",
+    "shop": "butcher",
+    "lat": 41.2759601,
+    "lon": -7.4748191,
+    "tags": {
+      "name": "Talho Soraia",
+      "shop": "butcher"
+    }
+  },
+  {
+    "id": 5185660031,
+    "type": "node",
+    "name": "Salvador - Jeans e Acessórios",
+    "shop": "clothes",
+    "lat": 41.2758773,
+    "lon": -7.4751858,
+    "tags": {
+      "name": "Salvador - Jeans e Acessórios",
+      "shop": "clothes"
+    }
+  },
+  {
+    "id": 5185670306,
+    "type": "node",
+    "tourism": "artwork",
+    "lat": 41.276172,
+    "lon": -7.4735617,
+    "tags": {
+      "tourism": "artwork"
+    }
+  },
+  {
+    "id": 7679864107,
+    "type": "node",
+    "name": "Gruta de Nossa Senhora de Lourdes",
+    "historic": "wayside_shrine",
+    "lat": 41.2916793,
+    "lon": -7.5143641,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_shrine",
+      "name": "Gruta de Nossa Senhora de Lourdes",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 7679864128,
+    "type": "node",
+    "amenity": "fountain",
+    "lat": 41.2919861,
+    "lon": -7.5136158,
+    "tags": {
+      "amenity": "fountain"
+    }
+  },
+  {
+    "id": 7679864173,
+    "type": "node",
+    "name": "Cristo Rei",
+    "historic": "memorial",
+    "lat": 41.2908822,
+    "lon": -7.5144272,
+    "tags": {
+      "historic": "memorial",
+      "memorial": "statue",
+      "name": "Cristo Rei"
+    }
+  },
+  {
+    "id": 8113054721,
+    "type": "node",
+    "name": "ALJ-80001",
+    "amenity": "charging_station",
+    "lat": 41.275828,
+    "lon": -7.4771163,
+    "tags": {
+      "access": "yes",
+      "addr:country": "PT",
+      "amenity": "charging_station",
+      "authentication:app": "yes",
+      "authentication:membership_card": "yes",
+      "authentication:none": "no",
+      "brand": "Atlante",
+      "brand:wikidata": "Q126913632",
+      "capacity": "2",
+      "email": "support.portugal@atlante.energy",
+      "fee": "yes",
+      "maxstay": "unlimited",
+      "motorcar": "yes",
+      "name": "ALJ-80001",
+      "network": "Mobi.E",
+      "old_operator": "KLC",
+      "old_ref": "ALJ-90001",
+      "opening_hours": "24/7",
+      "operator": "Atlante",
+      "operator:wikidata": "Q126913632",
+      "parking:fee": "no",
+      "payment:app": "yes",
+      "payment:cards": "no",
+      "payment:cash": "no",
+      "payment:membership_card": "yes",
+      "phone": "+351 800 296 929;+351 234 246 050",
+      "ref": "ALJ-80001",
+      "ref:EU:EVSE": "PT*ATL*EALJ*80001*1;PT*ATL*EALJ*80001*2",
+      "socket:type2": "2",
+      "socket:type2:current": "32",
+      "socket:type2:output": "22 kW",
+      "socket:type2:voltage": "400",
+      "website": "https://www.mobie.pt"
+    }
+  },
+  {
+    "id": 8909683484,
+    "type": "node",
+    "name": "Capela de Presandães",
+    "amenity": "place_of_worship",
+    "lat": 41.2909736,
+    "lon": -7.4768381,
+    "tags": {
+      "amenity": "place_of_worship",
+      "name": "Capela de Presandães",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 8909683547,
+    "type": "node",
+    "name": "Castelo do Vilarelho",
+    "historic": "ruins",
+    "lat": 41.2778787,
+    "lon": -7.4937182,
+    "tags": {
+      "historic": "ruins",
+      "name": "Castelo do Vilarelho"
+    }
+  },
+  {
+    "id": 9986743356,
+    "type": "node",
+    "name": "ALJ-00003",
+    "amenity": "charging_station",
+    "lat": 41.2782863,
+    "lon": -7.476023,
+    "tags": {
+      "access": "customers",
+      "addr:country": "PT",
+      "amenity": "charging_station",
+      "authentication:app": "yes",
+      "authentication:membership_card": "yes",
+      "authentication:none": "no",
+      "brand": "Galp electric",
+      "brand:wikidata": "Q135275372",
+      "capacity": "2",
+      "email": "veiculoeletrico@galp.com",
+      "fee": "yes",
+      "maxstay": "unlimited",
+      "motorcar": "yes",
+      "name": "ALJ-00003",
+      "network": "Mobi.E",
+      "old_ref": "ALJ-00002",
+      "opening_hours": "24/7",
+      "operator": "Galp Power",
+      "operator:wikidata": "Q135275372",
+      "parking:fee": "no",
+      "payment:app": "yes",
+      "payment:cards": "no",
+      "payment:cash": "no",
+      "payment:membership_card": "yes",
+      "phone": "+351 800 249 249",
+      "ref": "ALJ-00003",
+      "ref:EU:EVSE": "PT*GLP*EALJ*00003*01;PT*GLP*EALJ*00003*02",
+      "socket:type2": "2",
+      "socket:type2:current": "32",
+      "socket:type2:output": "22 kW",
+      "socket:type2:voltage": "400",
+      "website": "https://www.mobie.pt/"
+    }
+  },
+  {
+    "id": 10054963978,
+    "type": "node",
+    "name": "Chafariz do Largo da Fonte",
+    "amenity": "fountain",
+    "lat": 41.3267332,
+    "lon": -7.5619825,
+    "tags": {
+      "amenity": "fountain",
+      "name": "Chafariz do Largo da Fonte"
+    }
+  },
+  {
+    "id": 10054963979,
+    "type": "node",
+    "historic": "wayside_cross",
+    "lat": 41.3266009,
+    "lon": -7.5619666,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_cross",
+      "material": "granite",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 10054964109,
+    "type": "node",
+    "amenity": "drinking_water",
+    "lat": 41.3253865,
+    "lon": -7.5583991,
+    "tags": {
+      "amenity": "drinking_water"
+    }
+  },
+  {
+    "id": 10156490745,
+    "type": "node",
+    "name": "Cruzeiro de Presandaes",
+    "historic": "monument",
+    "lat": 41.2898617,
+    "lon": -7.4778857,
+    "tags": {
+      "historic": "monument",
+      "name": "Cruzeiro de Presandaes"
+    }
+  },
+  {
+    "id": 10156490746,
+    "type": "node",
+    "name": "Fonte de Cruzeiro",
+    "amenity": "fountain",
+    "lat": 41.2898724,
+    "lon": -7.478026,
+    "tags": {
+      "amenity": "fountain",
+      "name": "Fonte de Cruzeiro"
+    }
+  },
+  {
+    "id": 10664136830,
+    "type": "node",
+    "name": "Cruzeiro de Freixo",
+    "historic": "wayside_cross",
+    "lat": 41.3693557,
+    "lon": -7.5224388,
+    "tags": {
+      "historic": "wayside_cross",
+      "material": "stone",
+      "name": "Cruzeiro de Freixo"
+    }
+  },
+  {
+    "id": 10733084018,
+    "type": "node",
+    "amenity": "drinking_water",
+    "lat": 41.283782,
+    "lon": -7.5391058,
+    "tags": {
+      "amenity": "drinking_water"
+    }
+  },
+  {
+    "id": 10733084069,
+    "type": "node",
+    "amenity": "drinking_water",
+    "lat": 41.2827798,
+    "lon": -7.5401399,
+    "tags": {
+      "amenity": "drinking_water"
+    }
+  },
+  {
+    "id": 10759579572,
+    "type": "node",
+    "historic": "wayside_cross",
+    "lat": 41.3637597,
+    "lon": -7.5500787,
+    "tags": {
+      "historic": "wayside_cross"
+    }
+  },
+  {
+    "id": 11196096117,
+    "type": "node",
+    "name": "ALJ-00004",
+    "amenity": "charging_station",
+    "lat": 41.2808127,
+    "lon": -7.4732746,
+    "tags": {
+      "access": "customers",
+      "amenity": "charging_station",
+      "authentication:app": "yes",
+      "authentication:membership_card": "yes",
+      "authentication:none": "no",
+      "brand": "edp Charge",
+      "brand:wikidata": "Q1341222",
+      "capacity": "2",
+      "fee": "yes",
+      "maxstay": "unlimited",
+      "motorcar": "yes",
+      "name": "ALJ-00004",
+      "network": "Mobi.E",
+      "old_ref": "VRL-00023",
+      "opening_hours": "24/7",
+      "operator": "EDP",
+      "operator:wikidata": "Q1341222",
+      "parking:fee": "no",
+      "payment:app": "yes",
+      "payment:cards": "no",
+      "payment:cash": "no",
+      "payment:membership_card": "yes",
+      "phone": "+351 800 222 222",
+      "ref": "ALJ-00004",
+      "ref:EU:EVSE": "PT*EDP*EALJ*00004*1;PT*EDP*EALJ*00004*2",
+      "socket:type2": "2",
+      "socket:type2:current": "32",
+      "socket:type2:output": "22 kW",
+      "socket:type2:voltage": "400",
+      "website": "https://www.mobie.pt/"
+    }
+  },
+  {
+    "id": 11934315167,
+    "type": "node",
+    "name": "Miradouro de Nossa Senhora da Piedade",
+    "tourism": "viewpoint",
+    "lat": 41.2915603,
+    "lon": -7.5134624,
+    "tags": {
+      "name": "Miradouro de Nossa Senhora da Piedade",
+      "tourism": "viewpoint",
+      "website": "https://www.roteirododouro.com/poi/miradouro-de-nossa-sra-da-piedade"
+    }
+  },
+  {
+    "id": 12193423313,
+    "type": "node",
+    "historic": "bridge",
+    "lat": 41.2794493,
+    "lon": -7.5337931,
+    "tags": {
+      "alt_name": "Ponte das Forcadas",
+      "bridge:name": "Ponte de Vila Cova",
+      "historic": "bridge"
+    }
+  },
+  {
+    "id": 12398164033,
+    "type": "node",
+    "name": "Cruzeiro de Presandães",
+    "historic": "wayside_cross",
+    "lat": 41.28441,
+    "lon": -7.4762135,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_cross",
+      "material": "granite",
+      "name": "Cruzeiro de Presandães",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 12425265474,
+    "type": "node",
+    "name": "Cabeço das Cortes",
+    "historic": "archaeological_site",
+    "lat": 41.2927177,
+    "lon": -7.502773,
+    "tags": {
+      "archaeological_site": "tumulus",
+      "heritage": "no",
+      "heritage:operator": "pc",
+      "heritage:website:arqueologia": "http://arqueologia.patrimoniocultural.pt/index.php?sid=sitios&subsid=2513887",
+      "historic": "archaeological_site",
+      "historic:civilization": "medieval_christianity",
+      "name": "Cabeço das Cortes",
+      "ref:cns": "22962"
+    }
+  },
+  {
+    "id": 12442240107,
+    "type": "node",
+    "name": "Farmácia Nova Vilar de Maçada",
+    "amenity": "pharmacy",
+    "healthcare": "pharmacy",
+    "lat": 41.325349,
+    "lon": -7.5582022,
+    "tags": {
+      "addr:city": "Vilar de Maçada",
+      "addr:country": "PT",
+      "addr:housenumber": "6",
+      "addr:postcode": "5070-576",
+      "addr:street": "Largo do Adro",
+      "amenity": "pharmacy",
+      "healthcare": "pharmacy",
+      "name": "Farmácia Nova Vilar de Maçada",
+      "operator": "João Matu Unipessoal Lda",
+      "source": "Infarmed"
+    }
+  },
+  {
+    "id": 12442240174,
+    "type": "node",
+    "name": "Castro de Santa Bárbara",
+    "historic": "archaeological_site",
+    "lat": 41.3315067,
+    "lon": -7.5642625,
+    "tags": {
+      "historic": "archaeological_site",
+      "name": "Castro de Santa Bárbara"
+    }
+  },
+  {
+    "id": 12699494264,
+    "type": "node",
+    "amenity": "drinking_water",
+    "lat": 41.3160554,
+    "lon": -7.5797982,
+    "tags": {
+      "amenity": "drinking_water"
+    }
+  },
+  {
+    "id": 12699494275,
+    "type": "node",
+    "historic": "wayside_shrine",
+    "lat": 41.3177561,
+    "lon": -7.5768634,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_shrine",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 12699494280,
+    "type": "node",
+    "historic": "wayside_cross",
+    "lat": 41.3178445,
+    "lon": -7.5768487,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_cross",
+      "material": "granite",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 12699494363,
+    "type": "node",
+    "historic": "wayside_shrine",
+    "lat": 41.314269,
+    "lon": -7.57849,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_shrine",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 12699494379,
+    "type": "node",
+    "historic": "wayside_shrine",
+    "lat": 41.3182318,
+    "lon": -7.5804249,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_shrine",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 12699494380,
+    "type": "node",
+    "amenity": "drinking_water",
+    "lat": 41.3184931,
+    "lon": -7.5812645,
+    "tags": {
+      "amenity": "drinking_water"
+    }
+  },
+  {
+    "id": 12699494421,
+    "type": "node",
+    "name": "Santa Bárbara",
+    "historic": "wayside_shrine",
+    "lat": 41.3160523,
+    "lon": -7.5819372,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_shrine",
+      "name": "Santa Bárbara",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 12699494428,
+    "type": "node",
+    "name": "Junta de Freguesia de São Lourenço de Ribapinhão",
+    "amenity": "townhall",
+    "lat": 41.3173225,
+    "lon": -7.5819656,
+    "tags": {
+      "amenity": "townhall",
+      "name": "Junta de Freguesia de São Lourenço de Ribapinhão",
+      "townhall:type": "village"
+    }
+  },
+  {
+    "id": 12699494429,
+    "type": "node",
+    "historic": "wayside_cross",
+    "lat": 41.3183983,
+    "lon": -7.581442,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_cross",
+      "material": "granite",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 12964543570,
+    "type": "node",
+    "name": "Cruzeiro de Cabeda",
+    "historic": "wayside_cross",
+    "lat": 41.3077244,
+    "lon": -7.5607553,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_cross",
+      "material": "granite",
+      "name": "Cruzeiro de Cabeda",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 12964543590,
+    "type": "node",
+    "amenity": "drinking_water",
+    "lat": 41.307821,
+    "lon": -7.5609258,
+    "tags": {
+      "amenity": "drinking_water"
+    }
+  },
+  {
+    "id": 12964543599,
+    "type": "node",
+    "amenity": "fountain",
+    "lat": 41.3064103,
+    "lon": -7.5596875,
+    "tags": {
+      "amenity": "fountain"
+    }
+  },
+  {
+    "id": 12964546694,
+    "type": "node",
+    "historic": "wayside_shrine",
+    "lat": 41.3264275,
+    "lon": -7.5621101,
+    "tags": {
+      "denomination": "roman_catholic",
+      "historic": "wayside_shrine",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 13720660321,
+    "type": "node",
+    "name": "Auchan SUPER Alijó",
+    "amenity": "recycling",
+    "lat": 41.27684,
+    "lon": -7.46967,
+    "tags": {
+      "amenity": "recycling",
+      "fixme": "survey the station, remove FIXME only when the station is operational and update check_date",
+      "name": "Auchan SUPER Alijó",
+      "note": "Guidelines at https://wiki.openstreetmap.org/wiki/Volta_PT",
+      "operator:wikidata": "Q138952882",
+      "recycling_type": "reverse_vending_machine",
+      "source:ref": "4828",
+      "website": "https://volta.com.pt"
+    }
+  },
+  {
+    "id": 13737287817,
+    "type": "node",
+    "name": "Farmácia de Favaios - Posto Farmacêutico Móvel",
+    "amenity": "pharmacy",
+    "healthcare": "pharmacy",
+    "lat": 41.3244273,
+    "lon": -7.4630944,
+    "tags": {
+      "addr:city": "Vila Chã",
+      "addr:country": "PT",
+      "addr:housenumber": "1",
+      "addr:street": "Avenida Tenente Dias",
+      "amenity": "pharmacy",
+      "check_date": "2024-05-20",
+      "healthcare": "pharmacy",
+      "name": "Farmácia de Favaios - Posto Farmacêutico Móvel",
+      "source": "Infarmed"
+    }
+  },
+  {
+    "id": 46709342,
+    "type": "way",
+    "name": "Igreja Matriz de Alijó",
+    "amenity": "place_of_worship",
+    "building": "church",
+    "lat": 41.2766556,
+    "lon": -7.4741553,
+    "tags": {
+      "alt_name": "Igreja de Santa Maria Maior de Alijó",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Matriz de Alijó",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 160282614,
+    "type": "way",
+    "name": "Escola Básica do 2º e 3º Ciclo com Ensino Secundário de Alijó",
+    "amenity": "school",
+    "lat": 41.2742894,
+    "lon": -7.4772381,
+    "tags": {
+      "addr:city": "Alijó",
+      "addr:postcode": "5070-011",
+      "addr:street": "Avenida 25 de Abril",
+      "amenity": "school",
+      "contact:email": "direcao@aealijo.edu.gov.pt;servicos@aealijo.edu.gov.pt",
+      "contact:fax": "+351 259958250",
+      "contact:phone": "+351 259959120",
+      "contact:website": "http://www.aealijo.edu.pt",
+      "grades": "10-17",
+      "name": "Escola Básica do 2º e 3º Ciclo com Ensino Secundário de Alijó",
+      "operator": "Agrupamento de Escolas Dom Sancho II",
+      "operator:ref": "152699",
+      "operator:type": "public",
+      "ref": "340959",
+      "ref:qzp": "QZP.13",
+      "short_name": "EB 2,3/S Dom Sancho II"
+    }
+  },
+  {
+    "id": 160397218,
+    "type": "way",
+    "name": "Pousada de Juventude de Alijó",
+    "tourism": "hostel",
+    "building": "residential",
+    "lat": 41.2784812,
+    "lon": -7.4763941,
+    "tags": {
+      "building": "residential",
+      "name": "Pousada de Juventude de Alijó",
+      "phone": "+351 259 949 068",
+      "tourism": "hostel"
+    }
+  },
+  {
+    "id": 160397219,
+    "type": "way",
+    "name": "Auchan Supermercado",
+    "shop": "supermarket",
+    "building": "retail",
+    "lat": 41.2766122,
+    "lon": -7.4691388,
+    "tags": {
+      "addr:city": "Alijó",
+      "addr:postcode": "5070-045",
+      "branch": "Alijó",
+      "brand": "Auchan Supermercado",
+      "brand:wikidata": "Q105857776",
+      "brand:wikipedia": "pt:Auchan",
+      "building": "retail",
+      "contact:email": "apoiocliente@auchan.pt",
+      "contact:facebook": "AuchanPortugal",
+      "contact:instagram": "auchan_pt",
+      "contact:phone": "+351 210 403 270",
+      "contact:tiktok": "auchan_pt",
+      "contact:youtube": "https://www.youtube.com/channel/UC6FSI7tYO9ISV11U2PHBBYQ",
+      "name": "Auchan Supermercado",
+      "old_name": "Minipreço",
+      "ref": "D49",
+      "shop": "supermarket",
+      "source:contact": "website",
+      "website": "https://www.auchan.pt/pt/loja?StoreID=D49"
+    }
+  },
+  {
+    "id": 160397220,
+    "type": "way",
+    "name": "Câmara Municipal de Alijó",
+    "amenity": "townhall",
+    "building": "yes",
+    "lat": 41.276186,
+    "lon": -7.4750953,
+    "tags": {
+      "amenity": "townhall",
+      "building": "yes",
+      "name": "Câmara Municipal de Alijó",
+      "townhall:type": "city",
+      "wikidata": "Q72172178"
+    }
+  },
+  {
+    "id": 169423649,
+    "type": "way",
+    "amenity": "public_building",
+    "building": "yes",
+    "lat": 41.3809466,
+    "lon": -7.5088229,
+    "tags": {
+      "amenity": "public_building",
+      "building": "yes"
+    }
+  },
+  {
+    "id": 169423651,
+    "type": "way",
+    "shop": "car_repair",
+    "lat": 41.3797998,
+    "lon": -7.5140933,
+    "tags": {
+      "shop": "car_repair"
+    }
+  },
+  {
+    "id": 169423664,
+    "type": "way",
+    "amenity": "public_building",
+    "building": "yes",
+    "lat": 41.3814173,
+    "lon": -7.508847,
+    "tags": {
+      "amenity": "public_building",
+      "building": "yes"
+    }
+  },
+  {
+    "id": 237264304,
+    "type": "way",
+    "name": "Castro de São Marcos",
+    "historic": "archaeological_site",
+    "lat": 41.3725125,
+    "lon": -7.4892598,
+    "tags": {
+      "alt_name": "Castro do Pópulo;Castro de São Marcos;Castro de Touca Rota",
+      "archaeological_site": "fortification",
+      "fortification_type": "hill_fort",
+      "historic": "archaeological_site",
+      "name": "Castro de São Marcos",
+      "place": "locality",
+      "website": "https://www.discoverdourovalley.com/content/castro-do-p%C3%B3pulo/douAA21B1864AD5EF68A"
+    }
+  },
+  {
+    "id": 237264305,
+    "type": "way",
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "lat": 41.3723375,
+    "lon": -7.4890678,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 237264307,
+    "type": "way",
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "lat": 41.3715775,
+    "lon": -7.4886679,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "denomination": "roman_catholic",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 237264340,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.3684368,
+    "lon": -7.4960678,
+    "tags": {
+      "amenity": "parking"
+    }
+  },
+  {
+    "id": 237264341,
+    "type": "way",
+    "historic": "citywalls",
+    "lat": 41.3725793,
+    "lon": -7.4892598,
+    "tags": {
+      "barrier": "city_wall",
+      "historic": "citywalls",
+      "material": "stone"
+    }
+  },
+  {
+    "id": 274451310,
+    "type": "way",
+    "name": "Quinta da Seixeda",
+    "building": "yes",
+    "lat": 41.2808539,
+    "lon": -7.4734303,
+    "tags": {
+      "building": "yes",
+      "name": "Quinta da Seixeda"
+    }
+  },
+  {
+    "id": 274454475,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.280887,
+    "lon": -7.4727457,
+    "tags": {
+      "amenity": "parking",
+      "parking": "surface"
+    }
+  },
+  {
+    "id": 274454476,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.2811834,
+    "lon": -7.4728159,
+    "tags": {
+      "amenity": "parking",
+      "parking": "surface"
+    }
+  },
+  {
+    "id": 274454478,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.2804967,
+    "lon": -7.4736304,
+    "tags": {
+      "amenity": "parking",
+      "parking": "surface"
+    }
+  },
+  {
+    "id": 274454479,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.2810513,
+    "lon": -7.4731648,
+    "tags": {
+      "amenity": "parking",
+      "parking": "surface"
+    }
+  },
+  {
+    "id": 274456827,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.2764833,
+    "lon": -7.4755274,
+    "tags": {
+      "amenity": "parking",
+      "parking": "surface",
+      "surface": "sett"
+    }
+  },
+  {
+    "id": 324587021,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.2764522,
+    "lon": -7.4784257,
+    "tags": {
+      "amenity": "parking"
+    }
+  },
+  {
+    "id": 324587024,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.2766546,
+    "lon": -7.4782526,
+    "tags": {
+      "amenity": "parking"
+    }
+  },
+  {
+    "id": 343555119,
+    "type": "way",
+    "name": "Capela de Santo António",
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "lat": 41.2792016,
+    "lon": -7.4785743,
+    "tags": {
+      "alt_name": "Capela de Santo António de Alijó",
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "ele": "664",
+      "name": "Capela de Santo António",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 376889195,
+    "type": "way",
+    "name": "Igreja Paroquial de Vila Chã",
+    "amenity": "place_of_worship",
+    "building": "church",
+    "lat": 41.3266195,
+    "lon": -7.4888613,
+    "tags": {
+      "alt_name": "Igreja de São Tiago de Vila Chã",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de Vila Chã",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 433895535,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.2763619,
+    "lon": -7.4728199,
+    "tags": {
+      "amenity": "parking",
+      "fee": "no",
+      "parking": "surface",
+      "surface": "asphalt"
+    }
+  },
+  {
+    "id": 441777810,
+    "type": "way",
+    "name": "Bombeiros Voluntários de Alijó",
+    "amenity": "fire_station",
+    "lat": 41.2753868,
+    "lon": -7.4760696,
+    "tags": {
+      "amenity": "fire_station",
+      "name": "Bombeiros Voluntários de Alijó"
+    }
+  },
+  {
+    "id": 441777811,
+    "type": "way",
+    "name": "Tribunal Judicial da Comarca de Alijó",
+    "amenity": "courthouse",
+    "building": "yes",
+    "lat": 41.2761402,
+    "lon": -7.4740169,
+    "tags": {
+      "addr:city": "Alijó",
+      "addr:country": "PT",
+      "addr:housename": "Palácio da Justiça",
+      "addr:postcode": "5070-031",
+      "addr:street": "Rua Comendador Doutor José Rufino",
+      "amenity": "courthouse",
+      "architect": "Francisco Augusto Baptista",
+      "building": "yes",
+      "name": "Tribunal Judicial da Comarca de Alijó"
+    }
+  },
+  {
+    "id": 611218812,
+    "type": "way",
+    "name": "Castro de Sabrosa",
+    "historic": "archaeological_site",
+    "lat": 41.2785997,
+    "lon": -7.5707415,
+    "tags": {
+      "alt_name": "Castelo dos Mouros;Cristêlo;Castelo da Sancha",
+      "archaeological_site": "fortification",
+      "barrier": "wall",
+      "fortification_type": "hill_fort",
+      "heritage:website": "http://monumentos.pt/Site/APP_PagesUser/SIPA.aspx?id=5840",
+      "historic": "archaeological_site",
+      "historic:period": "iron-age;roman",
+      "name": "Castro de Sabrosa",
+      "wikidata": "Q66815338"
+    }
+  },
+  {
+    "id": 646074679,
+    "type": "way",
+    "name": "Polidesportivo de Vilar de Maçada",
+    "leisure": "pitch",
+    "lat": 41.3212835,
+    "lon": -7.5552702,
+    "tags": {
+      "leisure": "pitch",
+      "name": "Polidesportivo de Vilar de Maçada"
+    }
+  },
+  {
+    "id": 801931948,
+    "type": "way",
+    "name": "Biblioteca Municipal de Alijó",
+    "amenity": "library",
+    "building": "yes",
+    "lat": 41.2757981,
+    "lon": -7.473351,
+    "tags": {
+      "amenity": "library",
+      "building": "yes",
+      "building:levels": "2",
+      "name": "Biblioteca Municipal de Alijó",
+      "wikidata": "Q72170900"
+    }
+  },
+  {
+    "id": 822493177,
+    "type": "way",
+    "name": "Descida da Cruz",
+    "amenity": "place_of_worship",
+    "historic": "wayside_chapel",
+    "building": "chapel",
+    "lat": 41.2919997,
+    "lon": -7.5140336,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "historic": "wayside_chapel",
+      "name": "Descida da Cruz",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 822493178,
+    "type": "way",
+    "name": "Calvário",
+    "amenity": "place_of_worship",
+    "historic": "wayside_chapel",
+    "building": "chapel",
+    "lat": 41.2924605,
+    "lon": -7.5140825,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "historic": "wayside_chapel",
+      "name": "Calvário",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 822493179,
+    "type": "way",
+    "name": "Crucificação de Cristo",
+    "amenity": "place_of_worship",
+    "historic": "wayside_chapel",
+    "building": "chapel",
+    "lat": 41.292304,
+    "lon": -7.5150078,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "historic": "wayside_chapel",
+      "name": "Crucificação de Cristo",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 822493180,
+    "type": "way",
+    "name": "Pretório de Pilatos",
+    "amenity": "place_of_worship",
+    "historic": "wayside_chapel",
+    "building": "chapel",
+    "lat": 41.2927583,
+    "lon": -7.5150584,
+    "tags": {
+      "alt_name": "Capela Fundeira",
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "historic": "wayside_chapel",
+      "name": "Pretório de Pilatos",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 822493184,
+    "type": "way",
+    "amenity": "bar",
+    "building": "yes",
+    "lat": 41.2913809,
+    "lon": -7.5136784,
+    "tags": {
+      "amenity": "bar",
+      "building": "yes"
+    }
+  },
+  {
+    "id": 822493192,
+    "type": "way",
+    "name": "Capela da Senhora da Piedade",
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "lat": 41.2918364,
+    "lon": -7.5133778,
+    "tags": {
+      "alt_name": "Capela de Nossa Senhora da Piedade",
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "heritage": "no",
+      "heritage:website:arqueologia": "https://arqueologia.patrimoniocultural.pt/index.php?sid=sitios&subsid=49623",
+      "heritage:website:sipa": "http://monumentos.pt/site/APP_PagesUser/SIPA.aspx?id=11988",
+      "name": "Capela da Senhora da Piedade",
+      "ref:cns": "3133",
+      "ref:ipa": "11988",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 822493193,
+    "type": "way",
+    "name": "Casa dos Milagres",
+    "building": "yes",
+    "lat": 41.291747,
+    "lon": -7.5136715,
+    "tags": {
+      "building": "yes",
+      "name": "Casa dos Milagres"
+    }
+  },
+  {
+    "id": 822500884,
+    "type": "way",
+    "name": "Pombal",
+    "building": "yes",
+    "lat": 41.2910224,
+    "lon": -7.5141791,
+    "tags": {
+      "building": "yes",
+      "name": "Pombal"
+    }
+  },
+  {
+    "id": 985089610,
+    "type": "way",
+    "name": "Jardim da Quinta",
+    "leisure": "garden",
+    "lat": 41.3335074,
+    "lon": -7.5767625,
+    "tags": {
+      "leisure": "garden",
+      "name": "Jardim da Quinta"
+    }
+  },
+  {
+    "id": 1036484132,
+    "type": "way",
+    "name": "Igreja Paroquial de Souto Maior",
+    "amenity": "place_of_worship",
+    "building": "church",
+    "lat": 41.2935636,
+    "lon": -7.5772908,
+    "tags": {
+      "alt_name": "Igreja de Santa Comba de Souto Maior",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de Souto Maior",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1036488381,
+    "type": "way",
+    "name": "Campo de Futebol de Sanfins do Douro",
+    "leisure": "pitch",
+    "lat": 41.2954694,
+    "lon": -7.5176078,
+    "tags": {
+      "leisure": "pitch",
+      "name": "Campo de Futebol de Sanfins do Douro",
+      "sport": "soccer"
+    }
+  },
+  {
+    "id": 1036488393,
+    "type": "way",
+    "name": "Igreja Matriz de Sanfins do Douro",
+    "amenity": "place_of_worship",
+    "building": "church",
+    "lat": 41.2935219,
+    "lon": -7.5180719,
+    "tags": {
+      "alt_name": "Igreja de Nossa Senhora da Assunção de Sanfins do Douro",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Matriz de Sanfins do Douro",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1097789270,
+    "type": "way",
+    "name": "Reservatório de Alijó",
+    "building": "yes",
+    "lat": 41.2844471,
+    "lon": -7.4888132,
+    "tags": {
+      "building": "yes",
+      "content": "water",
+      "man_made": "storage_tank",
+      "material": "concrete",
+      "name": "Reservatório de Alijó",
+      "operator": "Águas do Norte, S.A."
+    }
+  },
+  {
+    "id": 1097789271,
+    "type": "way",
+    "name": "Reservatório de Alijó nº 2",
+    "building": "yes",
+    "lat": 41.2803134,
+    "lon": -7.4811019,
+    "tags": {
+      "building": "yes",
+      "content": "water",
+      "man_made": "storage_tank",
+      "material": "concrete",
+      "name": "Reservatório de Alijó nº 2",
+      "operator": "Águas do Norte, S.A."
+    }
+  },
+  {
+    "id": 1098133851,
+    "type": "way",
+    "name": "Igreja Paroquial de Vilar de Maçada",
+    "amenity": "place_of_worship",
+    "building": "church",
+    "lat": 41.324804,
+    "lon": -7.5582825,
+    "tags": {
+      "alt_name": "Igreja de Nossa Senhora da Assunção de Vilar de Maçada",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de Vilar de Maçada",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1098133857,
+    "type": "way",
+    "name": "Casa dos Pizarro Portocarreiro",
+    "historic": "manor",
+    "building": "yes",
+    "lat": 41.3255788,
+    "lon": -7.5589452,
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa dos Pizarro Portocarreiro"
+    }
+  },
+  {
+    "id": 1098133871,
+    "type": "way",
+    "name": "Jardim de Infância de Vilar de Maçada",
+    "amenity": "kindergarten",
+    "lat": 41.3271889,
+    "lon": -7.5574384,
+    "tags": {
+      "amenity": "kindergarten",
+      "education": "kindergarten",
+      "name": "Jardim de Infância de Vilar de Maçada"
+    }
+  },
+  {
+    "id": 1098133879,
+    "type": "way",
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "lat": 41.3271572,
+    "lon": -7.5547163,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes"
+    }
+  },
+  {
+    "id": 1098133899,
+    "type": "way",
+    "name": "Capela de Santa Bárbara",
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "lat": 41.3299609,
+    "lon": -7.5646878,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "name": "Capela de Santa Bárbara",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1098133903,
+    "type": "way",
+    "name": "Capela do Senhor Jesus da Capelinha",
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "lat": 41.3302139,
+    "lon": -7.5647154,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "name": "Capela do Senhor Jesus da Capelinha",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1098133904,
+    "type": "way",
+    "name": "Escola Básica de Vilar de Maçada",
+    "amenity": "school",
+    "lat": 41.3253273,
+    "lon": -7.5588732,
+    "tags": {
+      "addr:city": "Vilar de Maçada",
+      "addr:postcode": "5070-576",
+      "addr:street": "Largo do Adro",
+      "amenity": "school",
+      "contact:email": "eb1.vilarmacada@escolas.min-edu.pt",
+      "contact:phone": "+351 259 919 696",
+      "education": "school",
+      "grades": "3-9",
+      "name": "Escola Básica de Vilar de Maçada",
+      "operator": "Agrupamento de Escolas Dom Sancho II",
+      "operator:ref": "152699",
+      "operator:type": "public",
+      "ref": "284786",
+      "ref:qzp": "QZP.13",
+      "short_name": "EB1 de Vilar de Maçada"
+    }
+  },
+  {
+    "id": 1110318598,
+    "type": "way",
+    "name": "Egreija de Presandaes",
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "lat": 41.2909876,
+    "lon": -7.476852,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Egreija de Presandaes",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1110322587,
+    "type": "way",
+    "amenity": "fountain",
+    "lat": 41.2919952,
+    "lon": -7.4795575,
+    "tags": {
+      "amenity": "fountain"
+    }
+  },
+  {
+    "id": 1137582442,
+    "type": "way",
+    "name": "Capela de Santo António de Vale de Agodim",
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "lat": 41.3482403,
+    "lon": -7.5781865,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de Santo António de Vale de Agodim",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1143367579,
+    "type": "way",
+    "name": "Igreja Paroquial de São Lourenço de Ribapinhão",
+    "amenity": "place_of_worship",
+    "building": "church",
+    "lat": 41.3190664,
+    "lon": -7.5783405,
+    "tags": {
+      "alt_name": "Igreja de São Lourenço de São Lourenço de Ribapinhão",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de São Lourenço de Ribapinhão",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1145919212,
+    "type": "way",
+    "name": "Capela de Santa Bárbara de Freixo",
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "lat": 41.3696425,
+    "lon": -7.5222734,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de Santa Bárbara de Freixo",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1145919221,
+    "type": "way",
+    "name": "Capela de Casas da Estrada",
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "lat": 41.3774684,
+    "lon": -7.4768595,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de Casas da Estrada",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1146026720,
+    "type": "way",
+    "name": "Capela de São Roque de Cova de Lobos",
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "lat": 41.2972988,
+    "lon": -7.5463604,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de São Roque de Cova de Lobos",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1146026727,
+    "type": "way",
+    "name": "Escola Básica do 1º Ciclo de Sanfins do Douro",
+    "amenity": "school",
+    "lat": 41.2952133,
+    "lon": -7.5163562,
+    "tags": {
+      "addr:city": "Sanfins do Douro",
+      "addr:postcode": "5070-356",
+      "addr:street": "Rua Padre Manuel da Nóbrega",
+      "amenity": "school",
+      "contact:email": "eb1.sanfinsdouro@escolas.min-edu.pt",
+      "contact:phone": "+351 259686006",
+      "grades": "3-9",
+      "name": "Escola Básica do 1º Ciclo de Sanfins do Douro",
+      "operator": "Agrupamento de Escolas Dom Sancho II",
+      "operator:ref": "152699",
+      "operator:type": "public",
+      "ref": "273004",
+      "ref:qzp": "QZP.13",
+      "short_name": "EB1 de Sanfins do Douro"
+    }
+  },
+  {
+    "id": 1154060902,
+    "type": "way",
+    "name": "Casa dos Lagares",
+    "building": "yes",
+    "lat": 41.2808477,
+    "lon": -7.5382679,
+    "tags": {
+      "building": "yes",
+      "name": "Casa dos Lagares"
+    }
+  },
+  {
+    "id": 1154060905,
+    "type": "way",
+    "amenity": "shelter",
+    "building": "yes",
+    "lat": 41.2810257,
+    "lon": -7.539256,
+    "tags": {
+      "amenity": "shelter",
+      "building": "yes",
+      "shelter_type": "public_transport"
+    }
+  },
+  {
+    "id": 1154060906,
+    "type": "way",
+    "name": "Antiga Escola Primária de Cheires",
+    "amenity": "school",
+    "lat": 41.2808632,
+    "lon": -7.5396583,
+    "tags": {
+      "amenity": "school",
+      "name": "Antiga Escola Primária de Cheires"
+    }
+  },
+  {
+    "id": 1154060918,
+    "type": "way",
+    "name": "Quinta do Estanho",
+    "building": "yes",
+    "lat": 41.2816253,
+    "lon": -7.5394832,
+    "tags": {
+      "building": "yes",
+      "name": "Quinta do Estanho"
+    }
+  },
+  {
+    "id": 1154060934,
+    "type": "way",
+    "name": "Capela de Nossa Senhora da Conceição",
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "lat": 41.2828001,
+    "lon": -7.5402689,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de Nossa Senhora da Conceição",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1154060937,
+    "type": "way",
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "lat": 41.2833053,
+    "lon": -7.5404134,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1157016162,
+    "type": "way",
+    "name": "Igreja Paroquial de Vila Verde",
+    "amenity": "place_of_worship",
+    "building": "church",
+    "lat": 41.3639377,
+    "lon": -7.5505251,
+    "tags": {
+      "alt_name": "Igreja de Santa Marinha de Vila Verde",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de Vila Verde",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1157016173,
+    "type": "way",
+    "name": "Igreja Paroquial do Pópulo",
+    "amenity": "place_of_worship",
+    "building": "church",
+    "lat": 41.3747484,
+    "lon": -7.5024461,
+    "tags": {
+      "alt_name": "Igreja de São Sebastião do Pópulo",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial do Pópulo",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1157016176,
+    "type": "way",
+    "name": "Igreja Paroquial de Ribalonga",
+    "amenity": "place_of_worship",
+    "building": "church",
+    "lat": 41.3579938,
+    "lon": -7.5053458,
+    "tags": {
+      "alt_name": "Igreja de Santa Ana de Ribalonga",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de Ribalonga",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1188272844,
+    "type": "way",
+    "amenity": "fountain",
+    "lat": 41.275478,
+    "lon": -7.4752813,
+    "tags": {
+      "amenity": "fountain",
+      "drinking_water": "no"
+    }
+  },
+  {
+    "id": 1211839957,
+    "type": "way",
+    "name": "Teatro Auditório Municipal de Alijó",
+    "amenity": "theatre",
+    "building": "yes",
+    "lat": 41.2761788,
+    "lon": -7.4727726,
+    "tags": {
+      "amenity": "theatre",
+      "building": "yes",
+      "name": "Teatro Auditório Municipal de Alijó"
+    }
+  },
+  {
+    "id": 1211839958,
+    "type": "way",
+    "name": "Hospital da Misericórdia de Alijó",
+    "amenity": "hospital",
+    "healthcare": "hospital",
+    "lat": 41.2769547,
+    "lon": -7.4732645,
+    "tags": {
+      "amenity": "hospital",
+      "healthcare": "hospital",
+      "name": "Hospital da Misericórdia de Alijó"
+    }
+  },
+  {
+    "id": 1211839960,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.2771082,
+    "lon": -7.4730429,
+    "tags": {
+      "amenity": "parking"
+    }
+  },
+  {
+    "id": 1225694619,
+    "type": "way",
+    "amenity": "shelter",
+    "building": "yes",
+    "lat": 41.2751457,
+    "lon": -7.5080476,
+    "tags": {
+      "amenity": "shelter",
+      "building": "yes",
+      "shelter_type": "public_transport"
+    }
+  },
+  {
+    "id": 1340320415,
+    "type": "way",
+    "name": "Jardim Público Doutor Matos Cordeiro",
+    "leisure": "park",
+    "lat": 41.2748205,
+    "lon": -7.4752199,
+    "tags": {
+      "leisure": "park",
+      "name": "Jardim Público Doutor Matos Cordeiro"
+    }
+  },
+  {
+    "id": 1340320427,
+    "type": "way",
+    "name": "Casa da Arcã",
+    "historic": "manor",
+    "building": "yes",
+    "lat": 41.2757986,
+    "lon": -7.470598,
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa da Arcã"
+    }
+  },
+  {
+    "id": 1340320434,
+    "type": "way",
+    "name": "GNR - Posto Territorial de Alijó",
+    "amenity": "police",
+    "lat": 41.281632,
+    "lon": -7.4750554,
+    "tags": {
+      "addr:city": "Alijó",
+      "addr:postcode": "5070-124",
+      "addr:street": "Bairro do Pombal",
+      "amenity": "police",
+      "name": "GNR - Posto Territorial de Alijó",
+      "operator": "Guarda Nacional Republicana",
+      "operator:wikidata": "Q1280906",
+      "operator:wikipedia": "pt:Guarda Nacional Republicana",
+      "short_name": "GNR Alijó"
+    }
+  },
+  {
+    "id": 1340320440,
+    "type": "way",
+    "name": "Casa dos Noura",
+    "historic": "manor",
+    "building": "yes",
+    "lat": 41.2769783,
+    "lon": -7.4751072,
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa dos Noura"
+    }
+  },
+  {
+    "id": 1340320443,
+    "type": "way",
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "lat": 41.2787819,
+    "lon": -7.4743811,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1344865279,
+    "type": "way",
+    "name": "Quinta de Favaios",
+    "historic": "manor",
+    "building": "yes",
+    "lat": 41.324385,
+    "lon": -7.5586822,
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Quinta de Favaios"
+    }
+  },
+  {
+    "id": 1344865280,
+    "type": "way",
+    "name": "Campo de Futebol de Vilar de Maçada",
+    "leisure": "pitch",
+    "lat": 41.3202694,
+    "lon": -7.5554412,
+    "tags": {
+      "leisure": "pitch",
+      "name": "Campo de Futebol de Vilar de Maçada",
+      "sport": "soccer"
+    }
+  },
+  {
+    "id": 1344865281,
+    "type": "way",
+    "name": "Centro Social, Recreativo e Cultural de Vilar de Maçada",
+    "amenity": "social_facility",
+    "lat": 41.3261267,
+    "lon": -7.5591332,
+    "tags": {
+      "amenity": "social_facility",
+      "name": "Centro Social, Recreativo e Cultural de Vilar de Maçada"
+    }
+  },
+  {
+    "id": 1344865282,
+    "type": "way",
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "lat": 41.3301457,
+    "lon": -7.5646967,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1344865283,
+    "type": "way",
+    "name": "Santuário de Santa Bárbara",
+    "leisure": "park",
+    "lat": 41.3300761,
+    "lon": -7.5646905,
+    "tags": {
+      "landuse": "religious",
+      "leisure": "park",
+      "name": "Santuário de Santa Bárbara"
+    }
+  },
+  {
+    "id": 1370707201,
+    "type": "way",
+    "amenity": "shelter",
+    "building": "yes",
+    "lat": 41.3102899,
+    "lon": -7.5814219,
+    "tags": {
+      "amenity": "shelter",
+      "building": "yes",
+      "shelter_type": "public_transport"
+    }
+  },
+  {
+    "id": 1371248960,
+    "type": "way",
+    "name": "Casa do Pinheiro",
+    "historic": "manor",
+    "building": "yes",
+    "lat": 41.3162656,
+    "lon": -7.5794491,
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa do Pinheiro"
+    }
+  },
+  {
+    "id": 1371248961,
+    "type": "way",
+    "name": "Lavadouro de São Lourenço de Ribapinhão",
+    "amenity": "lavoir",
+    "building": "yes",
+    "lat": 41.3178365,
+    "lon": -7.5765263,
+    "tags": {
+      "amenity": "lavoir",
+      "building": "yes",
+      "name": "Lavadouro de São Lourenço de Ribapinhão"
+    }
+  },
+  {
+    "id": 1371248968,
+    "type": "way",
+    "name": "Capela de Nossa Senhora da Conceição",
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "lat": 41.3184775,
+    "lon": -7.5811337,
+    "tags": {
+      "alt_name": "Capela de Nossa Senhora da Conceição da Casa do Pátio",
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "name": "Capela de Nossa Senhora da Conceição",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1371248969,
+    "type": "way",
+    "name": "Casa do Pátio",
+    "historic": "manor",
+    "building": "yes",
+    "lat": 41.3186763,
+    "lon": -7.5810707,
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa do Pátio"
+    }
+  },
+  {
+    "id": 1371248971,
+    "type": "way",
+    "amenity": "shelter",
+    "building": "yes",
+    "lat": 41.3158436,
+    "lon": -7.5807059,
+    "tags": {
+      "amenity": "shelter",
+      "building": "yes",
+      "shelter_type": "public_transport"
+    }
+  },
+  {
+    "id": 1371248977,
+    "type": "way",
+    "name": "Largo de Santa Bárbara",
+    "amenity": "parking",
+    "lat": 41.316017,
+    "lon": -7.5816779,
+    "tags": {
+      "amenity": "parking",
+      "name": "Largo de Santa Bárbara",
+      "place": "square"
+    }
+  },
+  {
+    "id": 1410922065,
+    "type": "way",
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "lat": 41.3034094,
+    "lon": -7.5579639,
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1410922068,
+    "type": "way",
+    "name": "Parque Infantil de Cabeda",
+    "leisure": "playground",
+    "lat": 41.3066143,
+    "lon": -7.5599602,
+    "tags": {
+      "leisure": "playground",
+      "name": "Parque Infantil de Cabeda"
+    }
+  },
+  {
+    "id": 1410922069,
+    "type": "way",
+    "name": "Lavadouro de Cabeda",
+    "amenity": "lavoir",
+    "building": "yes",
+    "lat": 41.3067229,
+    "lon": -7.5599892,
+    "tags": {
+      "amenity": "lavoir",
+      "building": "yes",
+      "name": "Lavadouro de Cabeda"
+    }
+  },
+  {
+    "id": 1410922085,
+    "type": "way",
+    "name": "Casa dos Pinto Pimentel",
+    "historic": "manor",
+    "building": "yes",
+    "lat": 41.3261821,
+    "lon": -7.5626562,
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa dos Pinto Pimentel"
+    }
+  },
+  {
+    "id": 1410922086,
+    "type": "way",
+    "name": "Casa da Fonte",
+    "historic": "manor",
+    "building": "yes",
+    "lat": 41.3264777,
+    "lon": -7.5618292,
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa da Fonte"
+    }
+  },
+  {
+    "id": 1410922087,
+    "type": "way",
+    "name": "Casa do Povo de Vilar de Maçada",
+    "amenity": "community_centre",
+    "building": "yes",
+    "lat": 41.3268739,
+    "lon": -7.5619164,
+    "tags": {
+      "amenity": "community_centre",
+      "building": "yes",
+      "community_centre": "community_hall",
+      "name": "Casa do Povo de Vilar de Maçada"
+    }
+  },
+  {
+    "id": 1435288963,
+    "type": "way",
+    "name": "Cepsa",
+    "amenity": "fuel",
+    "lat": 41.2955536,
+    "lon": -7.5196756,
+    "tags": {
+      "amenity": "fuel",
+      "brand": "Cepsa",
+      "brand:wikidata": "Q608819",
+      "brand:wikipedia": "pt:Compañía Española de Petróleos",
+      "landuse": "retail",
+      "name": "Cepsa",
+      "operator": "Cepsa",
+      "ref:PT:dgeg": "61277",
+      "ref:inspire": "IDDGEG_PACVR_4435"
+    }
+  },
+  {
+    "id": 1450320867,
+    "type": "way",
+    "name": "Santuário de Nossa Senhora da Boa Morte",
+    "leisure": "park",
+    "lat": 41.3709994,
+    "lon": -7.488714,
+    "tags": {
+      "alt_name": "Santuário de Nossa Senhora da Boa Morte do Pópulo",
+      "denomination": "roman_catholic",
+      "landuse": "religious",
+      "leisure": "park",
+      "name": "Santuário de Nossa Senhora da Boa Morte",
+      "religion": "christian"
+    }
+  },
+  {
+    "id": 1458490511,
+    "type": "way",
+    "name": "Lar da Santa Casa da Misericórdia de Alijó",
+    "amenity": "social_facility",
+    "lat": 41.2803349,
+    "lon": -7.4704217,
+    "tags": {
+      "amenity": "social_facility",
+      "name": "Lar da Santa Casa da Misericórdia de Alijó",
+      "social_facility": "group_home",
+      "social_facility:for": "senior"
+    }
+  },
+  {
+    "id": 1458490514,
+    "type": "way",
+    "amenity": "parking",
+    "lat": 41.2784996,
+    "lon": -7.4710923,
+    "tags": {
+      "amenity": "parking",
+      "parking": "street_side"
+    }
+  }
+]

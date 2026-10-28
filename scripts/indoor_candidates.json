@@ -1,0 +1,849 @@
+[
+  {
+    "name": "Ribeiro",
+    "freguesia": "Ribalonga",
+    "x": 52797.9,
+    "y": 190642.15,
+    "lat": 41.3833313,
+    "lon": -7.5019023,
+    "amenity": "cafe",
+    "tags": {
+      "amenity": "cafe",
+      "name": "Ribeiro"
+    },
+    "osmId": 3370160652,
+    "osmType": "node"
+  },
+  {
+    "name": "Europa",
+    "freguesia": "Ribalonga",
+    "x": 52550.7,
+    "y": 190551.96,
+    "lat": 41.3825355,
+    "lon": -7.5048653,
+    "amenity": "cafe",
+    "tags": {
+      "amenity": "cafe",
+      "name": "Europa"
+    },
+    "osmId": 3762981471,
+    "osmType": "node"
+  },
+  {
+    "name": "Avia",
+    "freguesia": "Vila Chã",
+    "x": 56203.76,
+    "y": 183650.59,
+    "lat": 41.3201525,
+    "lon": -7.4618344,
+    "amenity": "fuel",
+    "tags": {
+      "amenity": "fuel",
+      "fuel:diesel": "yes",
+      "fuel:octane_95": "yes",
+      "fuel:octane_98": "yes",
+      "name": "Avia"
+    },
+    "osmId": 3956023557,
+    "osmType": "node"
+  },
+  {
+    "name": "Pelourinho de Vila Chã",
+    "freguesia": "Vila Chã",
+    "x": 53876.18,
+    "y": 184330.73,
+    "lat": 41.326435,
+    "lon": -7.489572,
+    "tourism": "attraction",
+    "historic": "pillory",
+    "tags": {
+      "alt_name": "Cruzeiro de Vila Chã",
+      "disused": "yes",
+      "historic": "pillory",
+      "name": "Pelourinho de Vila Chã",
+      "start_date": "C16",
+      "tourism": "attraction"
+    },
+    "osmId": 3995965069,
+    "osmType": "node"
+  },
+  {
+    "name": "Farmácia Nova Vilar de Maçada",
+    "freguesia": "Vilar de Maçada",
+    "x": 48131.31,
+    "y": 184169.78,
+    "lat": 41.325349,
+    "lon": -7.5582022,
+    "amenity": "pharmacy",
+    "tags": {
+      "addr:city": "Vilar de Maçada",
+      "addr:country": "PT",
+      "addr:housenumber": "6",
+      "addr:postcode": "5070-576",
+      "addr:street": "Largo do Adro",
+      "amenity": "pharmacy",
+      "healthcare": "pharmacy",
+      "name": "Farmácia Nova Vilar de Maçada",
+      "operator": "João Matu Unipessoal Lda",
+      "source": "Infarmed"
+    },
+    "osmId": 12442240107,
+    "osmType": "node"
+  },
+  {
+    "name": "Farmácia de Favaios - Posto Farmacêutico Móvel",
+    "freguesia": "Vila Chã",
+    "x": 56094.59,
+    "y": 184124.54,
+    "lat": 41.3244273,
+    "lon": -7.4630944,
+    "amenity": "pharmacy",
+    "tags": {
+      "addr:city": "Vila Chã",
+      "addr:country": "PT",
+      "addr:housenumber": "1",
+      "addr:street": "Avenida Tenente Dias",
+      "amenity": "pharmacy",
+      "check_date": "2024-05-20",
+      "healthcare": "pharmacy",
+      "name": "Farmácia de Favaios - Posto Farmacêutico Móvel",
+      "source": "Infarmed"
+    },
+    "osmId": 13737287817,
+    "osmType": "node"
+  },
+  {
+    "name": "Igreja Paroquial de Vila Chã",
+    "freguesia": "Vila Chã",
+    "x": 53935.53,
+    "y": 184351.67,
+    "lat": 41.3266195,
+    "lon": -7.4888613,
+    "amenity": "place_of_worship",
+    "building": "church",
+    "tags": {
+      "alt_name": "Igreja de São Tiago de Vila Chã",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de Vila Chã",
+      "religion": "christian"
+    },
+    "osmId": 376889195,
+    "osmType": "way"
+  },
+  {
+    "name": "Polidesportivo de Vilar de Maçada",
+    "freguesia": "Vilar de Maçada",
+    "x": 48379.78,
+    "y": 183719.89,
+    "lat": 41.3212835,
+    "lon": -7.5552702,
+    "tags": {
+      "leisure": "pitch",
+      "name": "Polidesportivo de Vilar de Maçada"
+    },
+    "osmId": 646074679,
+    "osmType": "way"
+  },
+  {
+    "name": "Descida da Cruz",
+    "freguesia": "Sanfins do Douro",
+    "x": 51855.55,
+    "y": 180491.42,
+    "lat": 41.2919997,
+    "lon": -7.5140336,
+    "amenity": "place_of_worship",
+    "historic": "wayside_chapel",
+    "building": "chapel",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "historic": "wayside_chapel",
+      "name": "Descida da Cruz",
+      "religion": "christian"
+    },
+    "osmId": 822493177,
+    "osmType": "way"
+  },
+  {
+    "name": "Calvário",
+    "freguesia": "Sanfins do Douro",
+    "x": 51851.09,
+    "y": 180542.57,
+    "lat": 41.2924605,
+    "lon": -7.5140825,
+    "amenity": "place_of_worship",
+    "historic": "wayside_chapel",
+    "building": "chapel",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "historic": "wayside_chapel",
+      "name": "Calvário",
+      "religion": "christian"
+    },
+    "osmId": 822493178,
+    "osmType": "way"
+  },
+  {
+    "name": "Crucificação de Cristo",
+    "freguesia": "Sanfins do Douro",
+    "x": 51773.71,
+    "y": 180524.64,
+    "lat": 41.292304,
+    "lon": -7.5150078,
+    "amenity": "place_of_worship",
+    "historic": "wayside_chapel",
+    "building": "chapel",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "historic": "wayside_chapel",
+      "name": "Crucificação de Cristo",
+      "religion": "christian"
+    },
+    "osmId": 822493179,
+    "osmType": "way"
+  },
+  {
+    "name": "Pretório de Pilatos",
+    "freguesia": "Sanfins do Douro",
+    "x": 51769.11,
+    "y": 180575.06,
+    "lat": 41.2927583,
+    "lon": -7.5150584,
+    "amenity": "place_of_worship",
+    "historic": "wayside_chapel",
+    "building": "chapel",
+    "tags": {
+      "alt_name": "Capela Fundeira",
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "historic": "wayside_chapel",
+      "name": "Pretório de Pilatos",
+      "religion": "christian"
+    },
+    "osmId": 822493180,
+    "osmType": "way"
+  },
+  {
+    "name": "Capela da Senhora da Piedade",
+    "freguesia": "Sanfins do Douro",
+    "x": 51910.61,
+    "y": 180473.68,
+    "lat": 41.2918364,
+    "lon": -7.5133778,
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "tags": {
+      "alt_name": "Capela de Nossa Senhora da Piedade",
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "heritage": "no",
+      "heritage:website:arqueologia": "https://arqueologia.patrimoniocultural.pt/index.php?sid=sitios&subsid=49623",
+      "heritage:website:sipa": "http://monumentos.pt/site/APP_PagesUser/SIPA.aspx?id=11988",
+      "name": "Capela da Senhora da Piedade",
+      "ref:cns": "3133",
+      "ref:ipa": "11988",
+      "religion": "christian"
+    },
+    "osmId": 822493192,
+    "osmType": "way"
+  },
+  {
+    "name": "Casa dos Milagres",
+    "freguesia": "Sanfins do Douro",
+    "x": 51886.08,
+    "y": 180463.57,
+    "lat": 41.291747,
+    "lon": -7.5136715,
+    "building": "yes",
+    "tags": {
+      "building": "yes",
+      "name": "Casa dos Milagres"
+    },
+    "osmId": 822493193,
+    "osmType": "way"
+  },
+  {
+    "name": "Pombal",
+    "freguesia": "Sanfins do Douro",
+    "x": 51844.14,
+    "y": 180382.8,
+    "lat": 41.2910224,
+    "lon": -7.5141791,
+    "building": "yes",
+    "tags": {
+      "building": "yes",
+      "name": "Pombal"
+    },
+    "osmId": 822500884,
+    "osmType": "way"
+  },
+  {
+    "name": "Jardim da Quinta",
+    "freguesia": "Vila Verde",
+    "x": 46571.62,
+    "y": 185065.73,
+    "lat": 41.3335074,
+    "lon": -7.5767625,
+    "tags": {
+      "leisure": "garden",
+      "name": "Jardim da Quinta"
+    },
+    "osmId": 985089610,
+    "osmType": "way"
+  },
+  {
+    "name": "Campo de Futebol de Sanfins do Douro",
+    "freguesia": "Sanfins do Douro",
+    "x": 51553.43,
+    "y": 180874.64,
+    "lat": 41.2954694,
+    "lon": -7.5176078,
+    "tags": {
+      "leisure": "pitch",
+      "name": "Campo de Futebol de Sanfins do Douro",
+      "sport": "soccer"
+    },
+    "osmId": 1036488381,
+    "osmType": "way"
+  },
+  {
+    "name": "Igreja Matriz de Sanfins do Douro",
+    "freguesia": "Sanfins do Douro",
+    "x": 51516.09,
+    "y": 180658.07,
+    "lat": 41.2935219,
+    "lon": -7.5180719,
+    "amenity": "place_of_worship",
+    "building": "church",
+    "tags": {
+      "alt_name": "Igreja de Nossa Senhora da Assunção de Sanfins do Douro",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Matriz de Sanfins do Douro",
+      "religion": "christian"
+    },
+    "osmId": 1036488393,
+    "osmType": "way"
+  },
+  {
+    "name": "Igreja Paroquial de Vilar de Maçada",
+    "freguesia": "Vilar de Maçada",
+    "x": 48124.99,
+    "y": 184109.2,
+    "lat": 41.324804,
+    "lon": -7.5582825,
+    "amenity": "place_of_worship",
+    "building": "church",
+    "tags": {
+      "alt_name": "Igreja de Nossa Senhora da Assunção de Vilar de Maçada",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de Vilar de Maçada",
+      "religion": "christian"
+    },
+    "osmId": 1098133851,
+    "osmType": "way"
+  },
+  {
+    "name": "Casa dos Pizarro Portocarreiro",
+    "freguesia": "Vilar de Maçada",
+    "x": 48068.93,
+    "y": 184194.89,
+    "lat": 41.3255788,
+    "lon": -7.5589452,
+    "historic": "manor",
+    "building": "yes",
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa dos Pizarro Portocarreiro"
+    },
+    "osmId": 1098133857,
+    "osmType": "way"
+  },
+  {
+    "name": "Jardim de Infância de Vilar de Maçada",
+    "freguesia": "Vilar de Maçada",
+    "x": 48193.9,
+    "y": 184374.54,
+    "lat": 41.3271889,
+    "lon": -7.5574384,
+    "amenity": "kindergarten",
+    "tags": {
+      "amenity": "kindergarten",
+      "education": "kindergarten",
+      "name": "Jardim de Infância de Vilar de Maçada"
+    },
+    "osmId": 1098133871,
+    "osmType": "way"
+  },
+  {
+    "name": "Capela de Santa Bárbara",
+    "freguesia": "Vilar de Maçada",
+    "x": 47584.97,
+    "y": 184678.4,
+    "lat": 41.3299609,
+    "lon": -7.5646878,
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "name": "Capela de Santa Bárbara",
+      "religion": "christian"
+    },
+    "osmId": 1098133899,
+    "osmType": "way"
+  },
+  {
+    "name": "Capela do Senhor Jesus da Capelinha",
+    "freguesia": "Vilar de Maçada",
+    "x": 47582.48,
+    "y": 184706.48,
+    "lat": 41.3302139,
+    "lon": -7.5647154,
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "chapel",
+      "denomination": "roman_catholic",
+      "name": "Capela do Senhor Jesus da Capelinha",
+      "religion": "christian"
+    },
+    "osmId": 1098133903,
+    "osmType": "way"
+  },
+  {
+    "name": "Escola Básica de Vilar de Maçada",
+    "freguesia": "Vilar de Maçada",
+    "x": 48075.15,
+    "y": 184166.99,
+    "lat": 41.3253273,
+    "lon": -7.5588732,
+    "amenity": "school",
+    "tags": {
+      "addr:city": "Vilar de Maçada",
+      "addr:postcode": "5070-576",
+      "addr:street": "Largo do Adro",
+      "amenity": "school",
+      "contact:email": "eb1.vilarmacada@escolas.min-edu.pt",
+      "contact:phone": "+351 259 919 696",
+      "education": "school",
+      "grades": "3-9",
+      "name": "Escola Básica de Vilar de Maçada",
+      "operator": "Agrupamento de Escolas Dom Sancho II",
+      "operator:ref": "152699",
+      "operator:type": "public",
+      "ref": "284786",
+      "ref:qzp": "QZP.13",
+      "short_name": "EB1 de Vilar de Maçada"
+    },
+    "osmId": 1098133904,
+    "osmType": "way"
+  },
+  {
+    "name": "Capela de Santo António de Vale de Agodim",
+    "freguesia": "Vila Verde",
+    "x": 46441.95,
+    "y": 186701.22,
+    "lat": 41.3482403,
+    "lon": -7.5781865,
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de Santo António de Vale de Agodim",
+      "religion": "christian"
+    },
+    "osmId": 1137582442,
+    "osmType": "way"
+  },
+  {
+    "name": "Capela de Santa Bárbara de Freixo",
+    "freguesia": "Vila Verde",
+    "x": 51104.64,
+    "y": 189109.63,
+    "lat": 41.3696425,
+    "lon": -7.5222734,
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de Santa Bárbara de Freixo",
+      "religion": "christian"
+    },
+    "osmId": 1145919212,
+    "osmType": "way"
+  },
+  {
+    "name": "Capela de Casas da Estrada",
+    "freguesia": "Ribalonga",
+    "x": 54897.57,
+    "y": 190006.56,
+    "lat": 41.3774684,
+    "lon": -7.4768595,
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de Casas da Estrada",
+      "religion": "christian"
+    },
+    "osmId": 1145919221,
+    "osmType": "way"
+  },
+  {
+    "name": "Capela de São Roque de Cova de Lobos",
+    "freguesia": "Sanfins do Douro",
+    "x": 49143.77,
+    "y": 181061.14,
+    "lat": 41.2972988,
+    "lon": -7.5463604,
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de São Roque de Cova de Lobos",
+      "religion": "christian"
+    },
+    "osmId": 1146026720,
+    "osmType": "way"
+  },
+  {
+    "name": "Escola Básica do 1º Ciclo de Sanfins do Douro",
+    "freguesia": "Sanfins do Douro",
+    "x": 51658.47,
+    "y": 180846.94,
+    "lat": 41.2952133,
+    "lon": -7.5163562,
+    "amenity": "school",
+    "tags": {
+      "addr:city": "Sanfins do Douro",
+      "addr:postcode": "5070-356",
+      "addr:street": "Rua Padre Manuel da Nóbrega",
+      "amenity": "school",
+      "contact:email": "eb1.sanfinsdouro@escolas.min-edu.pt",
+      "contact:phone": "+351 259686006",
+      "grades": "3-9",
+      "name": "Escola Básica do 1º Ciclo de Sanfins do Douro",
+      "operator": "Agrupamento de Escolas Dom Sancho II",
+      "operator:ref": "152699",
+      "operator:type": "public",
+      "ref": "273004",
+      "ref:qzp": "QZP.13",
+      "short_name": "EB1 de Sanfins do Douro"
+    },
+    "osmId": 1146026727,
+    "osmType": "way"
+  },
+  {
+    "name": "Casa dos Lagares",
+    "freguesia": "Sanfins do Douro",
+    "x": 49834.09,
+    "y": 179238.69,
+    "lat": 41.2808477,
+    "lon": -7.5382679,
+    "building": "yes",
+    "tags": {
+      "building": "yes",
+      "name": "Casa dos Lagares"
+    },
+    "osmId": 1154060902,
+    "osmType": "way"
+  },
+  {
+    "name": "Antiga Escola Primária de Cheires",
+    "freguesia": "Sanfins do Douro",
+    "x": 49717.59,
+    "y": 179239.61,
+    "lat": 41.2808632,
+    "lon": -7.5396583,
+    "amenity": "school",
+    "tags": {
+      "amenity": "school",
+      "name": "Antiga Escola Primária de Cheires"
+    },
+    "osmId": 1154060906,
+    "osmType": "way"
+  },
+  {
+    "name": "Quinta do Estanho",
+    "freguesia": "Sanfins do Douro",
+    "x": 49731.68,
+    "y": 179324.35,
+    "lat": 41.2816253,
+    "lon": -7.5394832,
+    "building": "yes",
+    "tags": {
+      "building": "yes",
+      "name": "Quinta do Estanho"
+    },
+    "osmId": 1154060918,
+    "osmType": "way"
+  },
+  {
+    "name": "Capela de Nossa Senhora da Conceição",
+    "freguesia": "Sanfins do Douro",
+    "x": 49664.97,
+    "y": 179454.38,
+    "lat": 41.2828001,
+    "lon": -7.5402689,
+    "amenity": "place_of_worship",
+    "building": "yes",
+    "tags": {
+      "amenity": "place_of_worship",
+      "building": "yes",
+      "name": "Capela de Nossa Senhora da Conceição",
+      "religion": "christian"
+    },
+    "osmId": 1154060934,
+    "osmType": "way"
+  },
+  {
+    "name": "Igreja Paroquial de Vila Verde",
+    "freguesia": "Vila Verde",
+    "x": 48745.25,
+    "y": 188459.78,
+    "lat": 41.3639377,
+    "lon": -7.5505251,
+    "amenity": "place_of_worship",
+    "building": "church",
+    "tags": {
+      "alt_name": "Igreja de Santa Marinha de Vila Verde",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de Vila Verde",
+      "religion": "christian"
+    },
+    "osmId": 1157016162,
+    "osmType": "way"
+  },
+  {
+    "name": "Igreja Paroquial do Pópulo",
+    "freguesia": "Ribalonga",
+    "x": 52759.35,
+    "y": 189688.58,
+    "lat": 41.3747484,
+    "lon": -7.5024461,
+    "amenity": "place_of_worship",
+    "building": "church",
+    "tags": {
+      "alt_name": "Igreja de São Sebastião do Pópulo",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial do Pópulo",
+      "religion": "christian"
+    },
+    "osmId": 1157016173,
+    "osmType": "way"
+  },
+  {
+    "name": "Igreja Paroquial de Ribalonga",
+    "freguesia": "Ribalonga",
+    "x": 52530.24,
+    "y": 187826.02,
+    "lat": 41.3579938,
+    "lon": -7.5053458,
+    "amenity": "place_of_worship",
+    "building": "church",
+    "tags": {
+      "alt_name": "Igreja de Santa Ana de Ribalonga",
+      "amenity": "place_of_worship",
+      "building": "church",
+      "denomination": "roman_catholic",
+      "name": "Igreja Paroquial de Ribalonga",
+      "religion": "christian"
+    },
+    "osmId": 1157016176,
+    "osmType": "way"
+  },
+  {
+    "name": "Quinta de Favaios",
+    "freguesia": "Vilar de Maçada",
+    "x": 48091.83,
+    "y": 184062.45,
+    "lat": 41.324385,
+    "lon": -7.5586822,
+    "historic": "manor",
+    "building": "yes",
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Quinta de Favaios"
+    },
+    "osmId": 1344865279,
+    "osmType": "way"
+  },
+  {
+    "name": "Campo de Futebol de Vilar de Maçada",
+    "freguesia": "Vilar de Maçada",
+    "x": 48366.22,
+    "y": 183607.17,
+    "lat": 41.3202694,
+    "lon": -7.5554412,
+    "tags": {
+      "leisure": "pitch",
+      "name": "Campo de Futebol de Vilar de Maçada",
+      "sport": "soccer"
+    },
+    "osmId": 1344865280,
+    "osmType": "way"
+  },
+  {
+    "name": "Santuário de Santa Bárbara",
+    "freguesia": "Vilar de Maçada",
+    "x": 47584.66,
+    "y": 184691.19,
+    "lat": 41.3300761,
+    "lon": -7.5646905,
+    "tags": {
+      "landuse": "religious",
+      "leisure": "park",
+      "name": "Santuário de Santa Bárbara"
+    },
+    "osmId": 1344865283,
+    "osmType": "way"
+  },
+  {
+    "name": "Parque Infantil de Cabeda",
+    "freguesia": "Vilar de Maçada",
+    "x": 47997.87,
+    "y": 182088.11,
+    "lat": 41.3066143,
+    "lon": -7.5599602,
+    "tags": {
+      "leisure": "playground",
+      "name": "Parque Infantil de Cabeda"
+    },
+    "osmId": 1410922068,
+    "osmType": "way"
+  },
+  {
+    "name": "Lavadouro de Cabeda",
+    "freguesia": "Vilar de Maçada",
+    "x": 47995.36,
+    "y": 182100.16,
+    "lat": 41.3067229,
+    "lon": -7.5599892,
+    "amenity": "lavoir",
+    "building": "yes",
+    "tags": {
+      "amenity": "lavoir",
+      "building": "yes",
+      "name": "Lavadouro de Cabeda"
+    },
+    "osmId": 1410922069,
+    "osmType": "way"
+  },
+  {
+    "name": "Casa dos Pinto Pimentel",
+    "freguesia": "Vilar de Maçada",
+    "x": 47757.81,
+    "y": 184259.84,
+    "lat": 41.3261821,
+    "lon": -7.5626562,
+    "historic": "manor",
+    "building": "yes",
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa dos Pinto Pimentel"
+    },
+    "osmId": 1410922085,
+    "osmType": "way"
+  },
+  {
+    "name": "Casa da Fonte",
+    "freguesia": "Vilar de Maçada",
+    "x": 47826.83,
+    "y": 184293.13,
+    "lat": 41.3264777,
+    "lon": -7.5618292,
+    "historic": "manor",
+    "building": "yes",
+    "tags": {
+      "building": "yes",
+      "historic": "manor",
+      "name": "Casa da Fonte"
+    },
+    "osmId": 1410922086,
+    "osmType": "way"
+  },
+  {
+    "name": "Casa do Povo de Vilar de Maçada",
+    "freguesia": "Vilar de Maçada",
+    "x": 47819.24,
+    "y": 184337.08,
+    "lat": 41.3268739,
+    "lon": -7.5619164,
+    "amenity": "community_centre",
+    "building": "yes",
+    "tags": {
+      "amenity": "community_centre",
+      "building": "yes",
+      "community_centre": "community_hall",
+      "name": "Casa do Povo de Vilar de Maçada"
+    },
+    "osmId": 1410922087,
+    "osmType": "way"
+  },
+  {
+    "name": "Cepsa",
+    "freguesia": "Sanfins do Douro",
+    "x": 51380.17,
+    "y": 180882.77,
+    "lat": 41.2955536,
+    "lon": -7.5196756,
+    "amenity": "fuel",
+    "tags": {
+      "amenity": "fuel",
+      "brand": "Cepsa",
+      "brand:wikidata": "Q608819",
+      "brand:wikipedia": "pt:Compañía Española de Petróleos",
+      "landuse": "retail",
+      "name": "Cepsa",
+      "operator": "Cepsa",
+      "ref:PT:dgeg": "61277",
+      "ref:inspire": "IDDGEG_PACVR_4435"
+    },
+    "osmId": 1435288963,
+    "osmType": "way"
+  },
+  {
+    "name": "Santuário de Nossa Senhora da Boa Morte",
+    "freguesia": "Ribalonga",
+    "x": 53911.24,
+    "y": 189280.66,
+    "lat": 41.3709994,
+    "lon": -7.488714,
+    "tags": {
+      "alt_name": "Santuário de Nossa Senhora da Boa Morte do Pópulo",
+      "denomination": "roman_catholic",
+      "landuse": "religious",
+      "leisure": "park",
+      "name": "Santuário de Nossa Senhora da Boa Morte",
+      "religion": "christian"
+    },
+    "osmId": 1450320867,
+    "osmType": "way"
+  }
+]
