@@ -10,6 +10,7 @@ import { VISIT_LAYERS } from "./layers";
 import { MDT, T_HA_MAX, VALUES, decode, rawAt } from "./values";
 import { DECL_WORDS, FORA_DO_SOL, MATO_WORDS, RISK_WORDS, SOL_TARDE, esc, fonteCurtaHtml, rumo, vezes } from "./words";
 import { aboutOf, fonteSr } from "./how";
+import { NEVE_GELO_WORDS } from "./derivedLayers";
 
 /** undefined = não foi possível ler (grelha não carregou); null = sem dados nesse sítio. */
 export type V<T> = T | null | undefined;
@@ -18,6 +19,7 @@ export interface PointValues {
   cell: { col: number; row: number } | null;       // célula da g25; null = fora da grelha de 25 m
   dentro: V<boolean>; rio: V<boolean>;             // concelho_25m == 1; rio_douro_25m == 1 (bytes brutos)
   risco: V<number>; perigo: V<number>; icnf: V<number>; icnf2030: V<number>;  // classes 1–5 (0 -> null)
+  erosao: V<number>; neveGelo: V<number>;          // erosao_pos_fogo (1–5); neve_gelo_25m (1–4)
   vezes: V<number>; ultimoAno: V<number>;          // 0–9; ano (null = nunca ou sem dados)
   declive: V<{ pct: number; classe: number }>;     // pct do valor truncado; classe de declive_a11y
   virada: V<{ graus: number; classe: number }>;    // null = plano; classe de exposicao_sol
@@ -50,7 +52,7 @@ function par<T>(v: V<number>, c: V<number>, make: (v: number, c: number) => T): 
 
 export async function readPoint(lon: number, lat: number, elev?: (lon: number, lat: number) => Promise<number | null>): Promise<PointValues> {
   const cls = (k: string) => classeAt(k, lon, lat);
-  const [conc, rio, rec, ua, dec, exp, bio, risco, perigo, icnf, icnf2030, decC, solC, matoC, mdt] = await Promise.all([
+  const [conc, rio, rec, ua, dec, exp, bio, risco, perigo, icnf, icnf2030, erosao, neveGelo, decC, solC, matoC, mdt] = await Promise.all([
     rawAt(VALUES.concelho, lon, lat),
     rawAt(VALUES.rio, lon, lat),
     rawAt(VALUES.recorrencia, lon, lat),
@@ -62,6 +64,8 @@ export async function readPoint(lon: number, lat: number, elev?: (lon: number, l
     cls("perigosidade_2025"),
     cls("icnf_conjuntural"),
     cls("icnf_estrutural"),
+    cls("erosao_pos_fogo"),
+    cls("neve_gelo_25m"),
     cls("declive_a11y"),
     cls("exposicao_sol"),
     cls("biomassa_2025"),
@@ -82,7 +86,7 @@ export async function readPoint(lon: number, lat: number, elev?: (lon: number, l
     lon, lat, cell,
     dentro: mask(conc),
     rio: mask(rio),
-    risco, perigo, icnf, icnf2030,
+    risco, perigo, icnf, icnf2030, erosao, neveGelo,
     vezes: valor("recorrencia_valor", rec),
     ultimoAno: valor("ultimo_ano", ua),
     declive: par(valor("declive_pct", dec), decC, (pct, c) => ({ pct, classe: c })),
@@ -269,6 +273,63 @@ function altitude(p: PointValues, tecnico: boolean): Linha {
   return { ...l, main, tec, sub: "à altura do rio Douro", sr: `${nivel} Fica à altura do rio Douro. ${F}` };
 }
 
+function erosaoSocalcos(p: PointValues): Linha {
+  const key = "erosao_pos_fogo", F = fonteFrase(key);
+  const c = p.erosao;
+  const l = { label: "Erosão e socalcos", src: aboutOf(key).fonte_curta, swatch: sw(cor(key, c)) };
+  if (c === undefined) return naoLeu(l, "Erosão e socalcos");
+  if (c === null) return { ...l, main: "sem dados", sr: `Erosão e socalcos: sem dados. ${F}` };
+  const P = RISK_WORDS[c - 1];
+  const slope = p.declive?.pct ?? 0;
+  const alt = p.altitude?.m ?? 500;
+  const recentBurn = (p.ultimoAno ?? 0) >= 2016 || (p.vezes ?? 0) >= 2;
+
+  let mitig = "terreno estável";
+  if (c >= 4) {
+    if (slope >= 24 && alt < 580 && recentBurn) {
+      mitig = "mitigar: mulching + drenar socalcos";
+    } else if (slope >= 24 && alt < 580) {
+      mitig = "mitigar: drenar e consolidar socalcos";
+    } else if (recentBurn) {
+      mitig = "mitigar: mulching + fascinas na encosta";
+    } else {
+      mitig = "mitigar: barreiras de retenção (fascinas)";
+    }
+  } else if (c === 3) {
+    mitig = "vigiar valetas e muros de suporte";
+  }
+
+  return {
+    ...l,
+    main: `${c} · ${P}`,
+    sub: mitig,
+    sr: `Risco de erosão pós-fogo e queda de socalcos: ${c}, ${P}. Recomendação local: ${mitig}. ${F}`,
+  };
+}
+
+function neveGelo(p: PointValues): Linha {
+  const key = "neve_gelo_25m", F = fonteFrase(key);
+  const c = p.neveGelo;
+  const l = { label: "Neve e gelo", src: aboutOf(key).fonte_curta, swatch: sw(cor(key, c)) };
+  if (c === undefined) return naoLeu(l, "Neve e gelo");
+  if (c === null) return { ...l, main: "sem dados", sr: `Neve e gelo: sem dados. ${F}` };
+  const w = NEVE_GELO_WORDS[c - 1] ?? NEVE_GELO_WORDS[0];
+  const sub =
+    c === 4
+      ? "cota de nevão e gelo persistente"
+      : c === 3
+        ? "atenção ao gelo negro na estrada"
+        : c === 2
+          ? "geada nas noites frias"
+          : "fundo do vale mais abrigado";
+  return {
+    ...l,
+    main: `${c} · ${w.split(" (")[0]}`,
+    sub,
+    sr: `Neve e gelo no inverno: nível ${c}, ${w}. ${sub}. ${F}`,
+  };
+}
+
 function tabela(p: PointValues, o: { visibleMap: string | null; tecnico: boolean }): string {
   const linhas: Linha[] = [escala("risco_2025", { label: "Risco" }, "Risco de incêndio", p.risco, estudoSem("Risco de incêndio"))];
   if (o.visibleMap === "perigosidade_2025") {
@@ -279,7 +340,15 @@ function tabela(p: PointValues, o: { visibleMap: string | null; tecnico: boolean
   if (o.visibleMap === "icnf_estrutural") {
     linhas.push(escala("icnf_estrutural", { label: "Perigo oficial" }, "Perigo oficial", p.icnf2030, oficialSem));
   }
-  linhas.push(jaArdeu(p), encosta(p), virada(p, o.tecnico), mato(p, o.tecnico), altitude(p, o.tecnico));
+  linhas.push(
+    erosaoSocalcos(p),
+    jaArdeu(p),
+    encosta(p),
+    virada(p, o.tecnico),
+    mato(p, o.tecnico),
+    neveGelo(p),
+    altitude(p, o.tecnico),
+  );
   return (
     `<table class="probe-table point"><caption class="sr-only">Dados deste ponto</caption><tbody>${linhas.map(linhaHtml).join("")}</tbody></table>` +
     `<p class="sr-only">Os outros dados vêm do estudo DouroRisk.</p>`

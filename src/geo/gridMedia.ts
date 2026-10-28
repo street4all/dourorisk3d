@@ -3,6 +3,7 @@
 // (ver MEDIA_TILES e cornersGeoreferenceOfPixels em ./grid).
 import ImageElement from "@arcgis/core/layers/support/ImageElement.js";
 import { gridTiles, type GridGeo } from "./grid";
+import { resolveModelImageUrl } from "../visit/derivedLayers";
 
 /** Imagem que cobre uma grelha inteira (com as dimensões da grelha, ou proporcional). */
 export type GridImageSource = ImageData | HTMLImageElement | HTMLCanvasElement;
@@ -47,11 +48,12 @@ export function gridImageElements(image: GridImageSource, grid: GridGeo): ImageE
 
 /** Lê a imagem `url` (que cobre a grelha) e devolve os seus ImageElements em blocos, já carregados. */
 export async function loadGridImageElements(url: string, grid: GridGeo): Promise<ImageElement[]> {
+  const realUrl = await resolveModelImageUrl(url);
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const el = new Image();
     el.onload = () => resolve(el);
-    el.onerror = () => reject(new Error(`Não foi possível ler ${url}`));
-    el.src = url;
+    el.onerror = () => reject(new Error(`Não foi possível ler ${realUrl}`));
+    el.src = realUrl;
   });
   const elements = gridImageElements(img, grid);
   await Promise.all(elements.map((e) => e.load()));

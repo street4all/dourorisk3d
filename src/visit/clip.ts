@@ -5,6 +5,7 @@
 import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
 import { pixelOfXY } from "../geo/grid";
 import { toTM06 } from "../geo/pttm06";
+import { resolveModelImageUrl } from "./derivedLayers";
 
 const full: Record<string, string> = {};
 const clipped: Record<string, Promise<string | null>> = {};
@@ -26,12 +27,13 @@ function concelhoRings(): Promise<[number, number][][]> {
   return concelho;
 }
 
-function loadImage(src: string): Promise<HTMLImageElement> {
+async function loadImage(src: string): Promise<HTMLImageElement> {
+  const realSrc = await resolveModelImageUrl(src);
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(src));
-    img.src = src;
+    img.onerror = () => reject(new Error(realSrc));
+    img.src = realSrc;
   });
 }
 

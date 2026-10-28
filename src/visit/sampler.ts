@@ -60,18 +60,33 @@ export class ClassGrid {
   private height = 0;
   private loading: Promise<void> | null = null;
 
-  /** `geo`: a grelha do manifest em que o PNG foi gerado (mesmas dimensões). */
-  constructor(private url: string, readonly geo: GridGeo) {}
+  /** `geo`: a grelha do manifest em que o PNG foi gerado (mesmas dimensões). `url` pode ser um caminho PNG ou gerador assíncrono em memória. */
+  constructor(private url: string | (() => Promise<Uint8Array>), readonly geo: GridGeo) {}
 
   load(): Promise<void> {
     if (!this.loading) {
+      if (typeof this.url === "function") {
+        const fn = this.url;
+        this.loading = fn()
+          .then((bytes) => {
+            this.data = bytes;
+            this.width = this.geo.width;
+            this.height = this.geo.height;
+          })
+          .catch((err) => {
+            this.loading = null;
+            throw err;
+          });
+        return this.loading;
+      }
+      const srcUrl = this.url;
       this.loading = new Promise<void>((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
           const { width: gw, height: gh, id } = this.geo;
           // uma imagem com outras dimensões já não corresponde à grelha: melhor não ler do que ler mal
           if (img.naturalWidth !== gw || img.naturalHeight !== gh) {
-            return reject(new GridSizeError(`${this.url}: ${img.naturalWidth}×${img.naturalHeight}, a grelha ${id} tem ${gw}×${gh}`));
+            return reject(new GridSizeError(`${srcUrl}: ${img.naturalWidth}×${img.naturalHeight}, a grelha ${id} tem ${gw}×${gh}`));
           }
           const canvas = document.createElement("canvas");
           canvas.width = img.naturalWidth;
@@ -88,8 +103,8 @@ export class ClassGrid {
           this.height = canvas.height;
           resolve();
         };
-        img.onerror = () => reject(new Error(`Não foi possível ler ${this.url}`));
-        img.src = this.url;
+        img.onerror = () => reject(new Error(`Não foi possível ler ${srcUrl}`));
+        img.src = srcUrl;
       }).catch((err) => {
         this.loading = null; // permite tentar outra vez (ex.: rede instável)
         throw err;
@@ -156,6 +171,28 @@ export class ClassGrid {
     let total = 0;
     for (let i = 0; i < mask.length; i++) {
       if (!mask[i] || (inside && !inside[i])) continue;
+      counts[data[i]]++;
+      total++;
+    }
+    return { counts, total };
+  }
+
+  /**
+   * Quantas células de cada classe há dentro de uma máscara binária da mesma grelha (ex.: todo o concelho em g25).
+   */
+  async histogramMask(inside: Uint8Array): Promise<{ counts: number[]; total: number } | null> {
+    try {
+      await this.load();
+    } catch {
+      return null;
+    }
+    const data = this.data;
+    if (!data) return null;
+    const counts = new Array<number>(256).fill(0);
+    let total = 0;
+    const n = Math.min(data.length, inside.length);
+    for (let i = 0; i < n; i++) {
+      if (!inside[i]) continue;
       counts[data[i]]++;
       total++;
     }

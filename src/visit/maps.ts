@@ -10,6 +10,7 @@ import { INTRO_ESTUDO, aboutOf, renderHow, type HowGroup } from "./how";
 import { periodo } from "./words";
 import { TECNICO } from "./tecnico";
 import { A0, A1 } from "../data/concelho";
+import { resolveModelImageUrl, thumbnailForMap } from "./derivedLayers";
 
 /** A grelha de 25 m: a cortina anda sobre a largura dela (o concelho e arredores). */
 const G25 = gridFromManifest("g25");
@@ -33,20 +34,23 @@ export const MAP_CHOICES: MapChoice[] = [
   { key: "icnf_conjuntural", group: "risco", title: `Perigo oficial (${anoDe("icnf_conjuntural")})`, about: `Mapa oficial do ICNF para ${anoDe("icnf_conjuntural")}. ${aboutOf("icnf_conjuntural").metodo}` },
   { key: "icnf_estrutural", group: "risco", title: `Perigo oficial (${anoDe("icnf_estrutural")})`, about: `Mapa oficial do ICNF ${periodo(aboutOf("icnf_estrutural").ano ?? "")}. ${aboutOf("icnf_estrutural").metodo}` },
   { key: "recorrencia_a11y", group: "risco", title: "Quantas vezes ardeu", about: `Onde o fogo passou de ${A0} a ${A1}, e quantas vezes.` },
+  { key: "erosao_pos_fogo", group: "risco", title: "Erosão e socalcos", about: "Onde a chuva forte arrasta cinzas e solo após incêndios ou faz cair muros de socalco." },
   { key: "declive_a11y", group: "pistas", title: "Encostas inclinadas", about: "Nas encostas inclinadas o fogo sobe mais depressa." },
   { key: "exposicao_sol", group: "pistas", title: "Encostas ao sol", about: "As encostas viradas de sudeste a poente secam mais." },
   { key: "biomassa_2025", group: "pistas", title: "Quanto mato há", about: "Mais mato quer dizer mais para arder." },
+  { key: "neve_gelo_25m", group: "pistas", title: "Neve e gelo", about: "Onde acumula neve nas terras altas e se forma gelo negro nas encostas sombrias." },
 ];
 
 const images = new Map<string, Promise<ImageData>>();
 
 /** Carrega uma imagem. Espera pelo "load" e não por decode(), que fica parado com a página escondida. */
-export function loadImage(src: string): Promise<HTMLImageElement> {
+export async function loadImage(src: string): Promise<HTMLImageElement> {
+  const realSrc = await resolveModelImageUrl(src);
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Não foi possível ler ${src}`));
-    img.src = src;
+    img.onerror = () => reject(new Error(`Não foi possível ler ${realSrc}`));
+    img.src = realSrc;
   });
 }
 
@@ -288,7 +292,7 @@ export class MapsPanel {
       box.innerHTML = MAP_CHOICES.filter((c) => c.group === g)
         .map(
           (c) =>
-            `<button type="button" class="map-card" data-map="${c.key}" aria-pressed="false"><img src="/images/mapas/${c.key}.png" alt="" loading="lazy" /><span>${c.title}</span></button>`,
+            `<button type="button" class="map-card" data-map="${c.key}" aria-pressed="false"><img src="${thumbnailForMap(c.key)}" alt="" loading="lazy" /><span>${c.title}</span></button>`,
         )
         .join("");
     }

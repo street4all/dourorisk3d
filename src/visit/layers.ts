@@ -3,11 +3,17 @@
 // cores das legendas abaixo), legendas por palavras e grelhas de classes para ler o valor num ponto.
 // Cada camada usa a grelha PT-TM06 que o manifest (src/data/dourorisk-grids.json) lhe atribui.
 import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
-import { gridOfLayer } from "../geo/grid";
+import { gridFromManifest, gridOfLayer } from "../geo/grid";
 import { ClassGrid } from "./sampler";
 import { DECL_WORDS, RISK_WORDS, esc } from "./words";
 import { aboutOf } from "./how";
 import { A0, A1 } from "../data/concelho";
+import {
+  NEVE_GELO_COLORS,
+  NEVE_GELO_WORDS,
+  getErosaoClasses,
+  getNeveGeloClasses,
+} from "./derivedLayers";
 
 const A11Y = "/data/dourorisk/a11y";
 
@@ -136,6 +142,44 @@ export function applyAccessibleLayers(): void {
     grid: new ClassGrid(`${A11Y}/biomassa_classes.png`, gridOfLayer("biomassa_2025")),
     empty: "Aqui não há dados de mato.",
     describe: (c) => `Aqui há ${BIO_WORDS[c - 1] || "pouco mato"}.`,
+  });
+
+  const g25 = gridFromManifest("g25");
+  DOURORISK_MODELS.erosao_pos_fogo = {
+    id: "erosao_pos_fogo",
+    title: "Erosão pós-fogo e derrocada de socalcos (25m)",
+    image: "derived:erosao_pos_fogo",
+    grid: g25,
+  };
+  add({
+    key: "erosao_pos_fogo",
+    title: "Erosão e socalcos (pós-fogo)",
+    question: "Risco de erosão pós-fogo e queda de socalcos, de 1 a 5",
+    legend: riskLegend(),
+    grid: new ClassGrid(() => getErosaoClasses(), g25),
+    empty: "Aqui não há dados.",
+    describe: (c) => `Aqui o risco de erosão e queda de socalcos é ${c}: ${RISK_WORDS[c - 1]}.`,
+  });
+
+  DOURORISK_MODELS.neve_gelo_25m = {
+    id: "neve_gelo_25m",
+    title: "Suscetibilidade a neve e gelo negro (25m)",
+    image: "derived:neve_gelo_25m",
+    grid: g25,
+  };
+  add({
+    key: "neve_gelo_25m",
+    title: "Neve e gelo",
+    question: "Onde acumula neve e se forma gelo no inverno",
+    legend: NEVE_GELO_WORDS.map((w, i) => ({
+      classes: [i + 1],
+      color: NEVE_GELO_COLORS[i],
+      label: w,
+      number: i + 1,
+    })),
+    grid: new ClassGrid(() => getNeveGeloClasses(), g25),
+    empty: "Aqui não há dados.",
+    describe: (c) => `Aqui no inverno é zona de ${NEVE_GELO_WORDS[c - 1] || "abrigo do vale"}.`,
   });
 }
 

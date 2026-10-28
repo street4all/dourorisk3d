@@ -42,8 +42,10 @@ const PROBE_RGB: [number, number, number] = [0, 190, 255];
 /** «Como sabemos?» do Explorar: todos os mapas da ficha, mais o rio, o limite e os edifícios. */
 const EXPLORAR_HOW: (HowGroup | "edificios")[] = [
   { keys: ["risco_2025"] }, { keys: ["perigosidade_2025"] }, { keys: ["icnf_conjuntural"] }, { keys: ["icnf_estrutural"] },
+  { keys: ["erosao_pos_fogo"] },
   { keys: ["recorrencia_valor", "recorrencia_a11y", "ultimo_ano"], titulo: "Quantas vezes ardeu e último fogo" },
   { keys: ["declive_pct", "declive_a11y"] }, { keys: ["exposicao_graus", "exposicao_sol"] }, { keys: ["biomassa_t_ha", "biomassa_2025"] },
+  { keys: ["neve_gelo_25m"] },
   { keys: ["mdt"] }, { keys: ["rio_douro_25m"] }, { keys: ["concelho_25m"] }, "edificios",
 ];
 
@@ -137,6 +139,16 @@ const ROWS: Row[] = [
       const muito = `${cap(pctTxt(sum(c, [4, 5]), t))} por cento da área tem muito mato ou mato muito denso.`;
       return atLeast1(c[0], t) ? `${muito} Sem estimativa de mato: ${pctTxt(c[0], t)} por cento. ${semMatoPorque()}` : muito;
     },
+  },
+  {
+    key: "erosao_pos_fogo", label: "Erosão e socalcos", hit: [4, 5],
+    area: (c, t) =>
+      `${cap(pctTxt(sum(c, [4, 5]), t))} por cento da área tem risco alto ou muito alto de erosão pós-fogo e queda de socalcos. Recomenda-se mulching, fascinas ou drenagem.`,
+  },
+  {
+    key: "neve_gelo_25m", label: "Neve e gelo", hit: [3, 4],
+    area: (c, t) =>
+      `${cap(pctTxt(sum(c, [3, 4]), t))} por cento da área fica em terras altas ou encostas sombrias propensas a acumulação de neve e gelo negro.`,
   },
 ];
 
@@ -714,10 +726,16 @@ export class Probe {
     const list = names ? `<br /><span class="probe-names">${names.map(esc).join(", ")}</span>` : "";
     const head = (ha: number | null) => `<p class="probe-head"><strong>${esc(title)}</strong>${ha == null ? "" : `<br />${sizeHtml(ha, houses)}`}${list}</p>`;
     if (key === "concelho") {
-      // contado no ArcGIS Pro, célula a célula (scripts/pro_to_web.py): exato
+      // contado no ArcGIS Pro, célula a célula (scripts/pro_to_web.py): exato; camadas derivadas a 25m usam a máscara do concelho
       const r = CONCELHO.resumo;
+      const m25c = await VALUES.concelho.bytes();
       const facts: Facts = { onde, ultimo: r.ardeu_ha > 0 ? r.ultimo_fogo_ano : null, max: r.max_vezes, concelho: true };
-      return `${head(CONCELHO.area_ha)}${await this.rowsHtml((k) => Promise.resolve(concelhoHist(k)), facts, { rio: r.rio_ha > 0 })}`;
+      const histConcelho = async (k: string): Promise<Histogram> => {
+        const pre = concelhoHist(k);
+        if (pre) return pre;
+        return m25c && VISIT_LAYERS[k] ? VISIT_LAYERS[k].grid.histogramMask(m25c) : null;
+      };
+      return `${head(CONCELHO.area_ha)}${await this.rowsHtml(histConcelho, facts, { rio: r.rio_ha > 0 })}`;
     }
     // só os quadrados das freguesias que ficam dentro do concelho (os limites das freguesias são mais grosseiros)
     const m25 = await VALUES.concelho.bytes();

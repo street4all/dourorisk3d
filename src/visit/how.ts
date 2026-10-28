@@ -13,9 +13,30 @@ export const EDIFICIOS = { titulo: "Edifícios", fonte: "Microsoft, edifícios v
   metodo: "Um programa de computador encontrou os edifícios nas imagens de satélite.",
   nota: "Pode faltar algum edifício. Também conta anexos e armazéns." };
 
-/** A proveniência de uma camada do manifest. */
+const DERIVED_ABOUT: Record<string, LayerAbout> = {
+  erosao_pos_fogo: {
+    titulo: "Erosão pós-fogo e socalcos",
+    fonte: "estudo DouroRisk e modelo hidro-geomorfológico",
+    fonte_curta: "estudo · 2025",
+    ano: "2025",
+    metodo: "Cruza a inclinação da encosta, os fogos recentes, o mato que protege o solo e as cotas dos muros de socalco.",
+    nota: "Indica onde a chuva forte arrasta cinzas e terra ou faz cair muros de xisto, e onde aplicar mulching, fascinas ou drenagem.",
+    resolucao_m: 25,
+  },
+  neve_gelo_25m: {
+    titulo: "Neve e gelo",
+    fonte: "terreno do estudo DouroRisk e reanálise Copernicus CERRA",
+    fonte_curta: "terreno + CERRA",
+    ano: null,
+    metodo: "Cruza a altitude do terreno de 25 metros com as encostas sombrias viradas a norte.",
+    nota: "Mostra onde a neve acumula nas terras altas e onde se forma gelo negro nas estradas sombrias.",
+    resolucao_m: 25,
+  },
+};
+
+/** A proveniência de uma camada do manifest ou derivada a 25 m. */
 export function aboutOf(key: string): LayerAbout {
-  const a = GRID_MANIFEST.layers[key]?.about;
+  const a = GRID_MANIFEST.layers[key]?.about ?? DERIVED_ABOUT[key];
   if (!a) throw new Error(`Camada "${key}" sem "about" em dourorisk-grids.json: corre scripts/pro_to_web.py`);
   return a;
 }
@@ -49,6 +70,10 @@ function encTxt(e: LayerEncoding | undefined, nClasses: number): string {
 /** Linha técnica de uma camada: raster, grelha, codificação e sha256 (12 primeiros algarismos). */
 function tecLine(key: string): string {
   const l = GRID_MANIFEST.layers[key];
+  if (!l) {
+    const g = GRID_MANIFEST.grids.g25;
+    return `<p class="how-tec">Camada derivada em memória (<code>${esc(key)}</code>). Grelha <code>g25</code>: ${g.width} × ${g.height} células de ${g.cell} m, EPSG:3763.</p>`;
+  }
   const g = GRID_MANIFEST.grids[l.grid];
   const sha = Object.entries(l.sha256 ?? {})
     // caminho a partir de /data/dourorisk/ (há recorrencia.png e biomassa.png em a11y/ e em valores/)
