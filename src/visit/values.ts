@@ -120,6 +120,16 @@ export class Int16Grid {
     const v = this.view.getInt16(i * 2, true);
     return v === this.nodata ? null : v;
   }
+
+  /** Devolve o DataView completo da grelha de altitude (após load) e o valor nodata. */
+  async rawView(): Promise<{ view: DataView; nodata: number } | null> {
+    try {
+      await this.load();
+    } catch {
+      return null;
+    }
+    return this.view ? { view: this.view, nodata: this.nodata } : null;
+  }
 }
 
 /** Altitude do terreno do estudo (MDT de 25 m), em metros. */

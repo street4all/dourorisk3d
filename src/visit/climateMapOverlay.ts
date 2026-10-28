@@ -20,6 +20,11 @@ import {
   type ClimateVarKey,
   type ReanalysisDataset,
 } from "../alijo3d/cerraService";
+import { gridFromManifest } from "../geo/grid";
+import { CanvasOverlay } from "./overlay";
+import { MDT, VALUES } from "./values";
+
+const G25 = gridFromManifest("g25");
 
 function hexToRgb(hex: string): [number, number, number] {
   const clean = hex.replace("#", "");
@@ -62,12 +67,14 @@ function centerPinSvg(): string {
 
 export class ClimateMapOverlay {
   private heatmapLayer: MediaLayer;
+  private snowOverlay: CanvasOverlay;
   private isobarLayer: GraphicsLayer;
   private windVectorLayer: GraphicsLayer;
   private currentElement: ImageElement | null = null;
   private renderSeq = 0;
 
   public showHeatmap = true;
+  public showSnowCover = true;
   public showIsobars = true;
   public showWindArrows = true;
 
@@ -78,6 +85,13 @@ export class ClimateMapOverlay {
       visible: false,
       listMode: "hide",
     });
+
+    this.snowOverlay = new CanvasOverlay(
+      map,
+      "Reanálise Climática — Cobertura de Neve no Terreno (MDT 25m)",
+      G25,
+      0.88
+    );
 
     this.isobarLayer = new GraphicsLayer({
       title: "Reanálise Climática — Isóbaras (hPa)",
@@ -103,6 +117,7 @@ export class ClimateMapOverlay {
   public clear(): void {
     this.renderSeq++;
     this.heatmapLayer.visible = false;
+    this.snowOverlay.hide();
     this.isobarLayer.visible = false;
     this.windVectorLayer.visible = false;
     this.isobarLayer.removeAll();
@@ -141,13 +156,13 @@ export class ClimateMapOverlay {
   }
 
   /**
-   * Atualiza o Heatmap, as Isóbaras e as Setas de Vento para o passo temporal `stepIdx`.
+   * Atualiza o Heatmap, o Manto de Neve no Terreno (MDT 25m), as Isóbaras e as Setas de Vento para o passo temporal `stepIdx`.
    */
   public renderStep(
     dataset: ReanalysisDataset,
     varKey: ClimateVarKey,
     stepIdx: number
-  ): { minVal: number; maxVal: number } {
+  ): { minVal: number; maxVal: number; snowLineM: number | null } {
     const seq = ++this.renderSeq;
     const clampedIdx = Math.max(0, Math.min(dataset.times.length - 1, stepIdx));
 
@@ -165,11 +180,42 @@ export class ClimateMapOverlay {
       maxVal += 0.5;
     }
 
-    // 2. Desenhar Heatmap (MediaLayer)
-    if (this.showHeatmap) {
-      this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq);
+    // Calcular se há cobertura de neve no solo e a respetiva Cota de Neve (m) pelo gradiente térmico (-6,5 °C / 1000 m)
+    const tempC = dataset.centerSeries.temperature_2m[clampedIdx] ?? 10;
+    const snowfallCm = dataset.centerSnowfallCm?.[clampedIdx] ?? 0;
+    const snowDepthCm = dataset.centerSnowDepthCm?.[clampedIdx] ?? 0;
+    const wmo = dataset.centerWeatherCode?.[clampedIdx] ?? 0;
+    const hasSnowEpisode =
+      snowfallCm > 0 ||
+      snowDepthCm > 0 ||
+      (wmo >= 71 && wmo <= 77) ||
+      (dataset.summary.maxSnowDepthCm > 0 && tempC <= 3.2) ||
+      tempC <= 1.2;
+
+    let snowLineM: number | null = null;
+    if (hasSnowEpisode) {
+      // Cota de referência (720 m no planalto norte de Alijó / Sanfins) e isotérmica de acumulação (~1,5 °C)
+      const refAlt = dataset.centerLat >= 41.25 ? 720 : 450;
+      const rawLine = refAlt + ((tempC - 1.5) / 6.5) * 1000;
+      snowLineM = Math.round(Math.max(380, Math.min(820, rawLine)));
+    }
+
+    // 2. Desenhar Cobertura de Neve no Terreno (MDT 25m) e/ou Heatmap
+    if (this.showSnowCover && snowLineM !== null) {
+      void this.drawTerrainSnowCover(snowLineM, Math.max(1, snowDepthCm, snowfallCm * 3), seq);
+      // Quando o manto de neve está ativo, deixamos o terreno visível se o utilizador desligou o Heatmap
+      if (this.showHeatmap) {
+        this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq);
+      } else {
+        this.heatmapLayer.visible = false;
+      }
     } else {
-      this.heatmapLayer.visible = false;
+      this.snowOverlay.hide();
+      if (this.showHeatmap) {
+        this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq);
+      } else {
+        this.heatmapLayer.visible = false;
+      }
     }
 
     // 3. Desenhar Isóbaras (GraphicsLayer)
@@ -190,7 +236,77 @@ export class ClimateMapOverlay {
       this.windVectorLayer.removeAll();
     }
 
-    return { minVal, maxVal };
+    return { minVal, maxVal, snowLineM };
+  }
+
+  /**
+   * Pinta a cobertura física de neve sobre o Modelo Digital de Terreno (MDT 25 m) do concelho de Alijó,
+   * respeitando a cota de neve (`snowLineM`), a exposição solar das encostas (norte acumula mais baixo)
+   * e excluindo o espelho de água do rio Douro.
+   */
+  private async drawTerrainSnowCover(
+    snowLineM: number,
+    snowThicknessFactor: number,
+    seq: number
+  ): Promise<void> {
+    const [mdtRes, concelhoBytes, rioBytes, expBytes, decliveBytes] = await Promise.all([
+      MDT.rawView(),
+      VALUES.concelho.bytes(),
+      VALUES.rio.bytes(),
+      VALUES.exposicao.bytes(),
+      VALUES.declive.bytes(),
+    ]);
+    if (seq !== this.renderSeq || !mdtRes || !concelhoBytes) return;
+
+    const { view: mdtView, nodata } = mdtRes;
+    const { width, height } = G25;
+    const n = width * height;
+    const img = new ImageData(width, height);
+    const out = new Uint32Array(img.data.buffer);
+
+    const baseBoost = Math.min(1.25, 0.8 + snowThicknessFactor * 0.06);
+
+    for (let i = 0; i < n; i++) {
+      if (!concelhoBytes[i]) continue;
+      if (rioBytes && rioBytes[i]) continue;
+
+      const alt = mdtView.getInt16(i * 2, true);
+      if (alt === nodata || alt < 100) continue;
+
+      // Exposição solar: encostas viradas a Norte/Noroeste/Nordeste conservam neve ~45 m mais abaixo
+      let aspectBonus = 0;
+      if (expBytes) {
+        const rawExp = expBytes[i];
+        // rawExp codifica graus (0..250 -> 0..360°): perto de 0° ou > 300° é quadrante Norte (sombrio)
+        if (rawExp > 0 && (rawExp < 45 || rawExp > 205)) {
+          aspectBonus = 42;
+        } else if (rawExp >= 95 && rawExp <= 165) {
+          // Quadrante Sul (soalheiro)
+          aspectBonus = -25;
+        }
+      }
+
+      const effAlt = alt + aspectBonus;
+      const transitionStart = snowLineM - 45;
+      if (effAlt < transitionStart) continue;
+
+      // Fração de cobertura (0 na franja de transição até 1.0 nas cotas altas de Sanfins / Vila Chã / Vila Verde)
+      const frac = Math.min(1, ((effAlt - transitionStart) / 135) * baseBoost);
+      if (frac <= 0.04) continue;
+
+      // Sombreado subtil pelo declive para manter a leitura tridimensional das cristas e vales sob a neve
+      const slopeShade = decliveBytes ? Math.min(22, Math.floor(decliveBytes[i] * 0.12)) : 0;
+      const r = Math.max(210, 248 - slopeShade);
+      const g = Math.max(224, 252 - Math.floor(slopeShade * 0.7));
+      const b = 255;
+      const a = Math.min(238, Math.round(frac * 232));
+
+      // Little-endian RGBA (ABGR em Uint32)
+      out[i] = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0;
+    }
+
+    if (seq !== this.renderSeq) return;
+    this.snowOverlay.draw(img);
   }
 
   private drawHeatmapCanvas(

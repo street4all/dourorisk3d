@@ -323,6 +323,12 @@ export class ClimatePanel {
     });
 
     // Checkboxes das camadas espaciais sobrepostas
+    $("climate-chk-snowcover")?.addEventListener("change", (e) => {
+      if (!this.overlay) return;
+      this.overlay.showSnowCover = (e.target as HTMLInputElement).checked;
+      this.renderCurrentStep();
+    });
+
     $("climate-chk-heatmap")?.addEventListener("change", (e) => {
       if (!this.overlay) return;
       this.overlay.showHeatmap = (e.target as HTMLInputElement).checked;
@@ -427,6 +433,18 @@ export class ClimatePanel {
     if (seq !== this.requestSeq) return;
     this.dataset = data;
 
+    // Se o período tiver queda/acumulação de neve, priorizar a visualização da neve no terreno (MDT 25m)
+    // desligando por omissão o Heatmap colorido que taparia o manto branco
+    const hasSnowInPeriod = data.summary.snowHoursCount > 0 || data.summary.maxSnowDepthCm > 0;
+    if (this.overlay) {
+      this.overlay.showSnowCover = true;
+      this.overlay.showHeatmap = !hasSnowInPeriod;
+      const snowChk = $("climate-chk-snowcover") as HTMLInputElement | null;
+      const heatChk = $("climate-chk-heatmap") as HTMLInputElement | null;
+      if (snowChk) snowChk.checked = true;
+      if (heatChk) heatChk.checked = !hasSnowInPeriod;
+    }
+
     // Posicionar automaticamente no pico de precipitação (ou a meio do intervalo se não houver chuva)
     let bestIdx = Math.floor(data.times.length / 2);
     if (data.summary.maxHourlyPrecipitationMm > 0) {
@@ -455,8 +473,8 @@ export class ClimatePanel {
     const d = this.dataset;
     const idx = Math.max(0, Math.min(d.times.length - 1, this.currentStepIdx));
 
-    // 1. Atualizar camadas sobrepostas no mapa 3D (Heatmap, Isóbaras e Setas de Vento)
-    const { minVal, maxVal } = this.overlay.renderStep(d, this.primaryVar, idx);
+    // 1. Atualizar camadas sobrepostas no mapa 3D (Heatmap, Manto de Neve MDT 25m, Isóbaras e Setas de Vento)
+    const { minVal, maxVal, snowLineM } = this.overlay.renderStep(d, this.primaryVar, idx);
 
     // 2. Atualizar etiqueta da hora ativa
     const timeLabel = $("climate-time-label");
@@ -464,8 +482,8 @@ export class ClimatePanel {
       timeLabel.textContent = formatDateTimePt(d.times[idx]);
     }
 
-    // 3. Atualizar legenda do Heatmap
-    this.renderHeatmapLegend(this.primaryVar, minVal, maxVal);
+    // 3. Atualizar legenda do Heatmap / Cobertura de Neve
+    this.renderHeatmapLegend(this.primaryVar, minVal, maxVal, snowLineM);
 
     // 4. Atualizar cartões das 7 variáveis no instante selecionado
     this.renderInstantMetrics(d, idx);
@@ -509,14 +527,28 @@ export class ClimatePanel {
     }
   }
 
-  private renderHeatmapLegend(varKey: ClimateVarKey, minVal: number, maxVal: number): void {
+  private renderHeatmapLegend(
+    varKey: ClimateVarKey,
+    minVal: number,
+    maxVal: number,
+    snowLineM: number | null
+  ): void {
     const el = $("climate-heatmap-legend");
     if (!el) return;
     const meta = CLIMATE_VARIABLES[varKey];
     const stops = meta.palette.join(", ");
     const midVal = (minVal + maxVal) / 2;
 
+    const snowBanner =
+      snowLineM !== null && this.overlay?.showSnowCover
+        ? `<div class="climate-legend-head" style="color:#e0f2fe; margin-bottom:6px;">
+             <strong>❄ Manto de Neve (MDT 25 m)</strong>
+             <span>Cota de acumulação: <b>≥ ${snowLineM} m</b></span>
+           </div>`
+        : "";
+
     el.innerHTML = `
+      ${snowBanner}
       <div class="climate-legend-head">
         <strong>Heatmap: ${esc(meta.shortLabel)} (${esc(meta.unit)})</strong>
         <span>Isóbaras (hPa) + Vento (km/h)</span>

@@ -699,8 +699,12 @@ export class Alijo3DManager {
     this.applyWeather();
   }
 
+  private defaultRoofsRenderer: any = null;
+  private isSnowRoofsApplied = false;
+
   public applyWeather(): void {
     if (!this.view) return;
+    this.setSnowRoofs(false);
 
     if (this.state.isRainActive) {
       this.view.environment.weather = new RainyWeather({
@@ -725,6 +729,33 @@ export class Alijo3DManager {
       cloudCover: Math.max(0.2, Math.min(1, params.cloudCover)),
       snowCover: params.snowCover ? "enabled" : "disabled",
     });
+    this.setSnowRoofs(params.snowCover);
+  }
+
+  private setSnowRoofs(snowy: boolean): void {
+    if (!this.sanfinsRoofsLayer || this.isSnowRoofsApplied === snowy) return;
+    if (!this.defaultRoofsRenderer) {
+      this.defaultRoofsRenderer = this.sanfinsRoofsLayer.renderer;
+    }
+    this.isSnowRoofsApplied = snowy;
+    if (snowy) {
+      this.sanfinsRoofsLayer.renderer = new SimpleRenderer({
+        symbol: new PolygonSymbol3D({
+          symbolLayers: [
+            new ExtrudeSymbol3DLayer({
+              size: 0.95,
+              material: { color: [240, 247, 255, 0.97] },
+              edges: new SolidEdges3D({
+                color: [186, 214, 242, 0.9],
+                size: 1.0,
+              }),
+            }),
+          ],
+        }),
+      });
+    } else if (this.defaultRoofsRenderer) {
+      this.sanfinsRoofsLayer.renderer = this.defaultRoofsRenderer;
+    }
   }
 
   public setRainEnabled(enabled: boolean): void {
