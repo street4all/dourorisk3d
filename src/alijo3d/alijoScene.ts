@@ -15,6 +15,7 @@ import ExtrudeSymbol3DLayer from "@arcgis/core/symbols/ExtrudeSymbol3DLayer.js";
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer.js";
 import FlowRenderer from "@arcgis/core/renderers/FlowRenderer.js";
 import RainyWeather from "@arcgis/core/views/3d/environment/RainyWeather.js";
+import SnowyWeather from "@arcgis/core/views/3d/environment/SnowyWeather.js";
 import SunnyWeather from "@arcgis/core/views/3d/environment/SunnyWeather.js";
 import SimpleRenderer from "@arcgis/core/renderers/SimpleRenderer.js";
 import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol.js";
@@ -711,6 +712,19 @@ export class Alijo3DManager {
         cloudCover: 0.15,
       });
     }
+  }
+
+  public setSnowWeather(params: {
+    precipitation: number;
+    cloudCover: number;
+    snowCover: boolean;
+  }): void {
+    if (!this.view) return;
+    this.view.environment.weather = new SnowyWeather({
+      precipitation: Math.max(0, Math.min(1, params.precipitation)),
+      cloudCover: Math.max(0.2, Math.min(1, params.cloudCover)),
+      snowCover: params.snowCover ? "enabled" : "disabled",
+    });
   }
 
   public setRainEnabled(enabled: boolean): void {

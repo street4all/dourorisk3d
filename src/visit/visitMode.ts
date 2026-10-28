@@ -19,6 +19,7 @@ import { COUNT_COLORS, cuesAt, renderCueCount } from "./cues";
 import { loadStack } from "./stack";
 import { Probe } from "./probe";
 import { MapsPanel, loadImage } from "./maps";
+import { ClimatePanel } from "./climatePanel";
 import { HA_PER_CELL, HA_PER_FIELD, renderSpread, simulateSpread, type SpreadResult } from "./spread";
 import { RISK_WORDS, rumo } from "./words";
 import { TECNICO } from "./tecnico";
@@ -131,6 +132,8 @@ export class VisitMode {
   private probe: Probe;
   // Mapas de risco: escolher, ver e comparar
   private maps: MapsPanel | null = null;
+  // Reanálise climática (Copernicus CERRA / ERA5) e precipitação extrema
+  private climate: ClimatePanel | null = null;
   // 4 · máquina do tempo: o fogo e o mato, ano a ano (janela própria, depois de revelar)
   private time: TimeMachine | null = null;
 
@@ -140,7 +143,8 @@ export class VisitMode {
       manager,
       (on) => {
         if (!on) return;
-        this.maps?.setOpen(false); // os dois cartões ocupam o mesmo lugar
+        this.maps?.setOpen(false); // os cartões laterais ocupam o mesmo lugar
+        this.climate?.setOpen(false);
         if (!matchMedia("(min-width: 900px)").matches) this.close();
       },
       () => this.visibleKey,
@@ -178,6 +182,7 @@ export class VisitMode {
         show: (key, opacity) => this.setVisibleLayer(key, opacity),
         opened: () => {
           this.probe.setActive(false);
+          this.climate?.setOpen(false);
           if (!matchMedia("(min-width: 900px)").matches) this.close();
         },
         imageChanged: (key) => {
@@ -187,6 +192,15 @@ export class VisitMode {
         },
       });
       this.maps.init();
+      this.climate = new ClimatePanel(this.manager, {
+        opened: () => {
+          this.probe.setActive(false);
+          this.maps?.setOpen(false);
+          if (!matchMedia("(min-width: 900px)").matches) this.close();
+        },
+        say: (m) => this.say(m),
+      });
+      this.climate.init();
     }
     if (reduceMotion()) {
       this.manager.setWindVisible(false);
@@ -272,6 +286,10 @@ export class VisitMode {
         this.maps.setOpen(false);
         return;
       }
+      if (e.key === "Escape" && this.climate?.open) {
+        this.climate.setOpen(false);
+        return;
+      }
       // atalhos 1 a 5: só com o foco na barra dos passos ou fora de qualquer controlo
       const a = document.activeElement as HTMLElement | null;
       const onDock = !!a?.closest?.(".dock");
@@ -308,6 +326,7 @@ export class VisitMode {
     if (!matchMedia("(min-width: 900px)").matches) {
       this.probe.setActive(false);
       this.maps?.setOpen(false);
+      this.climate?.setOpen(false);
     } else if (name === "tempo") {
       // a máquina pinta o mapa: o cartão dos Mapas ao lado diria «Sem mapa» (e a legenda dele ficaria vazia)
       this.maps?.setOpen(false);
@@ -506,6 +525,11 @@ export class VisitMode {
     if (this.probe.active) {
       e.stopPropagation();
       if (e.mapPoint) this.probe.handleClick(e.mapPoint.longitude ?? 0, e.mapPoint.latitude ?? 0);
+      return;
+    }
+    if (this.climate?.pickingPoint) {
+      e.stopPropagation();
+      if (e.mapPoint) this.climate.handleMapClick(e.mapPoint.longitude ?? 0, e.mapPoint.latitude ?? 0);
       return;
     }
     const mode = this.current;

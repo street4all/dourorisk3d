@@ -42,6 +42,9 @@
       <button type="button" class="tool-btn tool-maps" id="btn-maps" aria-pressed="false" aria-controls="maps-card" title="Mapas de risco" aria-label="Mapas de risco">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5z"/><path d="m2 12 10 5 10-5"/><path d="m2 16 10 5 10-5"/></svg>
       </button>
+      <button type="button" class="tool-btn tool-climate" id="btn-climate" aria-pressed="false" aria-controls="climate-card" title="Reanálise Climática (Copernicus CERRA) e Precipitação Extrema" aria-label="Reanálise Climática e Precipitação Extrema">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M8 22l2-3M12 22l2-3M16 22l2-3"/></svg>
+      </button>
       <button type="button" class="tool-btn" id="btn-font" title="Letra maior" aria-label="Letra maior">
         <span aria-hidden="true">A<sup>+</sup></span>
       </button>
@@ -657,6 +660,85 @@
         <summary>Como sabemos?</summary>
         <div class="probe-how-body" id="maps-how-body"></div>
       </details>
+    </aside>
+
+    <!-- Reanálise Climática (Copernicus CERRA / ERA5) e Precipitação Extrema -->
+    <aside class="hud probe-card climate-card" id="climate-card" aria-labelledby="climate-title" hidden>
+      <header class="probe-top">
+        <svg class="probe-ico climate-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M8 22l2-3M12 22l2-3M16 22l2-3"/></svg>
+        <h2 id="climate-title" tabindex="-1">Reanálise Climática CERRA</h2>
+        <button type="button" class="pop-close" id="climate-close" aria-label="Fechar a Reanálise Climática">×</button>
+      </header>
+      <p class="probe-hint" id="climate-status" role="status" aria-live="polite">Copernicus CERRA / ERA5 · Precipitação Extrema no Douro</p>
+
+      <!-- 1. Evento Histórico / Intervalo Temporal -->
+      <div class="climate-section">
+        <label class="climate-field-label" for="climate-event-select">Evento histórico ou período</label>
+        <select id="climate-event-select" class="maps-select wide"></select>
+        <div class="climate-dates-row">
+          <label class="climate-date-col">Início
+            <input type="date" id="climate-start-date" class="climate-input" min="1980-01-01" max="2026-12-31" />
+          </label>
+          <label class="climate-date-col">Fim
+            <input type="date" id="climate-end-date" class="climate-input" min="1980-01-01" max="2026-12-31" />
+          </label>
+          <button type="button" class="chip climate-apply-btn" id="climate-apply-dates" title="Atualizar período">Ler datas</button>
+        </div>
+      </div>
+
+      <!-- 2. Localização (Freguesia de Alijó, Pesquisa de Cidade/Coordenadas ou Clique no Mapa 3D) -->
+      <div class="climate-section">
+        <label class="climate-field-label" for="climate-parish-select">Localização (Alijó / Douro ou Pesquisa)</label>
+        <div class="climate-loc-row">
+          <select id="climate-parish-select" class="maps-select"></select>
+          <button type="button" class="chip" id="climate-pick-map" aria-pressed="false" title="Clicar num ponto do mapa 3D">Escolher ponto no mapa 3D</button>
+        </div>
+        <div class="climate-search-row">
+          <input type="search" id="climate-search-input" class="climate-input" placeholder="Cidade, país ou lat, lon (ex.: 41.27, -7.47)" aria-label="Pesquisar cidade, país ou coordenadas" />
+          <button type="button" class="chip" id="climate-search-btn">Procurar</button>
+        </div>
+        <ul id="climate-search-results" class="climate-search-list" hidden></ul>
+      </div>
+
+      <!-- 3. Controlo Temporal Horário e Sobreposições 3D (Heatmap, Isóbaras, Setas de Vento) -->
+      <div class="climate-section">
+        <div class="climate-time-header">
+          <strong id="climate-time-label">–</strong>
+          <button type="button" class="chip" id="climate-play-btn" aria-pressed="false">▶ Animar horas</button>
+        </div>
+        <input type="range" id="climate-time-slider" class="climate-slider" min="0" max="100" step="1" value="0" aria-label="Hora da reanálise climática" />
+
+        <div class="climate-toggles" role="group" aria-label="Camadas sobrepostas no mapa 3D">
+          <label class="climate-chk"><input type="checkbox" id="climate-chk-heatmap" checked /> Heatmap</label>
+          <label class="climate-chk"><input type="checkbox" id="climate-chk-isobars" checked /> Isóbaras (hPa)</label>
+          <label class="climate-chk"><input type="checkbox" id="climate-chk-wind" checked /> Setas de vento</label>
+          <label class="climate-chk"><input type="checkbox" id="climate-chk-3denv" checked /> Chuva/Vento 3D</label>
+        </div>
+        <div id="climate-heatmap-legend" class="climate-legend-box"></div>
+      </div>
+
+      <!-- 4. Leitura Instantânea das 7 Variáveis Meteorológicas -->
+      <div class="climate-section">
+        <p class="climate-field-label">7 variáveis meteorológicas nesta hora</p>
+        <div id="climate-instant-grid" class="climate-instant-grid"></div>
+      </div>
+
+      <!-- 5. Séries Temporais Comparáveis -->
+      <div class="climate-section">
+        <p class="climate-field-label">Séries temporais comparáveis</p>
+        <div class="climate-vars-row">
+          <label class="climate-date-col">Variável principal (Mapa + Gráfico)
+            <select id="climate-var-primary" class="maps-select"></select>
+          </label>
+          <label class="climate-date-col">Comparar com (2.º eixo)
+            <select id="climate-var-compare" class="maps-select"></select>
+          </label>
+        </div>
+        <div id="climate-chart-box" class="climate-chart-box"></div>
+      </div>
+
+      <!-- 6. Foco em Precipitação Extrema, Impactos e Boas Práticas -->
+      <div id="climate-impact-box" class="climate-section"></div>
     </aside>
 
     <!-- termómetro da ficha (ao arrastar ou pôr) -->
