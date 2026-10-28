@@ -1386,12 +1386,19 @@ body.spark-armed #alijo-scene-container {
   min-height: 32px;
   padding: 2px 8px;
   border-radius: 8px;
-  border: 1.5px solid var(--line);
-  background: var(--soft);
+  border: 1.5px solid var(--fg-2);
+  background-color: var(--hud-solid);
   color: var(--fg);
   font: 700 0.8em/1.2 var(--font);
   width: 100%;
   box-sizing: border-box;
+}
+.hud-30-select option,
+.hud-30-input option,
+.climate-input option,
+.maps-select option {
+  background-color: var(--hud-solid);
+  color: var(--fg);
 }
 .hud-30-dt {
   display: grid;
