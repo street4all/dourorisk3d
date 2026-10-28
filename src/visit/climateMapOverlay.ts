@@ -73,6 +73,7 @@ export class ClimateMapOverlay {
   private currentElement: ImageElement | null = null;
   private renderSeq = 0;
 
+  public viewScope: "local" | "macro" = "local";
   public showHeatmap = true;
   public showSnowCover = true;
   public showIsobars = true;
@@ -126,16 +127,15 @@ export class ClimateMapOverlay {
 
   /**
    * Interpola um valor escalar na posição normalizada (u, v) in [0, 1] x [0, 1]
-   * a partir dos nós da grelha 4x4.
+   * a partir dos nós da grelha ativa (4x4 local ou 7x7 macro sinóptica).
    */
   private interpolateGrid(
-    dataset: ReanalysisDataset,
+    rows: number,
+    cols: number,
     extractor: (nodeIdx: number) => number,
     u: number,
     v: number
   ): number {
-    const rows = dataset.gridRows;
-    const cols = dataset.gridCols;
     const gy = Math.max(0, Math.min(rows - 1.0001, v * (rows - 1)));
     const gx = Math.max(0, Math.min(cols - 1.0001, u * (cols - 1)));
     const r0 = Math.floor(gy);
@@ -165,9 +165,21 @@ export class ClimateMapOverlay {
   ): { minVal: number; maxVal: number; snowLineM: number | null } {
     const seq = ++this.renderSeq;
     const clampedIdx = Math.max(0, Math.min(dataset.times.length - 1, stepIdx));
+    const isMacro = this.viewScope === "macro";
+    const activeNodes = isMacro ? dataset.macroNodes : dataset.gridNodes;
 
-    // 1. Extrair valores da variável escolhida nos nós da grelha
-    const nodeVals = dataset.gridNodes.map((n) => n.values[varKey]?.[clampedIdx] ?? 0);
+    // Ajustar altitude das linhas e setas para não intersetarem cadeias montanhosas à escala ibérica/globo
+    this.isobarLayer.elevationInfo = {
+      mode: "relative-to-ground",
+      offset: isMacro ? 3200 : 45,
+    };
+    this.windVectorLayer.elevationInfo = {
+      mode: "relative-to-ground",
+      offset: isMacro ? 4200 : 75,
+    };
+
+    // 1. Extrair valores da variável escolhida nos nós da grelha ativa
+    const nodeVals = activeNodes.map((n) => n.values[varKey]?.[clampedIdx] ?? 0);
     let minVal = Math.min(...nodeVals);
     let maxVal = Math.max(...nodeVals);
 
@@ -200,19 +212,26 @@ export class ClimateMapOverlay {
       snowLineM = Math.round(Math.max(380, Math.min(820, rawLine)));
     }
 
-    // 2. Desenhar Cobertura de Neve no Terreno (MDT 25m) e/ou Heatmap
-    if (this.showSnowCover && snowLineM !== null) {
+    // 2. Desenhar Cobertura de Neve no Terreno (MDT 25m na visão local) e/ou Heatmap
+    if (isMacro) {
+      this.snowOverlay.hide();
+      if (this.showHeatmap || this.showSnowCover) {
+        this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq, true);
+      } else {
+        this.heatmapLayer.visible = false;
+      }
+    } else if (this.showSnowCover && snowLineM !== null) {
       void this.drawTerrainSnowCover(snowLineM, Math.max(1, snowDepthCm, snowfallCm * 3), seq);
       // Quando o manto de neve está ativo, deixamos o terreno visível se o utilizador desligou o Heatmap
       if (this.showHeatmap) {
-        this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq);
+        this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq, false);
       } else {
         this.heatmapLayer.visible = false;
       }
     } else {
       this.snowOverlay.hide();
       if (this.showHeatmap) {
-        this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq);
+        this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq, false);
       } else {
         this.heatmapLayer.visible = false;
       }
@@ -220,7 +239,7 @@ export class ClimateMapOverlay {
 
     // 3. Desenhar Isóbaras (GraphicsLayer)
     if (this.showIsobars) {
-      this.drawIsobars(dataset, clampedIdx);
+      this.drawIsobars(dataset, clampedIdx, isMacro);
       this.isobarLayer.visible = true;
     } else {
       this.isobarLayer.visible = false;
@@ -229,7 +248,7 @@ export class ClimateMapOverlay {
 
     // 4. Desenhar Setas de Vento + Marcador Central (GraphicsLayer)
     if (this.showWindArrows) {
-      this.drawWindVectors(dataset, clampedIdx);
+      this.drawWindVectors(dataset, clampedIdx, isMacro);
       this.windVectorLayer.visible = true;
     } else {
       this.windVectorLayer.visible = false;
@@ -315,10 +334,11 @@ export class ClimateMapOverlay {
     stepIdx: number,
     minVal: number,
     maxVal: number,
-    seq: number
+    seq: number,
+    isMacro: boolean
   ): void {
-    const W = 144;
-    const H = 144;
+    const W = isMacro ? 192 : 144;
+    const H = isMacro ? 192 : 144;
     const canvas = document.createElement("canvas");
     canvas.width = W;
     canvas.height = H;
@@ -327,7 +347,10 @@ export class ClimateMapOverlay {
     const meta = CLIMATE_VARIABLES[varKey];
     const span = Math.max(1e-5, maxVal - minVal);
 
-    const extractor = (idx: number) => dataset.gridNodes[idx]?.values[varKey]?.[stepIdx] ?? 0;
+    const rows = isMacro ? dataset.macroRows : dataset.gridRows;
+    const cols = isMacro ? dataset.macroCols : dataset.gridCols;
+    const nodes = isMacro ? dataset.macroNodes : dataset.gridNodes;
+    const extractor = (idx: number) => nodes[idx]?.values[varKey]?.[stepIdx] ?? 0;
 
     for (let py = 0; py < H; py++) {
       // py = 0 é o topo (Norte -> v = 1), py = H-1 é o fundo (Sul -> v = 0)
@@ -340,12 +363,12 @@ export class ClimateMapOverlay {
         const edgeX = Math.min(1, Math.min(u, 1 - u) / 0.06);
         const edgeAlpha = edgeX * edgeY;
 
-        const val = this.interpolateGrid(dataset, extractor, u, v);
+        const val = this.interpolateGrid(rows, cols, extractor, u, v);
         const norm = (val - minVal) / span;
         const [r, g, b] = samplePalette(meta.palette, norm);
 
         // Para precipitação, valores muito próximos de 0 ficam mais translúcidos para deixar ver o terreno
-        let alpha = 215;
+        let alpha = isMacro ? 195 : 215;
         if (varKey === "precipitation" && val < 0.15) {
           alpha = Math.round((val / 0.15) * 90);
         }
@@ -360,7 +383,7 @@ export class ClimateMapOverlay {
 
     ctx.putImageData(img, 0, 0);
 
-    const { minLon, maxLon, minLat, maxLat } = dataset.bbox;
+    const { minLon, maxLon, minLat, maxLat } = isMacro ? dataset.macroBbox : dataset.bbox;
     const georeference = new CornersGeoreference({
       topLeft: new Point({ longitude: minLon, latitude: maxLat }),
       topRight: new Point({ longitude: maxLon, latitude: maxLat }),
@@ -389,13 +412,16 @@ export class ClimateMapOverlay {
 
   /**
    * Traça isolinhas de pressão atmosférica (isóbaras em hPa) por Marching Squares
-   * numa subgrelha 20x20 sobre a área de estudo.
+   * sobre a área de estudo (local 4x4 ou sinóptica macro Ibéria/Atlântico 7x7).
    */
-  private drawIsobars(dataset: ReanalysisDataset, stepIdx: number): void {
+  private drawIsobars(dataset: ReanalysisDataset, stepIdx: number, isMacro: boolean): void {
     this.isobarLayer.removeAll();
 
-    const N = 20;
-    const extractor = (idx: number) => dataset.gridNodes[idx]?.values.pressure_msl?.[stepIdx] ?? 1013;
+    const N = isMacro ? 28 : 20;
+    const rows = isMacro ? dataset.macroRows : dataset.gridRows;
+    const cols = isMacro ? dataset.macroCols : dataset.gridCols;
+    const nodes = isMacro ? dataset.macroNodes : dataset.gridNodes;
+    const extractor = (idx: number) => nodes[idx]?.values.pressure_msl?.[stepIdx] ?? 1013;
     const field: number[][] = [];
     let minP = Infinity;
     let maxP = -Infinity;
@@ -405,7 +431,7 @@ export class ClimateMapOverlay {
       const row: number[] = [];
       for (let c = 0; c <= N; c++) {
         const u = c / N;
-        const p = this.interpolateGrid(dataset, extractor, u, v);
+        const p = this.interpolateGrid(rows, cols, extractor, u, v);
         row.push(p);
         if (p < minP) minP = p;
         if (p > maxP) maxP = p;
@@ -413,12 +439,12 @@ export class ClimateMapOverlay {
       field.push(row);
     }
 
-    const { minLon, maxLon, minLat, maxLat } = dataset.bbox;
+    const { minLon, maxLon, minLat, maxLat } = isMacro ? dataset.macroBbox : dataset.bbox;
     const toLon = (u: number) => minLon + u * (maxLon - minLon);
     const toLat = (v: number) => minLat + v * (maxLat - minLat);
 
     const span = maxP - minP;
-    const stepHpa = span > 4 ? 1.0 : 0.5;
+    const stepHpa = isMacro ? (span > 18 ? 4.0 : 2.0) : span > 4 ? 1.0 : 0.5;
     const firstLevel = Math.ceil(minP / stepHpa) * stepHpa;
 
     const graphics: Graphic[] = [];
@@ -474,7 +500,7 @@ export class ClimateMapOverlay {
             geometry: new Polyline({ paths, spatialReference: { wkid: 4326 } }),
             symbol: new SimpleLineSymbol({
               color: [255, 255, 255, 0.92],
-              width: 2.2,
+              width: isMacro ? 2.5 : 2.2,
               style: "short-dash",
             }),
           })
@@ -501,17 +527,78 @@ export class ClimateMapOverlay {
       }
     }
 
+    // Na visão Macro (Ibéria & Atlântico), assinalar o centro de Baixa Pressão (B) e/ou Alta Pressão (A)
+    if (isMacro && nodes.length > 0) {
+      let minNode = nodes[0];
+      let maxNode = nodes[0];
+      let minNodeP = minNode.values.pressure_msl?.[stepIdx] ?? 1013;
+      let maxNodeP = maxNode.values.pressure_msl?.[stepIdx] ?? 1013;
+
+      for (const n of nodes) {
+        const p = n.values.pressure_msl?.[stepIdx] ?? 1013;
+        if (p < minNodeP) {
+          minNodeP = p;
+          minNode = n;
+        }
+        if (p > maxNodeP) {
+          maxNodeP = p;
+          maxNode = n;
+        }
+      }
+
+      if (minNodeP < 1009) {
+        graphics.push(
+          new Graphic({
+            geometry: new Point({ longitude: minNode.lon, latitude: minNode.lat }),
+            symbol: new PointSymbol3D({
+              symbolLayers: [
+                new TextSymbol3DLayer({
+                  text: `B  ${minNodeP.toFixed(0)} hPa`,
+                  size: 13,
+                  font: { weight: "bold" },
+                  material: { color: "#ffffff" },
+                  halo: { color: "#991b1b", size: 2.5 },
+                  background: { color: [220, 38, 38, 0.9] },
+                }),
+              ],
+            }),
+          })
+        );
+      }
+
+      if (maxNodeP > 1018) {
+        graphics.push(
+          new Graphic({
+            geometry: new Point({ longitude: maxNode.lon, latitude: maxNode.lat }),
+            symbol: new PointSymbol3D({
+              symbolLayers: [
+                new TextSymbol3DLayer({
+                  text: `A  ${maxNodeP.toFixed(0)} hPa`,
+                  size: 13,
+                  font: { weight: "bold" },
+                  material: { color: "#ffffff" },
+                  halo: { color: "#0369a1", size: 2.5 },
+                  background: { color: [2, 132, 199, 0.9] },
+                }),
+              ],
+            }),
+          })
+        );
+      }
+    }
+
     this.isobarLayer.addMany(graphics);
   }
 
   /**
-   * Desenha setas de vento orientadas numa grelha 4x4 sobre a região e o pino do ponto central.
+   * Desenha setas de vento orientadas sobre a região (4x4 local ou 7x7 macro) e o pino do ponto central.
    */
-  private drawWindVectors(dataset: ReanalysisDataset, stepIdx: number): void {
+  private drawWindVectors(dataset: ReanalysisDataset, stepIdx: number, isMacro: boolean): void {
     this.windVectorLayer.removeAll();
     const graphics: Graphic[] = [];
+    const nodes = isMacro ? dataset.macroNodes : dataset.gridNodes;
 
-    for (const node of dataset.gridNodes) {
+    for (const node of nodes) {
       const speed = node.values.wind_speed_10m?.[stepIdx] ?? 10;
       const fromDeg = node.windDirection?.[stepIdx] ?? 225;
       // O vento sopra DE `fromDeg` PARA `(fromDeg + 180) % 360`
@@ -536,7 +623,7 @@ export class ClimateMapOverlay {
       );
     }
 
-    // Marcador do ponto central em análise
+    // Marcador do ponto central em análise (Alijó / Douro)
     graphics.push(
       new Graphic({
         geometry: new Point({ longitude: dataset.centerLon, latitude: dataset.centerLat }),

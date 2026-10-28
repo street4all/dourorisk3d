@@ -2274,6 +2274,31 @@ body.probing #alijo-scene-container {
 .climate-card .climate-ico {
   color: #38bdf8;
 }
+.climate-scope {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  margin-top: 8px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.climate-scope button {
+  min-height: 40px;
+  padding: 6px 6px;
+  border: 0;
+  border-left: 2px solid var(--line);
+  background: transparent;
+  color: var(--fg);
+  font: 700 0.84em/1.15 var(--font);
+  cursor: pointer;
+}
+.climate-scope button:first-child {
+  border-left: 0;
+}
+.climate-scope button[aria-pressed="true"] {
+  background: #38bdf8;
+  color: #121417;
+}
 .climate-section {
   margin-top: 12px;
   padding-top: 10px;

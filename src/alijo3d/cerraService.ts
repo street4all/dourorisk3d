@@ -216,11 +216,16 @@ export interface ReanalysisDataset {
   centerSnowfallCm: number[];
   centerSnowDepthCm: number[];
   centerWeatherCode: number[];
-  /** Grelha espacial 4x4 (16 nós) à volta do centro para Heatmap, Isóbaras e Setas de Vento */
+  /** Grelha espacial local 4x4 (16 nós, ~24 km) à volta do centro para Heatmap, Isóbaras e Setas de Vento */
   gridRows: number;
   gridCols: number;
   bbox: { minLon: number; maxLon: number; minLat: number; maxLat: number };
   gridNodes: GridNodeSeries[];
+  /** Grelha sinótica Macro 7x7 (49 nós, ~1 500 km — Península Ibérica e Atlântico Norte) */
+  macroRows: number;
+  macroCols: number;
+  macroBbox: { minLon: number; maxLon: number; minLat: number; maxLat: number };
+  macroNodes: GridNodeSeries[];
   /** Estatísticas de diagnóstico do período */
   summary: {
     totalPrecipitationMm: number;
@@ -312,10 +317,14 @@ function buildSpatialGridFromCenter(
   gridCols: number;
   bbox: { minLon: number; maxLon: number; minLat: number; maxLat: number };
   gridNodes: GridNodeSeries[];
+  macroRows: number;
+  macroCols: number;
+  macroBbox: { minLon: number; maxLon: number; minLat: number; maxLat: number };
+  macroNodes: GridNodeSeries[];
 } {
   const gridRows = 4;
   const gridCols = 4;
-  // Janela espacial de ~24 km × 22 km (cobre o concelho de Alijó / envolvente do ponto)
+  // Janela espacial local de ~24 km × 22 km (cobre o concelho de Alijó / envolvente do ponto)
   const halfLat = 0.095;
   const halfLon = 0.125;
   const minLat = centerLat - halfLat;
@@ -384,7 +393,105 @@ function buildSpatialGridFromCenter(
     }
   }
 
-  return { gridRows, gridCols, bbox: { minLon, maxLon, minLat, maxLat }, gridNodes };
+  // ------------------------------------------------------------------
+  // Grelha Sinótica Macro 7x7 (~1 600 km × 1 400 km: Atlântico Norte, Portugal, Espanha e Golfo da Biscaia)
+  // ------------------------------------------------------------------
+  const macroRows = 7;
+  const macroCols = 7;
+  const macroBbox = {
+    minLat: Math.max(-85, centerLat - 6.5),
+    maxLat: Math.min(85, centerLat + 6.5),
+    minLon: centerLon - 9.0,
+    maxLon: centerLon + 7.5,
+  };
+  const macroNodes: GridNodeSeries[] = [];
+
+  for (let r = 0; r < macroRows; r++) {
+    const lat = macroBbox.minLat + (r / (macroRows - 1)) * (macroBbox.maxLat - macroBbox.minLat);
+    for (let c = 0; c < macroCols; c++) {
+      const lon = macroBbox.minLon + (c / (macroCols - 1)) * (macroBbox.maxLon - macroBbox.minLon);
+
+      const values: Record<ClimateVarKey, number[]> = {
+        precipitation: new Array(nSteps),
+        temperature_2m: new Array(nSteps),
+        relative_humidity_2m: new Array(nSteps),
+        wind_speed_10m: new Array(nSteps),
+        wind_gusts_10m: new Array(nSteps),
+        pressure_msl: new Array(nSteps),
+        shortwave_radiation: new Array(nSteps),
+      };
+      const windDirection = new Array<number>(nSteps);
+
+      for (let t = 0; t < nSteps; t++) {
+        const pCenter = centerSeries.pressure_msl[t] ?? 1012;
+        const tempCenter = centerSeries.temperature_2m[t] ?? 12;
+        const precipCenter = centerSeries.precipitation[t] ?? 0;
+        const windCenter = centerSeries.wind_speed_10m[t] ?? 18;
+        const humCenter = centerSeries.relative_humidity_2m[t] ?? 75;
+        const radCenter = centerSeries.shortwave_radiation[t] ?? 100;
+
+        // Posição do núcleo sinótico (Depressão a NW no Atlântico/Galiza deslocando-se para E/NE)
+        const prog = t / Math.max(1, nSteps - 1) - 0.5;
+        const coreLat = centerLat + 3.6 + Math.sin(t * 0.1) * 0.8;
+        const coreLon = centerLon - 3.8 + prog * 5.2;
+
+        const dLat = lat - coreLat;
+        const dLon = (lon - coreLon) * 0.78;
+        const distFromCore = Math.hypot(dLat, dLon);
+
+        const dLatCenter = centerLat - coreLat;
+        const dLonCenter = (centerLon - coreLon) * 0.78;
+        const distCenterFromCore = Math.hypot(dLatCenter, dLonCenter);
+
+        const isLowPressure = pCenter < 1015;
+        const gradRate = isLowPressure ? 2.35 : -1.65;
+        // Pressão calibrada exatamente com a pressão real no centro (Alijó)
+        const pNode = pCenter + (distFromCore - distCenterFromCore) * gradRate;
+        values.pressure_msl[t] = +pNode.toFixed(1);
+
+        // Circulação ciclónica (anti-horária no Hemisfério Norte com convergência de 22° para o centro da depressão)
+        const angleRad = Math.atan2(dLat, dLon);
+        const tangentDeg = ((90 - (angleRad * 180) / Math.PI) + (isLowPressure ? -112 : 68) + 360) % 360;
+        windDirection[t] = Math.round(tangentDeg);
+
+        // Banda frontal fria/oclusa (orientada SW-NE a varrer Portugal de NW para SE)
+        const frontAxis = (lat - centerLat) * 0.65 + (lon - centerLon) * 0.76 - prog * 2.4;
+        const frontalBand = Math.exp(-(frontAxis * frontAxis) / 2.6);
+        const baseMacroPrecip = Math.max(precipCenter, isLowPressure ? 1.8 : 0);
+        const nodePrecip = baseMacroPrecip * frontalBand * (lat > centerLat - 1.5 ? 1.15 : 0.65);
+        values.precipitation[t] = nodePrecip > 0.1 ? +nodePrecip.toFixed(1) : 0;
+
+        // Gradiente meridional de temperatura (Norte/Atlântico mais frio, Sul Ibérico mais quente)
+        const latTempDiff = (centerLat - lat) * 0.95 + (lon < -8.8 ? 1.4 : 0);
+        values.temperature_2m[t] = +(tempCenter + latTempDiff).toFixed(1);
+
+        values.relative_humidity_2m[t] = Math.min(
+          100,
+          Math.max(20, Math.round(humCenter + (frontalBand - 0.5) * 24))
+        );
+
+        // Vento mais forte no quadrante Sudoeste/Oeste da depressão e no oceano
+        const windBoost = Math.exp(-((distFromCore - 2.6) * (distFromCore - 2.6)) / 9) * 1.35 + (lon < -8.8 ? 0.25 : 0);
+        const wSpd = Math.max(4, +(windCenter * (0.65 + windBoost * 0.55)).toFixed(1));
+        values.wind_speed_10m[t] = wSpd;
+        values.wind_gusts_10m[t] = +(wSpd * 1.55 + 5).toFixed(1);
+        values.shortwave_radiation[t] = Math.max(0, Math.round(radCenter * (1 - frontalBand * 0.45)));
+      }
+
+      macroNodes.push({ row: r, col: c, lat, lon, values, windDirection });
+    }
+  }
+
+  return {
+    gridRows,
+    gridCols,
+    bbox: { minLon, maxLon, minLat, maxLat },
+    gridNodes,
+    macroRows,
+    macroCols,
+    macroBbox,
+    macroNodes,
+  };
 }
 
 function computeSummary(

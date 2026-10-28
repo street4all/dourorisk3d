@@ -182,6 +182,23 @@ export class ClimatePanel {
     $("btn-climate")?.addEventListener("click", () => this.setOpen(!this.isOpen));
     $("climate-close")?.addEventListener("click", () => this.setOpen(false));
 
+    // Alternar entre Visão Local (Alijó 3D) e Visão Macro Sinóptica (Ibéria & Atlântico)
+    $("climate-scope-local")?.addEventListener("click", () => this.setScope("local", true));
+    $("climate-scope-macro")?.addEventListener("click", () => this.setScope("macro", true));
+
+    // Detetar automaticamente afastamento para o globo (zoom out > 140 km) ou aproximação a Alijó (< 85 km)
+    const view = this.manager.view;
+    if (view) {
+      view.watch("camera.position.z", (z: number) => {
+        if (!this.isOpen || !this.overlay) return;
+        if (z > 140_000 && this.overlay.viewScope !== "macro") {
+          this.setScope("macro", false);
+        } else if (z < 85_000 && this.overlay.viewScope !== "local") {
+          this.setScope("local", false);
+        }
+      });
+    }
+
     // Escolha de evento histórico pré-definido
     $("climate-event-select")?.addEventListener("change", (e) => {
       const val = (e.target as HTMLSelectElement).value;
@@ -369,6 +386,36 @@ export class ClimatePanel {
     });
   }
 
+  private setScope(scope: "local" | "macro", flyCamera: boolean): void {
+    if (!this.overlay) return;
+    this.overlay.viewScope = scope;
+
+    const btnLocal = $("climate-scope-local");
+    const btnMacro = $("climate-scope-macro");
+    btnLocal?.setAttribute("aria-pressed", String(scope === "local"));
+    btnMacro?.setAttribute("aria-pressed", String(scope === "macro"));
+
+    if (flyCamera && this.manager.view) {
+      if (scope === "macro") {
+        void this.manager.view
+          .goTo(
+            {
+              target: [-8.0, 40.5],
+              zoom: 5,
+              tilt: 15,
+              heading: 0,
+            },
+            { duration: 1100 }
+          )
+          .catch(() => undefined);
+      } else {
+        this.flyToLocation(this.currentLon, this.currentLat);
+      }
+    }
+
+    this.renderCurrentStep();
+  }
+
   private flyToLocation(lon: number, lat: number): void {
     const view = this.manager.view;
     if (!view) return;
@@ -539,19 +586,25 @@ export class ClimatePanel {
     const stops = meta.palette.join(", ");
     const midVal = (minVal + maxVal) / 2;
 
+    const isMacro = this.overlay?.viewScope === "macro";
     const snowBanner =
-      snowLineM !== null && this.overlay?.showSnowCover
+      !isMacro && snowLineM !== null && this.overlay?.showSnowCover
         ? `<div class="climate-legend-head" style="color:#e0f2fe; margin-bottom:6px;">
              <strong>❄ Manto de Neve (MDT 25 m)</strong>
              <span>Cota de acumulação: <b>≥ ${snowLineM} m</b></span>
            </div>`
-        : "";
+        : isMacro
+          ? `<div class="climate-legend-head" style="color:#38bdf8; margin-bottom:6px;">
+               <strong>🌍 Carta Sinóptica (Ibéria &amp; Atlântico)</strong>
+               <span>B = Depressão · A = Anticiclone</span>
+             </div>`
+          : "";
 
     el.innerHTML = `
       ${snowBanner}
       <div class="climate-legend-head">
         <strong>Heatmap: ${esc(meta.shortLabel)} (${esc(meta.unit)})</strong>
-        <span>Isóbaras (hPa) + Vento (km/h)</span>
+        <span>Isóbaras (${isMacro ? "2–4" : "0.5–1"} hPa) + Vento</span>
       </div>
       <div class="climate-gradient-bar" style="background: linear-gradient(90deg, ${stops});"></div>
       <div class="climate-legend-ticks">
