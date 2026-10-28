@@ -5,7 +5,7 @@ import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
 import { CanvasOverlay } from "./overlay";
 import { renderLegend } from "./layers";
 import { extentTM06, gridFromManifest, type GridGeo } from "../geo/grid";
-import { isOnlyConcelho, setOnlyConcelho } from "./clip";
+import { isOnlyConcelho, refreshClippedKeys, setOnlyConcelho } from "./clip";
 import { INTRO_ESTUDO, aboutOf, renderHow, type HowGroup } from "./how";
 import { periodo } from "./words";
 import { TECNICO } from "./tecnico";
@@ -179,6 +179,11 @@ export class MapsPanel {
     const current = this.hooks.current();
     if (this.compareKey && (key === current || key === this.compareKey)) void this.refreshCompare();
     else if (key === current) this.show(key, this.opacity);
+  }
+
+  /** Recalcula as camadas derivadas dependentes da data/hora meteorológica ("erosao_pos_fogo", "neve_gelo_25m"). */
+  refreshDerivedLayers(): void {
+    refreshClippedKeys(["erosao_pos_fogo", "neve_gelo_25m"], (key) => this.imageReady(key));
   }
 
   setOpen(on: boolean): void {

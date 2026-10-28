@@ -16,13 +16,43 @@ export const NEVE_GELO_WORDS = [
   "terras altas (acumulação de neve e gelo)",
 ] as const;
 
+export interface DerivedWeatherForcing {
+  label: string;
+  tempC: number;
+  humidityPct: number;
+  windKmh: number;
+  rain1h: number;
+  rain24h: number;
+  snowfallCm: number;
+  snowDepthCm: number;
+}
+
 interface DerivedLayerCache {
   classes: Uint8Array;
   blobUrl: string;
 }
 
+let currentForcing: DerivedWeatherForcing | null = null;
 let erosaoPromise: Promise<DerivedLayerCache> | null = null;
 let neveGeloPromise: Promise<DerivedLayerCache> | null = null;
+
+export function getDerivedWeatherForcing(): DerivedWeatherForcing | null {
+  return currentForcing;
+}
+
+export function setDerivedWeatherForcing(forcing: DerivedWeatherForcing | null): boolean {
+  const prevKey = currentForcing
+    ? `${currentForcing.label}|${currentForcing.tempC.toFixed(1)}|${currentForcing.rain1h.toFixed(1)}|${currentForcing.rain24h.toFixed(1)}|${currentForcing.snowDepthCm.toFixed(1)}`
+    : "null";
+  const nextKey = forcing
+    ? `${forcing.label}|${forcing.tempC.toFixed(1)}|${forcing.rain1h.toFixed(1)}|${forcing.rain24h.toFixed(1)}|${forcing.snowDepthCm.toFixed(1)}`
+    : "null";
+  currentForcing = forcing;
+  if (prevKey === nextKey) return false;
+  erosaoPromise = null;
+  neveGeloPromise = null;
+  return true;
+}
 
 function hexToRgba(hex: string, alpha = 230): [number, number, number, number] {
   const clean = hex.replace("#", "");
@@ -100,6 +130,19 @@ async function buildErosaoLayer(): Promise<DerivedLayerCache> {
       if (concBytes && decBytes) {
         const mdtView = mdtRes?.view ?? null;
         const nodata = mdtRes?.nodata ?? -32768;
+        const wf = currentForcing;
+        const rainFactor = wf
+          ? Math.max(
+              0.68,
+              Math.min(
+                2.25,
+                0.78 +
+                  wf.rain1h / 5.5 +
+                  wf.rain24h / 32 +
+                  (wf.tempC > 2 && wf.snowDepthCm > 0 ? wf.snowDepthCm / 15 : 0)
+              )
+            )
+          : 1.0;
 
         for (let i = 0; i < n; i++) {
           if (!concBytes[i]) continue;
@@ -137,7 +180,7 @@ async function buildErosaoLayer(): Promise<DerivedLayerCache> {
           }
 
           const terraceBoost = isTerraceBelt ? 1.22 : 1.0;
-          const score = ls * fireFactor * terraceBoost;
+          const score = ls * fireFactor * terraceBoost * rainFactor;
 
           let cls = 1;
           if (score >= 2.35) cls = 5;
@@ -175,6 +218,18 @@ async function buildNeveGeloLayer(): Promise<DerivedLayerCache> {
 
       if (mdtRes && concBytes) {
         const { view: mdtView, nodata } = mdtRes;
+        const wf = currentForcing;
+        // Ajuste dinâmico da cota de neve/gelo em função da temperatura e neve da data/hora escolhida
+        let weatherAltShift = 0;
+        if (wf) {
+          if (wf.snowfallCm > 0.1 || wf.snowDepthCm > 0.5 || wf.tempC <= 1.5) {
+            weatherAltShift = Math.round((4.5 - wf.tempC) * 42 + wf.snowDepthCm * 18 + wf.snowfallCm * 35);
+          } else if (wf.tempC <= 7) {
+            weatherAltShift = Math.round((6 - wf.tempC) * 24);
+          } else if (wf.tempC >= 16) {
+            weatherAltShift = -Math.round((wf.tempC - 12) * 28);
+          }
+        }
 
         for (let i = 0; i < n; i++) {
           if (!concBytes[i]) continue;
@@ -194,7 +249,7 @@ async function buildNeveGeloLayer(): Promise<DerivedLayerCache> {
             }
           }
 
-          const effAlt = alt + aspectBonus;
+          const effAlt = alt + aspectBonus + weatherAltShift;
           let cls = 1;
           if (effAlt >= 675) cls = 4;
           else if (effAlt >= 565) cls = 3;
@@ -262,3 +317,4 @@ export function thumbnailForMap(key: string): string {
   }
   return `/images/mapas/${key}.png`;
 }
+

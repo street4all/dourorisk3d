@@ -4,6 +4,7 @@
 // meteorológicas e consultar impactos e boas práticas para territórios de baixa densidade (Douro).
 
 import type { Alijo3DManager } from "../alijo3d/alijoScene";
+import type { LiveWeatherReport } from "../alijo3d/weatherService";
 import {
   ALIJO_LOCATIONS,
   CLIMATE_VARIABLES,
@@ -15,6 +16,7 @@ import {
   type ReanalysisDataset,
 } from "../alijo3d/cerraService";
 import { ClimateMapOverlay, type HydroRiskStats } from "./climateMapOverlay";
+import type { DerivedWeatherForcing } from "./derivedLayers";
 import { esc } from "./words";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
@@ -31,6 +33,7 @@ function formatDateTimePt(iso: string): string {
 export interface ClimatePanelHooks {
   opened(): void;
   say(msg: string): void;
+  onWeatherStep?(report: LiveWeatherReport | null, forcing: DerivedWeatherForcing | null): void;
 }
 
 export class ClimatePanel {
@@ -38,6 +41,7 @@ export class ClimatePanel {
   private dataset: ReanalysisDataset | null = null;
   private isOpen = false;
   private isPickingPoint = false;
+  private activeOnHud = false;
 
   private currentLat = ALIJO_LOCATIONS[2].lat; // Sanfins do Douro por omissão (Nevão Jan 2026)
   private currentLon = ALIJO_LOCATIONS[2].lon;
@@ -87,6 +91,7 @@ export class ClimatePanel {
 
     if (next) {
       this.hooks.opened();
+      this.activeOnHud = true;
       $("climate-title")?.focus();
       if (!this.dataset) {
         void this.loadReanalysis();
@@ -97,7 +102,9 @@ export class ClimatePanel {
       this.stopPlayback();
       this.setPickMode(false);
       this.overlay?.clear();
-      this.manager.applyWeather();
+      if (!this.activeOnHud) {
+        this.manager.applyWeather();
+      }
       btn?.focus();
     }
   }
@@ -177,6 +184,20 @@ export class ClimatePanel {
     const endInput = $("climate-end-date") as HTMLInputElement | null;
     if (startInput) startInput.value = this.startDate;
     if (endInput) endInput.value = this.endDate;
+
+    // 5. Controlos de data e hora no HUD da Regra 30-30-30 (#hud-30)
+    const hudHour = $("hud-30-hour") as HTMLSelectElement | null;
+    if (hudHour) {
+      const nowHour = `${String(new Date().getHours()).padStart(2, "0")}:00`;
+      hudHour.innerHTML = Array.from({ length: 24 }, (_, h) => {
+        const hh = `${String(h).padStart(2, "0")}:00`;
+        return `<option value="${hh}" ${hh === nowHour ? "selected" : ""}>${hh}</option>`;
+      }).join("");
+    }
+    const hudDate = $("hud-30-date") as HTMLInputElement | null;
+    if (hudDate) {
+      hudDate.value = new Date().toISOString().slice(0, 10);
+    }
   }
 
   private wireEvents(): void {
@@ -422,6 +443,129 @@ export class ClimatePanel {
         this.startPlayback();
       }
     });
+
+    // Controlos de data e hora na interface meteorológica do mapa (#hud-30)
+    $("hud-30-now")?.addEventListener("click", () => {
+      this.resetToLiveWeather();
+    });
+
+    $("hud-30-preset")?.addEventListener("change", (e) => {
+      const val = (e.target as HTMLSelectElement).value;
+      if (val === "live") {
+        this.resetToLiveWeather();
+        return;
+      }
+      if (val === "custom") {
+        const hudDate = ($("hud-30-date") as HTMLInputElement | null)?.value;
+        const hudHour = ($("hud-30-hour") as HTMLSelectElement | null)?.value || "15:00";
+        if (hudDate) {
+          void this.selectDateHour(hudDate, hudHour);
+        }
+        return;
+      }
+
+      const preset = EXTREME_EVENTS.find((ev) => ev.id === val);
+      if (!preset) return;
+
+      this.activeOnHud = true;
+      this.startDate = preset.startDate;
+      this.endDate = preset.endDate;
+      this.primaryVar = preset.defaultVar;
+      this.compareVar = preset.compareVar;
+
+      const eventSel = $("climate-event-select") as HTMLSelectElement | null;
+      if (eventSel) eventSel.value = val;
+      const startInput = $("climate-start-date") as HTMLInputElement | null;
+      const endInput = $("climate-end-date") as HTMLInputElement | null;
+      if (startInput) startInput.value = this.startDate;
+      if (endInput) endInput.value = this.endDate;
+
+      const loc = ALIJO_LOCATIONS.find((l) => l.id === preset.locationId);
+      if (loc) {
+        this.currentLat = loc.lat;
+        this.currentLon = loc.lon;
+        this.currentLocationName = loc.name;
+        const parishSel = $("climate-parish-select") as HTMLSelectElement | null;
+        if (parishSel) parishSel.value = loc.id;
+      }
+
+      const peakTargetIso: Record<string, string> = {
+        calor_2022: "2022-07-14T16:00",
+        nevao_2026: "2026-01-24T06:00",
+        aline_2023: "2023-10-19T15:00",
+        elsa_2019: "2019-12-19T18:00",
+        pinhao_2023: "2023-06-13T17:00",
+      };
+      void this.loadReanalysis(peakTargetIso[val]);
+    });
+
+    const onHudDateHourChange = () => {
+      const hudDate = ($("hud-30-date") as HTMLInputElement | null)?.value;
+      const hudHour = ($("hud-30-hour") as HTMLSelectElement | null)?.value || "15:00";
+      if (!hudDate) return;
+      const hudPreset = $("hud-30-preset") as HTMLSelectElement | null;
+      if (hudPreset && hudPreset.value === "live") {
+        hudPreset.value = "custom";
+      }
+      void this.selectDateHour(hudDate, hudHour);
+    };
+
+    $("hud-30-date")?.addEventListener("change", onHudDateHourChange);
+    $("hud-30-hour")?.addEventListener("change", onHudDateHourChange);
+  }
+
+  public resetToLiveWeather(): void {
+    this.stopPlayback();
+    this.activeOnHud = false;
+    const hudPreset = $("hud-30-preset") as HTMLSelectElement | null;
+    if (hudPreset) hudPreset.value = "live";
+    const nowBtn = $("hud-30-now");
+    if (nowBtn) nowBtn.hidden = true;
+    const hudDate = $("hud-30-date") as HTMLInputElement | null;
+    if (hudDate) hudDate.value = new Date().toISOString().slice(0, 10);
+    const hudHour = $("hud-30-hour") as HTMLSelectElement | null;
+    if (hudHour) hudHour.value = `${String(new Date().getHours()).padStart(2, "0")}:00`;
+    if (!this.isOpen) {
+      this.manager.applyWeather();
+    }
+    this.hooks.onWeatherStep?.(null, null);
+  }
+
+  public async selectDateHour(dateStr: string, hourStr: string): Promise<void> {
+    this.stopPlayback();
+    this.activeOnHud = true;
+    const targetIso = `${dateStr}T${hourStr.slice(0, 5)}`;
+
+    // Se a data já estiver carregada no dataset atual, saltar diretamente para a hora escolhida
+    if (this.dataset) {
+      const existingIdx = this.dataset.times.findIndex((t) => t.startsWith(targetIso));
+      if (existingIdx >= 0) {
+        this.currentStepIdx = existingIdx;
+        const slider = $("climate-time-slider") as HTMLInputElement | null;
+        if (slider) slider.value = String(this.currentStepIdx);
+        this.renderCurrentStep();
+        if (this.isOpen) this.updateChartCursor();
+        return;
+      }
+    }
+
+    // Caso contrário, carregar janela centrada no dia escolhido (dia anterior a dia seguinte)
+    const dObj = new Date(`${dateStr}T12:00:00Z`);
+    if (Number.isNaN(dObj.getTime())) return;
+    const prevDay = new Date(dObj.getTime() - 86400_000).toISOString().slice(0, 10);
+    const nextDay = new Date(dObj.getTime() + 86400_000).toISOString().slice(0, 10);
+    this.startDate = prevDay;
+    this.endDate = nextDay;
+
+    const startInput = $("climate-start-date") as HTMLInputElement | null;
+    const endInput = $("climate-end-date") as HTMLInputElement | null;
+    if (startInput) startInput.value = this.startDate;
+    if (endInput) endInput.value = this.endDate;
+
+    const eventSel = $("climate-event-select") as HTMLSelectElement | null;
+    if (eventSel) eventSel.value = "custom";
+
+    await this.loadReanalysis(targetIso);
   }
 
   private setScope(scope: "local" | "macro", flyCamera: boolean): void {
@@ -498,7 +642,7 @@ export class ClimatePanel {
     }
   }
 
-  private async loadReanalysis(): Promise<void> {
+  private async loadReanalysis(targetIso?: string): Promise<void> {
     const seq = ++this.requestSeq;
     this.stopPlayback();
 
@@ -530,11 +674,22 @@ export class ClimatePanel {
       if (heatChk) heatChk.checked = !hasSnowInPeriod;
     }
 
-    // Posicionar automaticamente no pico de precipitação (ou a meio do intervalo se não houver chuva)
+    // Posicionar na hora pedida, ou no pico de precipitação / calor (30-30-30), ou a meio do intervalo
     let bestIdx = Math.floor(data.times.length / 2);
-    if (data.summary.maxHourlyPrecipitationMm > 0) {
+    if (targetIso) {
+      const exactIdx = data.times.findIndex((t) => t.startsWith(targetIso));
+      if (exactIdx >= 0) bestIdx = exactIdx;
+    } else if (data.summary.maxHourlyPrecipitationMm > 0) {
       const found = data.times.indexOf(data.summary.maxHourlyPrecipitationTime);
       if (found >= 0) bestIdx = found;
+    } else if (data.summary.maxTempC >= 30) {
+      let maxT = -Infinity;
+      data.centerSeries.temperature_2m.forEach((t, i) => {
+        if (t > maxT) {
+          maxT = t;
+          bestIdx = i;
+        }
+      });
     }
     this.currentStepIdx = bestIdx;
 
@@ -549,49 +704,62 @@ export class ClimatePanel {
     }
 
     this.renderCurrentStep();
-    this.renderTimeSeriesChart();
-    this.renderImpactAndBestPractices();
+    if (this.isOpen) {
+      this.renderTimeSeriesChart();
+      this.renderImpactAndBestPractices();
+    }
   }
 
   private renderCurrentStep(): void {
-    if (!this.dataset || !this.overlay || !this.isOpen) return;
+    if (!this.dataset || (!this.isOpen && !this.activeOnHud)) return;
     const d = this.dataset;
     const idx = Math.max(0, Math.min(d.times.length - 1, this.currentStepIdx));
+    const isoTime = d.times[idx] || "";
+    const formattedLabel = formatDateTimePt(isoTime);
 
-    // 1. Atualizar camadas sobrepostas no mapa 3D (Heatmap, Manto de Neve MDT 25m, Isóbaras e Setas de Vento)
-    const { minVal, maxVal, snowLineM } = this.overlay.renderStep(d, this.primaryVar, idx);
+    if (this.isOpen && this.overlay) {
+      // 1. Atualizar camadas sobrepostas no mapa 3D (Heatmap, Manto de Neve MDT 25m, Isóbaras e Setas de Vento)
+      const { minVal, maxVal, snowLineM } = this.overlay.renderStep(d, this.primaryVar, idx);
 
-    // 2. Atualizar etiqueta da hora ativa
-    const timeLabel = $("climate-time-label");
-    if (timeLabel) {
-      timeLabel.textContent = formatDateTimePt(d.times[idx]);
+      // 2. Atualizar etiqueta da hora ativa
+      const timeLabel = $("climate-time-label");
+      if (timeLabel) {
+        timeLabel.textContent = formattedLabel;
+      }
+
+      // 3. Atualizar legenda do Heatmap / Cobertura de Neve
+      this.renderHeatmapLegend(this.primaryVar, minVal, maxVal, snowLineM);
+
+      // 4. Atualizar cartões das 7 variáveis no instante selecionado
+      this.renderInstantMetrics(d, idx);
     }
 
-    // 3. Atualizar legenda do Heatmap / Cobertura de Neve
-    this.renderHeatmapLegend(this.primaryVar, minVal, maxVal, snowLineM);
+    const rainMm = d.centerSeries.precipitation[idx] ?? 0;
+    const tempC = d.centerSeries.temperature_2m[idx] ?? 10;
+    const humPct = d.centerSeries.relative_humidity_2m[idx] ?? 70;
+    const windKmh = d.centerSeries.wind_speed_10m[idx] ?? 10;
+    const windDir = d.centerWindDirection[idx] ?? 270;
+    const cloudPct = d.centerCloudCover[idx] ?? 50;
+    const snowfallCm = d.centerSnowfallCm?.[idx] ?? 0;
+    const snowDepthCm = d.centerSnowDepthCm?.[idx] ?? 0;
+    const wmo = d.centerWeatherCode?.[idx] ?? 0;
 
-    // 4. Atualizar cartões das 7 variáveis no instante selecionado
-    this.renderInstantMetrics(d, idx);
+    let rain24h = 0;
+    const start24 = Math.max(0, idx - 23);
+    for (let k = start24; k <= idx; k++) {
+      rain24h += d.centerSeries.precipitation[k] ?? 0;
+    }
+
+    const isSnowingNow =
+      snowfallCm > 0 ||
+      (wmo >= 71 && wmo <= 77) ||
+      wmo === 85 ||
+      wmo === 86 ||
+      (tempC <= 1.8 && (rainMm > 0 || humPct >= 94));
+    const hasGroundSnow = snowDepthCm > 0 || isSnowingNow || (d.summary.maxSnowDepthCm > 0 && tempC <= 2.5);
 
     // 5. Sincronizar ambiente 3D da cena (neve, chuva e vento 3D) se ativo
     if (this.sync3DEnvironment) {
-      const rainMm = d.centerSeries.precipitation[idx] ?? 0;
-      const tempC = d.centerSeries.temperature_2m[idx] ?? 10;
-      const humPct = d.centerSeries.relative_humidity_2m[idx] ?? 70;
-      const windKmh = d.centerSeries.wind_speed_10m[idx] ?? 10;
-      const cloudPct = d.centerCloudCover[idx] ?? 50;
-      const snowfallCm = d.centerSnowfallCm?.[idx] ?? 0;
-      const snowDepthCm = d.centerSnowDepthCm?.[idx] ?? 0;
-      const wmo = d.centerWeatherCode?.[idx] ?? 0;
-
-      const isSnowingNow =
-        snowfallCm > 0 ||
-        (wmo >= 71 && wmo <= 77) ||
-        wmo === 85 ||
-        wmo === 86 ||
-        (tempC <= 1.8 && (rainMm > 0 || humPct >= 94));
-      const hasGroundSnow = snowDepthCm > 0 || isSnowingNow || (d.summary.maxSnowDepthCm > 0 && tempC <= 2.5);
-
       if (isSnowingNow || hasGroundSnow) {
         const snowPrecip = isSnowingNow
           ? Math.min(1, Math.max(0.35, snowfallCm / 1.5 + rainMm / 4))
@@ -610,6 +778,62 @@ export class ClimatePanel {
       }
       this.manager.setWindSpeed(Math.min(45, Math.max(5, windKmh)));
     }
+
+    // 6. Sincronizar os controlos de data/hora do HUD 30-30-30 (#hud-30) e notificar a vista principal
+    const [datePart, hourPart = "00:00"] = isoTime.split("T");
+    const hudDate = $("hud-30-date") as HTMLInputElement | null;
+    if (hudDate && datePart && hudDate.value !== datePart) {
+      hudDate.value = datePart;
+    }
+    const hudHour = $("hud-30-hour") as HTMLSelectElement | null;
+    const hh = `${hourPart.slice(0, 2)}:00`;
+    if (hudHour && hudHour.value !== hh) {
+      hudHour.value = hh;
+    }
+    const nowBtn = $("hud-30-now");
+    if (nowBtn) nowBtn.hidden = false;
+
+    const desc = isSnowingNow
+      ? `Queda de neve (${snowfallCm.toFixed(1)} cm/h, acumulada ${snowDepthCm.toFixed(1)} cm)`
+      : hasGroundSnow
+        ? `Neve acumulada no solo (${snowDepthCm.toFixed(1)} cm) e gelo`
+        : rainMm > 0.2
+          ? `Precipitação (${rainMm.toFixed(1)} mm/h · ${rain24h.toFixed(0)} mm/24h)`
+          : tempC > 30 && humPct < 30
+            ? "Tempo muito quente e seco (Alerta 30-30-30)"
+            : cloudPct > 70
+              ? "Céu muito nublado"
+              : "Céu pouco nublado";
+
+    const report: LiveWeatherReport = {
+      provider: d.source,
+      stationName: `${d.locationName} (${formattedLabel})`,
+      time: isoTime,
+      temperature: tempC,
+      humidity: humPct,
+      windSpeed: windKmh,
+      windDirection: windDir,
+      windDirectionText: degreesToCompass(windDir),
+      precipitation: rainMm,
+      rain: rainMm,
+      cloudCover: cloudPct,
+      weatherCode: wmo,
+      isRaining: rainMm > 0.2 || isSnowingNow,
+      description: desc,
+    };
+
+    const forcing: DerivedWeatherForcing = {
+      label: formattedLabel,
+      tempC,
+      humidityPct: humPct,
+      windKmh,
+      rain1h: rainMm,
+      rain24h,
+      snowfallCm,
+      snowDepthCm,
+    };
+
+    this.hooks.onWeatherStep?.(report, forcing);
   }
 
   private renderHeatmapLegend(

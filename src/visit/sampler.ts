@@ -63,6 +63,12 @@ export class ClassGrid {
   /** `geo`: a grelha do manifest em que o PNG foi gerado (mesmas dimensões). `url` pode ser um caminho PNG ou gerador assíncrono em memória. */
   constructor(private url: string | (() => Promise<Uint8Array>), readonly geo: GridGeo) {}
 
+  /** Limpa a cache em memória para forçar novo cálculo (usado nas camadas derivadas dependentes da meteorologia). */
+  invalidate(): void {
+    this.data = null;
+    this.loading = null;
+  }
+
   load(): Promise<void> {
     if (!this.loading) {
       if (typeof this.url === "function") {

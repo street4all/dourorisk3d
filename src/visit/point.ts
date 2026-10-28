@@ -10,7 +10,7 @@ import { VISIT_LAYERS } from "./layers";
 import { MDT, T_HA_MAX, VALUES, decode, rawAt } from "./values";
 import { DECL_WORDS, FORA_DO_SOL, MATO_WORDS, RISK_WORDS, SOL_TARDE, esc, fonteCurtaHtml, rumo, vezes } from "./words";
 import { aboutOf, fonteSr } from "./how";
-import { NEVE_GELO_WORDS } from "./derivedLayers";
+import { NEVE_GELO_WORDS, getDerivedWeatherForcing } from "./derivedLayers";
 
 /** undefined = não foi possível ler (grelha não carregou); null = sem dados nesse sítio. */
 export type V<T> = T | null | undefined;
@@ -366,7 +366,9 @@ const RIO = `<p class="probe-out">Este ponto fica no rio Douro. A água não ard
 
 /** Ficha de um ponto: a cabeça, e depois a mensagem (não leu, fora, rio) ou a tabela e o rodapé. */
 export function fichaHtml(p: PointValues, o: { freguesia: string | null; visibleMap: string | null; tecnico: boolean }): string {
-  const head = `<p class="probe-head"><strong>Ponto</strong>${o.freguesia ? ` · ${esc(o.freguesia)}` : ""}</p>`;
+  const wf = getDerivedWeatherForcing();
+  const wfTag = wf ? ` <span>· 🕒 ${esc(wf.label)}</span>` : "";
+  const head = `<p class="probe-head"><strong>Ponto</strong>${o.freguesia ? ` · ${esc(o.freguesia)}` : ""}${wfTag}</p>`;
   if (p.dentro === undefined) return `${head}<p class="probe-out">Não foi possível ler os dados. Tenta outra vez.</p>`;
   if (p.cell === null) return head + FORA;
   // o meio do Douro fica fora do limite do concelho: a frase do rio é a verdadeira e a mais útil

@@ -1336,19 +1336,67 @@ body.spark-armed #alijo-scene-container {
 /* regra 30-30-30 sempre à vista */
 .hud-30 {
   box-sizing: border-box;
+  z-index: 19;
   right: 16px;
-  bottom: 30px;
-  width: 300px;
+  bottom: 24px;
+  width: 340px;
   padding: 10px 12px;
   border-radius: 16px;
 }
 .hud-30.alert {
   border: 3px solid #ee5a1a;
 }
+.hud-30.historical {
+  border: 2px solid #38bdf8;
+}
+.hud-30-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
 .hud-30-title {
-  margin: 0 0 6px;
+  margin: 0;
   font-weight: 700;
-  font-size: 0.92em;
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+.hud-30-live-btn {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.16);
+  color: var(--fg);
+  font: 700 0.75em/1.2 var(--font);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.hud-30-live-btn:hover {
+  background: #38bdf8;
+  color: #121417;
+}
+.hud-30-controls {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.hud-30-select,
+.hud-30-input {
+  min-height: 32px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line);
+  background: var(--soft);
+  color: var(--fg);
+  font: 700 0.8em/1.2 var(--font);
+  width: 100%;
+  box-sizing: border-box;
+}
+.hud-30-dt {
+  display: grid;
+  grid-template-columns: 1.35fr 0.85fr;
+  gap: 5px;
 }
 .dials {
   list-style: none;
@@ -1470,9 +1518,9 @@ body.probing #alijo-scene-container {
   box-sizing: border-box;
   z-index: 18;
   right: 16px;
-  top: 88px;
+  top: 84px;
   width: 340px;
-  max-height: calc(100vh - 88px - 200px);
+  max-height: calc(100vh - 84px - 260px);
   overflow-y: auto;
   padding: 12px 14px 14px;
   border-radius: 18px;

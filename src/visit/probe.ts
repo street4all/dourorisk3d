@@ -384,6 +384,18 @@ export class Probe {
     this.scope = "local";
   }
 
+  /** Atualiza a leitura ativa quando muda a data/hora meteorológica. */
+  refresh(): void {
+    if (!this.active) return;
+    if (this.scope === "local") {
+      if (this.sel) void this.select(this.sel.lon, this.sel.lat, this.sel.r);
+    } else if (this.scope === "concelho") {
+      void this.readConcelho();
+    } else if (this.scope === "freguesias") {
+      void this.readParishes();
+    }
+  }
+
   // ------------------------------------------------------------------ escala: ponto/círculo, concelho, freguesias
   private async setScope(scope: Scope, read = true): Promise<void> {
     this.scope = scope;

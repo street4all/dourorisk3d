@@ -99,3 +99,28 @@ export function setOnlyConcelho(on: boolean, keys: string[], ready: (key: string
     });
   }
 }
+
+/**
+ * Recalcula as imagens das camadas derivadas quando muda a data/hora meteorológica.
+ */
+export function refreshClippedKeys(keys: string[], ready: (key: string) => void): void {
+  for (const key of keys) {
+    const model = DOURORISK_MODELS[key];
+    if (!model) continue;
+    full[key] ??= model.image;
+    delete clipped[key];
+    if (onlyConcelho) {
+      void clippedUrl(key).then((url) => {
+        if (!url || !onlyConcelho) return;
+        model.image = url;
+        ready(key);
+      });
+    } else {
+      void resolveModelImageUrl(full[key]).then((url) => {
+        if (onlyConcelho) return;
+        model.image = url;
+        ready(key);
+      });
+    }
+  }
+}

@@ -20,6 +20,7 @@ import { loadStack } from "./stack";
 import { Probe } from "./probe";
 import { MapsPanel, loadImage } from "./maps";
 import { ClimatePanel } from "./climatePanel";
+import { setDerivedWeatherForcing, type DerivedWeatherForcing } from "./derivedLayers";
 import { HA_PER_CELL, HA_PER_FIELD, renderSpread, simulateSpread, type SpreadResult } from "./spread";
 import { RISK_WORDS, rumo } from "./words";
 import { TECNICO } from "./tecnico";
@@ -99,6 +100,8 @@ export class VisitMode {
   private mapLegend: HTMLElement | null = null;
   private compareSeq = 0;
   private lastWeather: LiveWeatherReport | null = null;
+  private liveWeather: LiveWeatherReport | null = null;
+  private historicalWeatherActive = false;
 
   // 2 · pistas que se somam e fichas arrastáveis
   private cueKeys = new Set<string>();
@@ -199,6 +202,29 @@ export class VisitMode {
           if (!matchMedia("(min-width: 900px)").matches) this.close();
         },
         say: (m) => this.say(m),
+        onWeatherStep: (report, forcing) => {
+          if (report && forcing) {
+            this.historicalWeatherActive = true;
+            if (setDerivedWeatherForcing(forcing)) {
+              VISIT_LAYERS.erosao_pos_fogo?.grid.invalidate();
+              VISIT_LAYERS.neve_gelo_25m?.grid.invalidate();
+              this.maps?.refreshDerivedLayers();
+              this.probe.refresh();
+            }
+            this.renderWeather(report, forcing.label, forcing);
+          } else {
+            this.historicalWeatherActive = false;
+            if (setDerivedWeatherForcing(null)) {
+              VISIT_LAYERS.erosao_pos_fogo?.grid.invalidate();
+              VISIT_LAYERS.neve_gelo_25m?.grid.invalidate();
+              this.maps?.refreshDerivedLayers();
+              this.probe.refresh();
+            }
+            if (this.liveWeather) {
+              this.renderWeather(this.liveWeather, "agora", null);
+            }
+          }
+        },
       });
       this.climate.init();
     }
@@ -235,7 +261,13 @@ export class VisitMode {
     this.restoreReadingPrefs();
     this.setupKiosk();
     this.updateNext();
-    window.addEventListener("live-weather", (e) => this.renderWeather((e as CustomEvent<LiveWeatherReport>).detail));
+    window.addEventListener("live-weather", (e) => {
+      const detail = (e as CustomEvent<LiveWeatherReport>).detail;
+      this.liveWeather = detail;
+      if (!this.historicalWeatherActive) {
+        this.renderWeather(detail, "agora", null);
+      }
+    });
     window.addEventListener("live-weather-error", () => {
       this.text($("weather-plain"), "Agora não foi possível saber o tempo.");
       this.text($("hud-30-sum"), "Sem ligação ao tempo do Pinhão.");
@@ -1167,8 +1199,13 @@ export class VisitMode {
     }
   }
 
-  private renderWeather(w: LiveWeatherReport): void {
+  private renderWeather(w: LiveWeatherReport, timeLabel = "agora", forcing: DerivedWeatherForcing | null = null): void {
     this.lastWeather = w;
+    const isHist = timeLabel !== "agora";
+    const titleEl = $("hud-30-title");
+    if (titleEl) {
+      titleEl.textContent = `Regra 30-30-30 · ${timeLabel}`;
+    }
     const rain = $("rain-toggle") as any;
     if (rain) rain.checked = w.isRaining;
     const ok = (v: number) => Number.isFinite(v);
@@ -1179,11 +1216,12 @@ export class VisitMode {
       ok(w.temperature) ? `${t} °C` : "temperatura sem dados",
       ok(w.windSpeed) ? `vento ${windWords(v)} (${v} km/h) que vem de ${rumo(w.windDirection)}` : "vento sem dados",
     ];
-    this.text($("weather-plain"), `Agora em ${w.stationName}: ${parts.join(", ")}. ${w.description}.`);
+    this.text($("weather-plain"), `${isHist ? "Em" : "Agora em"} ${w.stationName}: ${parts.join(", ")}. ${w.description}.`);
+    const refWord = isHist ? "nesse instante" : "hoje";
     const rules = [
-      { id: "dial-temp", has: ok(w.temperature), on: w.temperature > 30, value: `${t} °C`, frac: w.temperature / 45, text: `Calor: mais de 30 °C (hoje ${ok(w.temperature) ? `${t} °C` : "sem dados"})` },
-      { id: "dial-hum", has: ok(w.humidity), on: w.humidity < 30, value: `${h} %`, frac: 1 - w.humidity / 100, text: `Ar seco: humidade abaixo de 30 % (hoje ${ok(w.humidity) ? `${h} %` : "sem dados"})` },
-      { id: "dial-wind", has: ok(w.windSpeed), on: w.windSpeed > 30, value: `${v} km/h`, frac: w.windSpeed / 60, text: `Vento: mais de 30 km/h (hoje ${ok(w.windSpeed) ? `${v} km/h` : "sem dados"})` },
+      { id: "dial-temp", has: ok(w.temperature), on: w.temperature > 30, value: `${t} °C`, frac: Math.max(0, w.temperature) / 45, text: `Calor: mais de 30 °C (${refWord} ${ok(w.temperature) ? `${t} °C` : "sem dados"})` },
+      { id: "dial-hum", has: ok(w.humidity), on: w.humidity < 30, value: `${h} %`, frac: 1 - w.humidity / 100, text: `Ar seco: humidade abaixo de 30 % (${refWord} ${ok(w.humidity) ? `${h} %` : "sem dados"})` },
+      { id: "dial-wind", has: ok(w.windSpeed), on: w.windSpeed > 30, value: `${v} km/h`, frac: w.windSpeed / 60, text: `Vento: mais de 30 km/h (${refWord} ${ok(w.windSpeed) ? `${v} km/h` : "sem dados"})` },
     ];
     const missing = rules.some((r) => !r.has);
     const count = rules.filter((r) => r.has && r.on).length;
@@ -1191,7 +1229,7 @@ export class VisitMode {
     if (list) {
       list.innerHTML =
         rules.map((r) => `<li class="${r.has && r.on ? "on" : ""}"><span class="mark" aria-hidden="true">${r.has && r.on ? "!" : "–"}</span>${r.text}</li>`).join("") +
-        `<li class="sum">${missing ? "Faltam dados para saber se hoje cumpre a regra 30-30-30." : count === 3 ? "Hoje cumpre a regra 30-30-30: é um dia muito perigoso para incêndios." : "Hoje não cumpre a regra 30-30-30."}</li>`;
+        `<li class="sum">${missing ? "Faltam dados para avaliar a regra 30-30-30." : count === 3 ? "Cumpre a regra 30-30-30 (3 de 3): condições extremas para propagação de incêndio." : `Cumpre ${count} de 3 critérios da regra 30-30-30.`}</li>`;
     }
     // mostradores sempre à vista
     for (const r of rules) {
@@ -1203,15 +1241,29 @@ export class VisitMode {
       if (arc) arc.style.strokeDasharray = `${Math.round(82 * Math.max(0.04, Math.min(1, r.has ? r.frac : 0)))} 200`;
     }
     const sums = [
-      "O tempo de agora ajuda a evitar fogos.",
+      isHist ? "0 de 3 · Condições sem perigo de fogo." : "O tempo de agora ajuda a evitar fogos.",
       "1 de 3: atenção ao fogo.",
-      "2 de 3: dia perigoso.",
-      "3 de 3: dia muito perigoso. Nada de fogo!",
+      "2 de 3: condições perigosas para incêndio.",
+      "3 de 3: perigo extremo 30-30-30! Nada de fogo!",
     ];
-    this.text($("hud-30-sum"), missing ? "Faltam dados do tempo." : sums[count]);
-    $("hud-30")?.classList.toggle("alert", !missing && count >= 2);
+    let sumText = missing ? "Faltam dados do tempo." : sums[count];
+    if (!missing && forcing) {
+      if (forcing.snowfallCm > 0.1 || forcing.snowDepthCm > 0.5 || w.temperature <= 1.5) {
+        sumText += ` · ❄ Neve/gelo (${t} °C)`;
+      } else if (forcing.rain1h > 0.3 || forcing.rain24h >= 12) {
+        sumText += ` · 🌧 Chuva (${forcing.rain1h.toFixed(1)} mm/h)`;
+      }
+    }
+    this.text($("hud-30-sum"), sumText);
+    const hudEl = $("hud-30");
+    hudEl?.classList.toggle("alert", !missing && count >= 2);
+    hudEl?.classList.toggle("historical", isHist && count < 2);
     const liveChip = document.querySelector<HTMLElement>('[data-wind="live"]');
-    if (liveChip) liveChip.textContent = ok(w.windSpeed) ? `Vento de agora (${v} km/h)` : "Vento de agora";
+    if (liveChip) {
+      liveChip.textContent = ok(w.windSpeed)
+        ? `${isHist ? "Vento da data" : "Vento de agora"} (${v} km/h)`
+        : "Vento de agora";
+    }
   }
 
   // ------------------------------------------------------------------ 4 · E se uma faísca caísse hoje?

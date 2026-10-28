@@ -575,9 +575,27 @@
       </div>
     </section>
 
-    <!-- Regra 30-30-30 sempre à vista -->
+    <!-- Regra 30-30-30 sempre à vista + escolha de data e hora meteorológica -->
     <aside class="hud hud-30" id="hud-30" aria-labelledby="hud-30-title">
-      <p class="hud-30-title" id="hud-30-title">Regra 30-30-30 · agora</p>
+      <div class="hud-30-head">
+        <p class="hud-30-title" id="hud-30-title">Regra 30-30-30 · agora</p>
+        <button type="button" class="hud-30-live-btn" id="hud-30-now" title="Voltar às condições meteorológicas em tempo real" hidden>🟢 Agora</button>
+      </div>
+      <div class="hud-30-controls" aria-label="Condições meteorológicas por data e hora">
+        <select id="hud-30-preset" class="hud-30-select" aria-label="Cenário ou data meteorológica">
+          <option value="live">🟢 Agora (tempo ao vivo)</option>
+          <option value="calor_2022">🔥 Calor 30-30-30 (14 Jul 2022)</option>
+          <option value="nevao_2026">❄️ Nevão em Alijó (24 Jan 2026)</option>
+          <option value="aline_2023">🌧️ Tempestade Aline (19 Out 2023)</option>
+          <option value="elsa_2019">⛈️ Depressão Elsa (19 Dez 2019)</option>
+          <option value="pinhao_2023">🌩️ Trovoada Pinhão (13 Jun 2023)</option>
+          <option value="custom">📅 Escolher dia e hora…</option>
+        </select>
+        <div class="hud-30-dt" id="hud-30-dt">
+          <input type="date" id="hud-30-date" class="hud-30-input" min="1980-01-01" max="2026-12-31" aria-label="Data meteorológica" />
+          <select id="hud-30-hour" class="hud-30-input hud-30-hour" aria-label="Hora meteorológica"></select>
+        </div>
+      </div>
       <ul class="dials">
         <li class="dial" id="dial-temp"><svg viewBox="0 0 64 36" aria-hidden="true"><path class="arc-bg" d="M6 32A26 26 0 0 1 58 32"/><path class="arc" d="M6 32A26 26 0 0 1 58 32"/></svg><strong>–</strong><span>Calor</span></li>
         <li class="dial" id="dial-hum"><svg viewBox="0 0 64 36" aria-hidden="true"><path class="arc-bg" d="M6 32A26 26 0 0 1 58 32"/><path class="arc" d="M6 32A26 26 0 0 1 58 32"/></svg><strong>–</strong><span>Ar seco</span></li>
