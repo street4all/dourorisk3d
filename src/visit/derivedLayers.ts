@@ -36,16 +36,89 @@ let currentForcing: DerivedWeatherForcing | null = null;
 let erosaoPromise: Promise<DerivedLayerCache> | null = null;
 let neveGeloPromise: Promise<DerivedLayerCache> | null = null;
 
+export const FIRE_WEATHER_MAP_KEYS = ["risco_2025", "perigosidade_2025", "icnf_conjuntural"] as const;
+export const WEATHER_DYNAMIC_MAP_KEYS = [
+  "risco_2025",
+  "perigosidade_2025",
+  "icnf_conjuntural",
+  "erosao_pos_fogo",
+  "neve_gelo_25m",
+] as const;
+
 export function getDerivedWeatherForcing(): DerivedWeatherForcing | null {
   return currentForcing;
 }
 
+/**
+ * Variação das classes de risco/perigo de incêndio (-3 a +1) em função das condições meteorológicas da data/hora escolhida.
+ */
+export function getFireWeatherDelta(wf: DerivedWeatherForcing | null = currentForcing): number {
+  if (!wf) return 0;
+  if (
+    wf.snowfallCm > 0.05 ||
+    wf.snowDepthCm > 0.2 ||
+    wf.tempC <= 5 ||
+    wf.rain1h >= 1.5 ||
+    wf.rain24h >= 12
+  ) {
+    return -3;
+  }
+  if (
+    wf.rain1h >= 0.2 ||
+    wf.rain24h >= 3 ||
+    wf.tempC <= 14 ||
+    wf.humidityPct >= 75
+  ) {
+    return -2;
+  }
+  if (wf.tempC < 23 || wf.humidityPct >= 52) {
+    return -1;
+  }
+  const r30Count =
+    (wf.tempC > 30 ? 1 : 0) +
+    (wf.humidityPct < 30 ? 1 : 0) +
+    (wf.windKmh > 30 ? 1 : 0);
+  if (r30Count >= 2) {
+    return 1;
+  }
+  return 0;
+}
+
+/**
+ * Recolore um canvas de risco/perigo de incêndio (classes 1..5 na paleta oficial) aplicando o deslocamento meteorológico `delta`.
+ */
+export function applyFireWeatherDeltaToCanvas(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  delta: number
+): void {
+  if (delta === 0) return;
+  const imgData = ctx.getImageData(0, 0, width, height);
+  const data = imgData.data;
+  const targetR = [3, 136, 255, 254, 221];
+  const targetG = [100, 179, 254, 153, 34];
+  const targetB = [3, 2, 6, 0, 3];
+
+  for (let i = 0, len = data.length; i < len; i += 4) {
+    if (data[i + 3] < 20) continue;
+    const r = data[i];
+    const g = data[i + 1];
+    const c = r < 70 ? 1 : r < 195 ? 2 : g >= 205 ? 3 : g >= 95 ? 4 : 5;
+    const nc = Math.max(1, Math.min(5, c + delta)) - 1;
+    data[i] = targetR[nc];
+    data[i + 1] = targetG[nc];
+    data[i + 2] = targetB[nc];
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
 export function setDerivedWeatherForcing(forcing: DerivedWeatherForcing | null): boolean {
   const prevKey = currentForcing
-    ? `${currentForcing.label}|${currentForcing.tempC.toFixed(1)}|${currentForcing.rain1h.toFixed(1)}|${currentForcing.rain24h.toFixed(1)}|${currentForcing.snowDepthCm.toFixed(1)}`
+    ? `${currentForcing.label}|${currentForcing.tempC.toFixed(1)}|${currentForcing.humidityPct.toFixed(0)}|${currentForcing.windKmh.toFixed(0)}|${currentForcing.rain1h.toFixed(1)}|${currentForcing.rain24h.toFixed(1)}|${currentForcing.snowDepthCm.toFixed(1)}`
     : "null";
   const nextKey = forcing
-    ? `${forcing.label}|${forcing.tempC.toFixed(1)}|${forcing.rain1h.toFixed(1)}|${forcing.rain24h.toFixed(1)}|${forcing.snowDepthCm.toFixed(1)}`
+    ? `${forcing.label}|${forcing.tempC.toFixed(1)}|${forcing.humidityPct.toFixed(0)}|${forcing.windKmh.toFixed(0)}|${forcing.rain1h.toFixed(1)}|${forcing.rain24h.toFixed(1)}|${forcing.snowDepthCm.toFixed(1)}`
     : "null";
   currentForcing = forcing;
   if (prevKey === nextKey) return false;

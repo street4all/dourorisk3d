@@ -59,9 +59,16 @@ export class ClassGrid {
   private width = 0;
   private height = 0;
   private loading: Promise<void> | null = null;
+  private mapper: ((cls: number) => number) | null = null;
 
   /** `geo`: a grelha do manifest em que o PNG foi gerado (mesmas dimensões). `url` pode ser um caminho PNG ou gerador assíncrono em memória. */
   constructor(private url: string | (() => Promise<Uint8Array>), readonly geo: GridGeo) {}
+
+  /** Regista uma transformação dinâmica de classes (ex.: ajuste meteorológico por data/hora). */
+  setClassMapper(fn: ((cls: number) => number) | null): this {
+    this.mapper = fn;
+    return this;
+  }
 
   /** Limpa a cache em memória para forçar novo cálculo (usado nas camadas derivadas dependentes da meteorologia). */
   invalidate(): void {
@@ -150,9 +157,11 @@ export class ClassGrid {
     if (!data) return null;
     const counts = new Array<number>(256).fill(0);
     let total = 0;
+    const mapFn = this.mapper;
     forEachCellInCircle(this.geo, lon, lat, radiusM, (i) => {
       if (inside && !inside[i]) return;
-      counts[data[i]]++;
+      const v = data[i];
+      counts[mapFn && v > 0 ? mapFn(v) : v]++;
       total++;
     });
     return { counts, total };
@@ -175,9 +184,11 @@ export class ClassGrid {
     if (!mask) return null;
     const counts = new Array<number>(256).fill(0);
     let total = 0;
+    const mapFn = this.mapper;
     for (let i = 0; i < mask.length; i++) {
       if (!mask[i] || (inside && !inside[i])) continue;
-      counts[data[i]]++;
+      const v = data[i];
+      counts[mapFn && v > 0 ? mapFn(v) : v]++;
       total++;
     }
     return { counts, total };
@@ -196,10 +207,12 @@ export class ClassGrid {
     if (!data) return null;
     const counts = new Array<number>(256).fill(0);
     let total = 0;
+    const mapFn = this.mapper;
     const n = Math.min(data.length, inside.length);
     for (let i = 0; i < n; i++) {
       if (!inside[i]) continue;
-      counts[data[i]]++;
+      const v = data[i];
+      counts[mapFn && v > 0 ? mapFn(v) : v]++;
       total++;
     }
     return { counts, total };
@@ -224,13 +237,15 @@ export class ClassGrid {
     const cell = cellOf(this.geo, lon, lat);
     if (!cell) return NO_DATA;
     const { col, row } = cell;
+    const mapFn = this.mapper;
     let best = 0;
     for (let dr = -radius; dr <= radius; dr++) {
       for (let dc = -radius; dc <= radius; dc++) {
         const r = row + dr;
         const c = col + dc;
         if (r < 0 || c < 0 || r >= this.height || c >= this.width) continue;
-        best = Math.max(best, this.data[r * this.width + c]);
+        const v = this.data[r * this.width + c];
+        best = Math.max(best, mapFn && v > 0 ? mapFn(v) : v);
       }
     }
     return best;

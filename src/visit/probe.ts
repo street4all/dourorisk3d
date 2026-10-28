@@ -23,6 +23,11 @@ import { fichaHtml, readPoint } from "./point";
 import { INTRO_ESTUDO, aboutOf, fonteSr, renderHow, type HowGroup } from "./how";
 import { TECNICO } from "./tecnico";
 import { aimPoint, placeCrosshair } from "./aim";
+import {
+  FIRE_WEATHER_MAP_KEYS,
+  getDerivedWeatherForcing,
+  getFireWeatherDelta,
+} from "./derivedLayers";
 
 type Scope = "local" | "concelho" | "freguesias";
 type Rings = number[][][];
@@ -690,7 +695,9 @@ export class Probe {
   private async circleHtml(lon: number, lat: number, r: number): Promise<string> {
     const ha = (Math.PI * r * r) / 10000;
     const d = distancia(r);
-    const title = `<strong><span aria-hidden="true">Círculo de ${d.vis}</span><span class="sr-only">Círculo de ${d.sr}.</span></strong>`;
+    const wf = getDerivedWeatherForcing();
+    const wfTag = wf ? ` <span>· 🕒 ${esc(wf.label)}</span>` : "";
+    const title = `<strong><span aria-hidden="true">Círculo de ${d.vis}</span><span class="sr-only">Círculo de ${d.sr}.</span></strong>${wfTag}`;
     // quanto do círculo fica dentro do concelho (centros das células de 25 m dentro do limite)
     const [conc, m25] = await Promise.all([VALUES.concelho.histogram(lon, lat, r), VALUES.concelho.bytes()]);
     if (!conc || !m25) return `<p class="probe-head">${title}<br />${sizeHtml(ha, null)}</p>${NAO_LEU}`;
@@ -736,7 +743,9 @@ export class Probe {
   ): Promise<string> {
     const houses = await this.countHousesIn(parishNames);
     const list = names ? `<br /><span class="probe-names">${names.map(esc).join(", ")}</span>` : "";
-    const head = (ha: number | null) => `<p class="probe-head"><strong>${esc(title)}</strong>${ha == null ? "" : `<br />${sizeHtml(ha, houses)}`}${list}</p>`;
+    const wf = getDerivedWeatherForcing();
+    const wfTag = wf ? ` <span>· 🕒 ${esc(wf.label)}</span>` : "";
+    const head = (ha: number | null) => `<p class="probe-head"><strong>${esc(title)}</strong>${wfTag}${ha == null ? "" : `<br />${sizeHtml(ha, houses)}`}${list}</p>`;
     if (key === "concelho") {
       // contado no ArcGIS Pro, célula a célula (scripts/pro_to_web.py): exato; camadas derivadas a 25m usam a máscara do concelho
       const r = CONCELHO.resumo;
@@ -744,7 +753,17 @@ export class Probe {
       const facts: Facts = { onde, ultimo: r.ardeu_ha > 0 ? r.ultimo_fogo_ano : null, max: r.max_vezes, concelho: true };
       const histConcelho = async (k: string): Promise<Histogram> => {
         const pre = concelhoHist(k);
-        if (pre) return pre;
+        if (pre) {
+          const delta = (FIRE_WEATHER_MAP_KEYS as readonly string[]).includes(k) ? getFireWeatherDelta() : 0;
+          if (delta === 0) return pre;
+          const shifted = new Array<number>(256).fill(0);
+          shifted[0] = pre.counts[0] ?? 0;
+          for (let c = 1; c <= 5; c++) {
+            const nc = Math.max(1, Math.min(5, c + delta));
+            shifted[nc] += pre.counts[c] ?? 0;
+          }
+          return { counts: shifted, total: pre.total };
+        }
         return m25c && VISIT_LAYERS[k] ? VISIT_LAYERS[k].grid.histogramMask(m25c) : null;
       };
       return `${head(CONCELHO.area_ha)}${await this.rowsHtml(histConcelho, facts, { rio: r.rio_ha > 0 })}`;

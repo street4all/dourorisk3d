@@ -9,9 +9,11 @@ import { DECL_WORDS, RISK_WORDS, esc } from "./words";
 import { aboutOf } from "./how";
 import { A0, A1 } from "../data/concelho";
 import {
+  FIRE_WEATHER_MAP_KEYS,
   NEVE_GELO_COLORS,
   NEVE_GELO_WORDS,
   getErosaoClasses,
+  getFireWeatherDelta,
   getNeveGeloClasses,
 } from "./derivedLayers";
 
@@ -60,13 +62,20 @@ function riskLegend(): LegendItem[] {
 function riskLayer(key: string, title: string, noun: string, image: string, classes: string, quando = ""): VisitLayer {
   const grid = gridOfLayer(key);
   DOURORISK_MODELS[key] = { id: key, title, image, grid };
+  const classGrid = new ClassGrid(classes, grid);
+  if ((FIRE_WEATHER_MAP_KEYS as readonly string[]).includes(key)) {
+    classGrid.setClassMapper((c) => {
+      const d = getFireWeatherDelta();
+      return d === 0 ? c : Math.max(1, Math.min(5, c + d));
+    });
+  }
   return {
     key,
     title,
     // «quando» distingue as duas legendas do perigo oficial lado a lado na cortina
     question: `${noun[0].toUpperCase()}${noun.slice(1)} de incêndio${quando ? ` (${quando})` : ""}, de 1 a 5`,
     legend: riskLegend(),
-    grid: new ClassGrid(classes, grid),
+    grid: classGrid,
     empty: "Aqui não há dados.",
     describe: (c) => `Aqui o ${noun} de incêndio é ${c}: ${RISK_WORDS[c - 1]}.`,
   };

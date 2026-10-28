@@ -10,7 +10,14 @@ import { INTRO_ESTUDO, aboutOf, renderHow, type HowGroup } from "./how";
 import { periodo } from "./words";
 import { TECNICO } from "./tecnico";
 import { A0, A1 } from "../data/concelho";
-import { resolveModelImageUrl, thumbnailForMap } from "./derivedLayers";
+import {
+  FIRE_WEATHER_MAP_KEYS,
+  WEATHER_DYNAMIC_MAP_KEYS,
+  getDerivedWeatherForcing,
+  getFireWeatherDelta,
+  resolveModelImageUrl,
+  thumbnailForMap,
+} from "./derivedLayers";
 
 /** A grelha de 25 m: a cortina anda sobre a largura dela (o concelho e arredores). */
 const G25 = gridFromManifest("g25");
@@ -181,9 +188,20 @@ export class MapsPanel {
     else if (key === current) this.show(key, this.opacity);
   }
 
-  /** Recalcula as camadas derivadas dependentes da data/hora meteorológica ("erosao_pos_fogo", "neve_gelo_25m"). */
+  /** Recalcula as camadas de risco e suscetibilidade dependentes da data/hora meteorológica. */
   refreshDerivedLayers(): void {
-    refreshClippedKeys(["erosao_pos_fogo", "neve_gelo_25m"], (key) => this.imageReady(key));
+    const current = this.hooks.current();
+    const allKeys = [...WEATHER_DYNAMIC_MAP_KEYS];
+    // Priorizar o mapa que está à vista (e o de comparação, se ativo) para atualização imediata no ecrã
+    const orderedKeys = [
+      ...(current && allKeys.includes(current as any) ? [current] : []),
+      ...(this.compareKey && allKeys.includes(this.compareKey as any) && this.compareKey !== current
+        ? [this.compareKey]
+        : []),
+      ...allKeys.filter((k) => k !== current && k !== this.compareKey),
+    ];
+    refreshClippedKeys(orderedKeys, (key) => this.imageReady(key));
+    this.sync(current);
   }
 
   setOpen(on: boolean): void {
@@ -251,7 +269,33 @@ export class MapsPanel {
     document.querySelectorAll<HTMLButtonElement>("[data-map]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.map === (key ?? ""))));
     const choice = MAP_CHOICES.find((c) => c.key === key);
     const about = $("maps-about");
-    if (about) about.textContent = choice ? choice.about : "Sem mapa: só a paisagem.";
+    if (about) {
+      if (!choice) {
+        about.textContent = "Sem mapa: só a paisagem.";
+      } else {
+        const wf = getDerivedWeatherForcing();
+        if (!wf) {
+          about.textContent = choice.about;
+        } else if ((FIRE_WEATHER_MAP_KEYS as readonly string[]).includes(choice.key)) {
+          const d = getFireWeatherDelta(wf);
+          const effect =
+            d <= -2
+              ? `perigo meteorológico muito reduzido (${d} níveis face ao verão)`
+              : d === -1
+                ? "perigo meteorológico atenuado (-1 nível face ao verão)"
+                : d >= 1
+                  ? "alerta 30-30-30 (+1 nível de agravamento)"
+                  : "condições equivalentes ao verão de referência";
+          about.textContent = `${choice.about} · 🕒 Em ${wf.label} (${Math.round(wf.tempC)} °C, humidade ${Math.round(wf.humidityPct)} %, vento ${Math.round(wf.windKmh)} km/h): ${effect}.`;
+        } else if (choice.key === "erosao_pos_fogo") {
+          about.textContent = `${choice.about} · 🕒 Ajustado a ${wf.label} (chuva ${wf.rain1h.toFixed(1)} mm/h · ${wf.rain24h.toFixed(0)} mm/24h).`;
+        } else if (choice.key === "neve_gelo_25m") {
+          about.textContent = `${choice.about} · 🕒 Ajustado a ${wf.label} (${Math.round(wf.tempC)} °C, neve acumulada ${wf.snowDepthCm.toFixed(1)} cm).`;
+        } else {
+          about.textContent = `${choice.about} (Camada estrutural/topográfica · data ativa: ${wf.label}).`;
+        }
+      }
+    }
     const clip = $("maps-clip") as HTMLInputElement | null;
     if (clip) clip.checked = isOnlyConcelho();
     renderLegend($("maps-legend"), key ?? "");

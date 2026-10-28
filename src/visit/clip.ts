@@ -5,10 +5,15 @@
 import { DOURORISK_MODELS } from "../alijo3d/alijoScene";
 import { pixelOfXY } from "../geo/grid";
 import { toTM06 } from "../geo/pttm06";
-import { resolveModelImageUrl } from "./derivedLayers";
+import {
+  FIRE_WEATHER_MAP_KEYS,
+  applyFireWeatherDeltaToCanvas,
+  getFireWeatherDelta,
+  resolveModelImageUrl,
+} from "./derivedLayers";
 
 const full: Record<string, string> = {};
-const clipped: Record<string, Promise<string | null>> = {};
+const renderedCache: Record<string, Promise<string | null>> = {};
 let onlyConcelho = true;
 let concelho: Promise<[number, number][][]> | null = null;
 
@@ -37,38 +42,67 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Cópia da imagem do mapa só com o que fica dentro do concelho (URL de um blob), ou null se falhar. */
-function clippedUrl(key: string): Promise<string | null> {
-  if (!clipped[key]) {
-    clipped[key] = (async () => {
-      const model = DOURORISK_MODELS[key];
-      const [rings, img] = await Promise.all([concelhoRings(), loadImage(full[key] ?? model.image)]);
+function buildModelUrl(key: string): Promise<string | null> {
+  const model = DOURORISK_MODELS[key];
+  if (!model) return Promise.resolve(null);
+  full[key] ??= model.image;
+
+  const isFireMap = (FIRE_WEATHER_MAP_KEYS as readonly string[]).includes(key);
+  const isDerived = key === "erosao_pos_fogo" || key === "neve_gelo_25m";
+  const delta = isFireMap ? getFireWeatherDelta() : 0;
+
+  if (!onlyConcelho && delta === 0) {
+    if (isDerived) {
+      return resolveModelImageUrl(full[key]);
+    }
+    return Promise.resolve(full[key]);
+  }
+
+  const cacheKey = isDerived
+    ? `${key}|clip=${onlyConcelho ? 1 : 0}`
+    : `${key}|clip=${onlyConcelho ? 1 : 0}|delta=${delta}`;
+
+  if (!renderedCache[cacheKey]) {
+    renderedCache[cacheKey] = (async () => {
+      const [rings, img] = await Promise.all([
+        onlyConcelho ? concelhoRings() : Promise.resolve(null),
+        loadImage(full[key]),
+      ]);
       const grid = model.grid;
+      const scale = delta !== 0 && img.naturalWidth > 1200 ? 0.5 : 1;
       const c = document.createElement("canvas");
-      c.width = img.naturalWidth;
-      c.height = img.naturalHeight;
-      // a imagem tem as dimensões da grelha (se não tiver, escala-se na mesma proporção)
-      const sx = c.width / grid.width, sy = c.height / grid.height;
-      const ctx = c.getContext("2d")!;
-      ctx.beginPath();
-      for (const ring of rings) {
-        ring.forEach(([x, y], i) => {
-          const p = pixelOfXY(grid, x, y);
-          if (i === 0) ctx.moveTo(p.x * sx, p.y * sy);
-          else ctx.lineTo(p.x * sx, p.y * sy);
-        });
-        ctx.closePath();
+      c.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      const sx = c.width / grid.width;
+      const sy = c.height / grid.height;
+      const ctx = c.getContext("2d", { willReadFrequently: delta !== 0 })!;
+      ctx.imageSmoothingEnabled = false;
+
+      if (rings) {
+        ctx.beginPath();
+        for (const ring of rings) {
+          ring.forEach(([x, y], i) => {
+            const p = pixelOfXY(grid, x, y);
+            if (i === 0) ctx.moveTo(p.x * sx, p.y * sy);
+            else ctx.lineTo(p.x * sx, p.y * sy);
+          });
+          ctx.closePath();
+        }
+        ctx.clip("evenodd");
       }
-      ctx.clip("evenodd");
-      ctx.drawImage(img, 0, 0);
+
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      if (delta !== 0) {
+        applyFireWeatherDeltaToCanvas(ctx, c.width, c.height, delta);
+      }
       const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/png"));
       return blob ? URL.createObjectURL(blob) : null;
     })().catch(() => {
-      delete clipped[key];
+      delete renderedCache[cacheKey];
       return null;
     });
   }
-  return clipped[key];
+  return renderedCache[cacheKey];
 }
 
 export function isOnlyConcelho(): boolean {
@@ -85,15 +119,8 @@ export function setOnlyConcelho(on: boolean, keys: string[], ready: (key: string
     const model = DOURORISK_MODELS[key];
     if (!model) continue;
     full[key] ??= model.image;
-    if (!on) {
-      if (model.image !== full[key]) {
-        model.image = full[key];
-        ready(key);
-      }
-      continue;
-    }
-    void clippedUrl(key).then((url) => {
-      if (!url || !onlyConcelho || model.image === url) return;
+    void buildModelUrl(key).then((url) => {
+      if (!url || onlyConcelho !== on || model.image === url) return;
       model.image = url;
       ready(key);
     });
@@ -101,26 +128,21 @@ export function setOnlyConcelho(on: boolean, keys: string[], ready: (key: string
 }
 
 /**
- * Recalcula as imagens das camadas derivadas quando muda a data/hora meteorológica.
+ * Recalcula as imagens das camadas sensíveis à meteorologia quando muda a data/hora escolhida.
  */
 export function refreshClippedKeys(keys: string[], ready: (key: string) => void): void {
   for (const key of keys) {
     const model = DOURORISK_MODELS[key];
     if (!model) continue;
     full[key] ??= model.image;
-    delete clipped[key];
-    if (onlyConcelho) {
-      void clippedUrl(key).then((url) => {
-        if (!url || !onlyConcelho) return;
-        model.image = url;
-        ready(key);
-      });
-    } else {
-      void resolveModelImageUrl(full[key]).then((url) => {
-        if (onlyConcelho) return;
-        model.image = url;
-        ready(key);
-      });
+    if (key === "erosao_pos_fogo" || key === "neve_gelo_25m") {
+      delete renderedCache[`${key}|clip=1`];
+      delete renderedCache[`${key}|clip=0`];
     }
+    void buildModelUrl(key).then((url) => {
+      if (!url) return;
+      model.image = url;
+      ready(key);
+    });
   }
 }
