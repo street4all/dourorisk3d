@@ -2554,6 +2554,83 @@ body.probing #alijo-scene-container {
   font-size: 0.86em;
   margin-top: 6px !important;
 }
+.mitig-btns {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.mitig-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 2px solid var(--line);
+  background: var(--soft);
+  color: var(--fg);
+  font: 700 0.84em/1.2 var(--font);
+  text-align: left;
+  cursor: pointer;
+}
+.mitig-btn small {
+  font-weight: 500;
+  color: var(--fg-2);
+  font-size: 0.88em;
+}
+.mitig-btn[aria-pressed="true"] {
+  border-color: #22c55e;
+  background: color-mix(in srgb, #22c55e 22%, var(--soft));
+}
+.mitig-btn[aria-pressed="true"] .mitig-title {
+  color: #4ade80;
+}
+.mitig-stats-box {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--soft);
+  border: 1.5px solid var(--line);
+  font-size: 0.82em;
+}
+.mitig-stats-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.mitig-badge {
+  font-size: 0.85em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--fg-2);
+}
+.mitig-badge.active {
+  background: color-mix(in srgb, #22c55e 28%, transparent);
+  color: #86efac;
+  font-weight: 700;
+}
+.mitig-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.mitig-col {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mitig-col-after {
+  border: 1.5px solid #22c55e;
+}
+.mitig-col-label {
+  font-size: 0.82em;
+  color: var(--fg-2);
+}
 @media (max-width: 899px) {
   body.climate-open .hud-30 {
     display: none;

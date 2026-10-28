@@ -14,7 +14,7 @@ import {
   type ClimateVarKey,
   type ReanalysisDataset,
 } from "../alijo3d/cerraService";
-import { ClimateMapOverlay } from "./climateMapOverlay";
+import { ClimateMapOverlay, type HydroRiskStats } from "./climateMapOverlay";
 import { esc } from "./words";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
@@ -70,6 +70,7 @@ export class ClimatePanel {
     const map = this.manager.view?.map;
     if (!map) return;
     this.overlay = new ClimateMapOverlay(map);
+    this.overlay.onHydroRiskStats = (stats) => this.renderMitigationStats(stats);
 
     this.populateControls();
     this.wireEvents();
@@ -346,6 +347,43 @@ export class ClimatePanel {
       this.renderCurrentStep();
     });
 
+    $("climate-chk-hydrorisk")?.addEventListener("change", (e) => {
+      if (!this.overlay) return;
+      const checked = (e.target as HTMLInputElement).checked;
+      this.overlay.showHydroRisk = checked;
+      if (checked && this.overlay.viewScope === "macro") {
+        this.setScope("local", true);
+        return;
+      }
+      this.renderCurrentStep();
+    });
+
+    // Botões do Simulador de Mitigação Local (25 m)
+    const wireMitigBtn = (btnId: string, key: "mulching" | "logBarriers" | "terraceDrains") => {
+      $(btnId)?.addEventListener("click", () => {
+        if (!this.overlay) return;
+        const next = !this.overlay.mitigation[key];
+        this.overlay.mitigation[key] = next;
+        $(btnId)?.setAttribute("aria-pressed", String(next));
+
+        // Ativar automaticamente a camada de Erosão & Socalcos (25m) na Visão Local para mostrar o efeito
+        if (!this.overlay.showHydroRisk) {
+          this.overlay.showHydroRisk = true;
+          const hydroChk = $("climate-chk-hydrorisk") as HTMLInputElement | null;
+          if (hydroChk) hydroChk.checked = true;
+        }
+        if (this.overlay.viewScope === "macro") {
+          this.setScope("local", true);
+          return;
+        }
+        this.renderCurrentStep();
+      });
+    };
+
+    wireMitigBtn("mitig-mulching", "mulching");
+    wireMitigBtn("mitig-barriers", "logBarriers");
+    wireMitigBtn("mitig-terraces", "terraceDrains");
+
     $("climate-chk-heatmap")?.addEventListener("change", (e) => {
       if (!this.overlay) return;
       this.overlay.showHeatmap = (e.target as HTMLInputElement).checked;
@@ -587,18 +625,24 @@ export class ClimatePanel {
     const midVal = (minVal + maxVal) / 2;
 
     const isMacro = this.overlay?.viewScope === "macro";
+    const isHydroRisk = !isMacro && Boolean(this.overlay?.showHydroRisk);
     const snowBanner =
-      !isMacro && snowLineM !== null && this.overlay?.showSnowCover
-        ? `<div class="climate-legend-head" style="color:#e0f2fe; margin-bottom:6px;">
-             <strong>❄ Manto de Neve (MDT 25 m)</strong>
-             <span>Cota de acumulação: <b>≥ ${snowLineM} m</b></span>
+      isHydroRisk
+        ? `<div class="climate-legend-head" style="color:#fdba74; margin-bottom:6px;">
+             <strong>⛰️ Risco Hidro-Geomorfológico Pós-Fogo (25 m)</strong>
+             <span><b style="color:#facc15">■</b> Mod · <b style="color:#f97316">■</b> Erosão · <b style="color:#ef4444">■</b> Socalcos</span>
            </div>`
-        : isMacro
-          ? `<div class="climate-legend-head" style="color:#38bdf8; margin-bottom:6px;">
-               <strong>🌍 Carta Sinóptica (Ibéria &amp; Atlântico)</strong>
-               <span>B = Depressão · A = Anticiclone</span>
+        : !isMacro && snowLineM !== null && this.overlay?.showSnowCover
+          ? `<div class="climate-legend-head" style="color:#e0f2fe; margin-bottom:6px;">
+               <strong>❄ Manto de Neve (MDT 25 m)</strong>
+               <span>Cota de acumulação: <b>≥ ${snowLineM} m</b></span>
              </div>`
-          : "";
+          : isMacro
+            ? `<div class="climate-legend-head" style="color:#38bdf8; margin-bottom:6px;">
+                 <strong>🌍 Carta Sinóptica (Ibéria &amp; Atlântico)</strong>
+                 <span>B = Depressão · A = Anticiclone</span>
+               </div>`
+            : "";
 
     el.innerHTML = `
       ${snowBanner}
@@ -818,6 +862,40 @@ export class ClimatePanel {
     const x = padL + (this.currentStepIdx / Math.max(1, n - 1)) * plotW;
     cursor.setAttribute("x1", x.toFixed(1));
     cursor.setAttribute("x2", x.toFixed(1));
+  }
+
+  /**
+   * Renderiza o comparativo "Antes vs. Depois" do Simulador de Mitigação Local (25 m).
+   */
+  private renderMitigationStats(stats: HydroRiskStats): void {
+    const box = $("climate-mitigation-stats");
+    if (!box || !this.overlay) return;
+
+    const { mulching, logBarriers, terraceDrains } = this.overlay.mitigation;
+    const anyActive = mulching || logBarriers || terraceDrains;
+
+    const badgeHtml = anyActive
+      ? `<span class="mitig-badge active">-${stats.savedHaPct}% área crítica · ${stats.savedSoilTons} t retidas</span>`
+      : `<span class="mitig-badge">Ativa uma medida acima para simular</span>`;
+
+    box.innerHTML = `
+      <div class="mitig-stats-head">
+        <strong>Impacto no Concelho (25 m)</strong>
+        ${badgeHtml}
+      </div>
+      <div class="mitig-compare-grid">
+        <div class="mitig-col">
+          <span class="mitig-col-label">Sem Mitigação (Base)</span>
+          <strong>${stats.baselineHighRiskHa} ha <small>risco elev./crít.</small></strong>
+          <small>Socalcos críticos: <b>${stats.baselineCriticalHa} ha</b> · Perda: <b>${stats.baselineSoilLossTons} t</b></small>
+        </div>
+        <div class="mitig-col ${anyActive ? "mitig-col-after" : ""}">
+          <span class="mitig-col-label">${anyActive ? "Com Mitigação Ativa" : "Cenário Mitigado"}</span>
+          <strong>${stats.mitigatedHighRiskHa} ha <small>risco elev./crít.</small></strong>
+          <small>Socalcos críticos: <b>${stats.mitigatedCriticalHa} ha</b> · Perda: <b>${stats.mitigatedSoilLossTons} t</b></small>
+        </div>
+      </div>
+    `;
   }
 
   /**

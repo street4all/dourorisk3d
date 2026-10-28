@@ -22,7 +22,24 @@ import {
 } from "../alijo3d/cerraService";
 import { gridFromManifest } from "../geo/grid";
 import { CanvasOverlay } from "./overlay";
-import { MDT, VALUES } from "./values";
+import { MDT, VALUES, decode } from "./values";
+
+export interface MitigationConfig {
+  mulching: boolean;
+  logBarriers: boolean;
+  terraceDrains: boolean;
+}
+
+export interface HydroRiskStats {
+  baselineHighRiskHa: number;
+  mitigatedHighRiskHa: number;
+  baselineCriticalHa: number;
+  mitigatedCriticalHa: number;
+  baselineSoilLossTons: number;
+  mitigatedSoilLossTons: number;
+  savedHaPct: number;
+  savedSoilTons: number;
+}
 
 const G25 = gridFromManifest("g25");
 
@@ -68,6 +85,7 @@ function centerPinSvg(): string {
 export class ClimateMapOverlay {
   private heatmapLayer: MediaLayer;
   private snowOverlay: CanvasOverlay;
+  private hydroRiskOverlay: CanvasOverlay;
   private isobarLayer: GraphicsLayer;
   private windVectorLayer: GraphicsLayer;
   private currentElement: ImageElement | null = null;
@@ -76,8 +94,15 @@ export class ClimateMapOverlay {
   public viewScope: "local" | "macro" = "local";
   public showHeatmap = true;
   public showSnowCover = true;
+  public showHydroRisk = false;
   public showIsobars = true;
   public showWindArrows = true;
+  public mitigation: MitigationConfig = {
+    mulching: false,
+    logBarriers: false,
+    terraceDrains: false,
+  };
+  public onHydroRiskStats?: (stats: HydroRiskStats) => void;
 
   constructor(map: EsriMap) {
     this.heatmapLayer = new MediaLayer({
@@ -92,6 +117,13 @@ export class ClimateMapOverlay {
       "Reanálise Climática — Cobertura de Neve no Terreno (MDT 25m)",
       G25,
       0.88
+    );
+
+    this.hydroRiskOverlay = new CanvasOverlay(
+      map,
+      "Multirrisco Hidro-Geomorfológico Pós-Incêndio & Mitigação (25m)",
+      G25,
+      0.86
     );
 
     this.isobarLayer = new GraphicsLayer({
@@ -119,6 +151,7 @@ export class ClimateMapOverlay {
     this.renderSeq++;
     this.heatmapLayer.visible = false;
     this.snowOverlay.hide();
+    this.hydroRiskOverlay.hide();
     this.isobarLayer.visible = false;
     this.windVectorLayer.visible = false;
     this.isobarLayer.removeAll();
@@ -212,25 +245,31 @@ export class ClimateMapOverlay {
       snowLineM = Math.round(Math.max(380, Math.min(820, rawLine)));
     }
 
-    // 2. Desenhar Cobertura de Neve no Terreno (MDT 25m na visão local) e/ou Heatmap
+    // 2. Desenhar Cobertura de Neve (MDT 25m), Multirrisco Hidro-Geomorfológico Pós-Fogo (25m) e/ou Heatmap
     if (isMacro) {
       this.snowOverlay.hide();
-      if (this.showHeatmap || this.showSnowCover) {
+      this.hydroRiskOverlay.hide();
+      if (this.showHeatmap || this.showSnowCover || this.showHydroRisk) {
         this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq, true);
       } else {
         this.heatmapLayer.visible = false;
       }
-    } else if (this.showSnowCover && snowLineM !== null) {
-      void this.drawTerrainSnowCover(snowLineM, Math.max(1, snowDepthCm, snowfallCm * 3), seq);
-      // Quando o manto de neve está ativo, deixamos o terreno visível se o utilizador desligou o Heatmap
-      if (this.showHeatmap) {
-        this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq, false);
-      } else {
-        this.heatmapLayer.visible = false;
-      }
     } else {
-      this.snowOverlay.hide();
-      if (this.showHeatmap) {
+      if (this.showHydroRisk) {
+        void this.drawHydroGeoRisk25m(dataset, clampedIdx, seq);
+      } else {
+        this.hydroRiskOverlay.hide();
+        // Mesmo com a camada 25m escondida, atualizamos as estatísticas para o painel de mitigação
+        void this.computeHydroGeoStatsOnly(dataset, clampedIdx, seq);
+      }
+
+      if (this.showSnowCover && snowLineM !== null && !this.showHydroRisk) {
+        void this.drawTerrainSnowCover(snowLineM, Math.max(1, snowDepthCm, snowfallCm * 3), seq);
+      } else {
+        this.snowOverlay.hide();
+      }
+
+      if (this.showHeatmap && !this.showHydroRisk) {
         this.drawHeatmapCanvas(dataset, varKey, clampedIdx, minVal, maxVal, seq, false);
       } else {
         this.heatmapLayer.visible = false;
@@ -326,6 +365,222 @@ export class ClimateMapOverlay {
 
     if (seq !== this.renderSeq) return;
     this.snowOverlay.draw(img);
+  }
+
+  private async computeHydroGeoStatsOnly(
+    dataset: ReanalysisDataset,
+    stepIdx: number,
+    seq: number
+  ): Promise<void> {
+    if (!this.onHydroRiskStats) return;
+    await this.evaluateHydroGeoRisk(dataset, stepIdx, seq, false);
+  }
+
+  private async drawHydroGeoRisk25m(
+    dataset: ReanalysisDataset,
+    stepIdx: number,
+    seq: number
+  ): Promise<void> {
+    await this.evaluateHydroGeoRisk(dataset, stepIdx, seq, true);
+  }
+
+  /**
+   * Motor de Multirrisco Hidro-Geomorfológico Pós-Incêndio (25 m) + Simulador de Mitigação Local:
+   * Cruza precipitação horária/acumulada + degelo (CERRA/ERA5) com declive (%), altitude (MDT),
+   * ano do último incêndio, recorrência de fogo e biomassa vegetal, aplicando em tempo real
+   * as 3 medidas de estabilização de emergência pós-incêndio.
+   */
+  private async evaluateHydroGeoRisk(
+    dataset: ReanalysisDataset,
+    stepIdx: number,
+    seq: number,
+    drawCanvas: boolean
+  ): Promise<void> {
+    const [mdtRes, concelhoBytes, rioBytes, decliveBytes, ultimoAnoBytes, recBytes, bioBytes] =
+      await Promise.all([
+        MDT.rawView(),
+        VALUES.concelho.bytes(),
+        VALUES.rio.bytes(),
+        VALUES.declive.bytes(),
+        VALUES.ultimoAno.bytes(),
+        VALUES.recorrencia.bytes(),
+        VALUES.biomassa.bytes(),
+      ]);
+
+    if (seq !== this.renderSeq || !mdtRes || !concelhoBytes || !decliveBytes) return;
+
+    // 1. Forçamento hidrometeorológico (chuva horária + chuva acumulada 24h + degelo)
+    const rain1h = dataset.centerSeries.precipitation[stepIdx] ?? 0;
+    let rain24h = 0;
+    const start24 = Math.max(0, stepIdx - 23);
+    for (let k = start24; k <= stepIdx; k++) {
+      rain24h += dataset.centerSeries.precipitation[k] ?? 0;
+    }
+    // Se na hora selecionada não estiver a chover, usar pelo menos 45% do pico do evento para permitir diagnóstico do episódio
+    const peak24h = Math.max(rain24h, dataset.summary.totalPrecipitationMm * 0.45);
+    const tempC = dataset.centerSeries.temperature_2m[stepIdx] ?? 12;
+    const snowDepth = dataset.centerSnowDepthCm?.[stepIdx] ?? 0;
+    const snowMeltMm = tempC > 1.5 && (snowDepth > 0 || dataset.summary.maxSnowDepthCm > 0) ? 8.5 : 0;
+
+    const rFactor = Math.max(
+      0.38,
+      Math.min(3.2, rain1h / 5.5 + (peak24h + snowMeltMm) / 32.0)
+    );
+
+    // 2. Pré-calcular tabelas de descodificação (0..255) para velocidade máxima no ciclo de 905 664 células
+    const slopeLut = new Float32Array(256);
+    const yearLut = new Int16Array(256);
+    const recLut = new Int16Array(256);
+    const bioLut = new Float32Array(256);
+    for (let b = 0; b < 256; b++) {
+      slopeLut[b] = decode("declive_pct", b) ?? 0;
+      yearLut[b] = decode("ultimo_ano", b) ?? 0;
+      recLut[b] = decode("recorrencia_valor", b) ?? 0;
+      bioLut[b] = decode("biomassa_t_ha", b) ?? 15;
+    }
+
+    const { view: mdtView, nodata } = mdtRes;
+    const { width, height } = G25;
+    const n = width * height;
+    const img = drawCanvas ? new ImageData(width, height) : null;
+    const out = img ? new Uint32Array(img.data.buffer) : null;
+
+    const { mulching, logBarriers, terraceDrains } = this.mitigation;
+    const HA_PER_PIXEL = 0.0625; // 25m x 25m = 625 m2 = 0.0625 ha
+
+    let baseHighCells = 0;
+    let mitHighCells = 0;
+    let baseCritCells = 0;
+    let mitCritCells = 0;
+    let baseSoilTons = 0;
+    let mitSoilTons = 0;
+
+    for (let i = 0; i < n; i++) {
+      if (!concelhoBytes[i]) continue;
+      if (rioBytes && rioBytes[i]) continue;
+
+      const slopePct = slopeLut[decliveBytes[i]];
+      if (slopePct < 10) continue; // Zonas planas têm suscetibilidade residual a erosão/derrocada
+
+      const alt = mdtView.getInt16(i * 2, true);
+      const lastYear = ultimoAnoBytes ? yearLut[ultimoAnoBytes[i]] : 0;
+      const fireRec = recBytes ? recLut[recBytes[i]] : 0;
+      const bioTha = bioBytes ? bioLut[bioBytes[i]] : 15;
+
+      // Fator topográfico LS (encostas declivosas e socalcos)
+      const lsFactor =
+        slopePct >= 45
+          ? 2.45
+          : slopePct >= 32
+            ? 1.85
+            : slopePct >= 22
+              ? 1.35
+              : 0.78;
+
+      // Fator pós-fogo e proteção vegetal (cicatrizes recentes têm solo nu e hidrofóbico)
+      const isRecentBurn = lastYear >= 2020;
+      const isMediumBurn = lastYear >= 2015 && lastYear < 2020;
+      let fireCoverFactor = 1.0;
+      if (isRecentBurn) {
+        fireCoverFactor = 2.35;
+      } else if (isMediumBurn || fireRec >= 3) {
+        fireCoverFactor = 1.65;
+      } else if (fireRec >= 1) {
+        fireCoverFactor = 1.28;
+      } else if (bioTha >= 24) {
+        fireCoverFactor = 0.58;
+      }
+
+      // Índice de risco hidro-geomorfológico de base (sem mitigação)
+      const baseIndex = rFactor * lsFactor * fireCoverFactor;
+
+      // Aplicar medidas de mitigação local selecionadas pelo utilizador
+      let mitMultiplier = 1.0;
+      if (mulching && (lastYear >= 2015 || fireRec >= 2)) {
+        // Mulching florestal / hidrossementeira protege áreas ardidas em -65%
+        mitMultiplier *= 0.35;
+      }
+      if (logBarriers && slopePct >= 18 && fireRec >= 1) {
+        // Barreiras de retenção (fascinas/troncos) nas encostas ardidas travam escorrentia em -45%
+        mitMultiplier *= 0.55;
+      }
+      if (terraceDrains && slopePct >= 24 && alt !== nodata && alt < 600) {
+        // Consolidação e drenagem de muros de socalco nas cotas vitícolas reduz colapso em -55%
+        mitMultiplier *= 0.45;
+      }
+
+      const mitIndex = baseIndex * mitMultiplier;
+
+      // Contabilizar estatísticas Antes vs. Depois
+      if (baseIndex >= 1.75) {
+        baseHighCells++;
+        if (baseIndex >= 2.65) baseCritCells++;
+        baseSoilTons += baseIndex * 0.42 * HA_PER_PIXEL;
+      }
+      if (mitIndex >= 1.75) {
+        mitHighCells++;
+        if (mitIndex >= 2.65) mitCritCells++;
+        mitSoilTons += mitIndex * 0.42 * HA_PER_PIXEL;
+      } else if (baseIndex >= 1.75) {
+        // Solo residual mesmo quando mitigado abaixo do limiar crítico
+        mitSoilTons += mitIndex * 0.18 * HA_PER_PIXEL;
+      }
+
+      // Pintar píxel no mapa 3D (mostra o estado atual: com ou sem mitigação ativa)
+      if (out && mitIndex >= 1.15) {
+        let r = 250;
+        let g = 204;
+        let b = 21;
+        let a = 155;
+
+        if (mitIndex >= 2.65) {
+          // Crítico: Risco de Derrocada de Socalcos / Enxurrada de Detritos (#dc2626)
+          r = 220;
+          g = 38;
+          b = 38;
+          a = 228;
+        } else if (mitIndex >= 1.75) {
+          // Elevado: Erosão Intensa de Solo e Cinzas (#f97316)
+          r = 249;
+          g = 115;
+          b = 22;
+          a = 205;
+        }
+
+        out[i] = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0;
+      }
+    }
+
+    if (seq !== this.renderSeq) return;
+
+    if (img && drawCanvas) {
+      this.hydroRiskOverlay.draw(img);
+    }
+
+    if (this.onHydroRiskStats) {
+      const baselineHighRiskHa = Math.round(baseHighCells * HA_PER_PIXEL);
+      const mitigatedHighRiskHa = Math.round(mitHighCells * HA_PER_PIXEL);
+      const baselineCriticalHa = Math.round(baseCritCells * HA_PER_PIXEL);
+      const mitigatedCriticalHa = Math.round(mitCritCells * HA_PER_PIXEL);
+      const baselineSoilLossTons = Math.round(baseSoilTons);
+      const mitigatedSoilLossTons = Math.round(mitSoilTons);
+      const savedHaPct =
+        baselineHighRiskHa > 0
+          ? Math.round(((baselineHighRiskHa - mitigatedHighRiskHa) / baselineHighRiskHa) * 100)
+          : 0;
+      const savedSoilTons = Math.max(0, baselineSoilLossTons - mitigatedSoilLossTons);
+
+      this.onHydroRiskStats({
+        baselineHighRiskHa,
+        mitigatedHighRiskHa,
+        baselineCriticalHa,
+        mitigatedCriticalHa,
+        baselineSoilLossTons,
+        mitigatedSoilLossTons,
+        savedHaPct,
+        savedSoilTons,
+      });
+    }
   }
 
   private drawHeatmapCanvas(

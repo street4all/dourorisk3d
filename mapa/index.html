@@ -714,13 +714,37 @@
         <input type="range" id="climate-time-slider" class="climate-slider" min="0" max="100" step="1" value="0" aria-label="Hora da reanálise climática" />
 
         <div class="climate-toggles" role="group" aria-label="Camadas sobrepostas no mapa 3D">
-          <label class="climate-chk"><input type="checkbox" id="climate-chk-snowcover" checked /> ❄ Neve no terreno (MDT 25m)</label>
+          <label class="climate-chk"><input type="checkbox" id="climate-chk-snowcover" checked /> ❄ Neve no terreno (25m)</label>
+          <label class="climate-chk"><input type="checkbox" id="climate-chk-hydrorisk" /> ⛰️ Erosão &amp; Socalcos (25m)</label>
           <label class="climate-chk"><input type="checkbox" id="climate-chk-heatmap" checked /> Heatmap</label>
           <label class="climate-chk"><input type="checkbox" id="climate-chk-isobars" checked /> Isóbaras (hPa)</label>
           <label class="climate-chk"><input type="checkbox" id="climate-chk-wind" checked /> Setas de vento</label>
           <label class="climate-chk"><input type="checkbox" id="climate-chk-3denv" checked /> Neve/Chuva 3D</label>
         </div>
         <div id="climate-heatmap-legend" class="climate-legend-box"></div>
+      </div>
+
+      <!-- 3.5. Simulador de Mitigação Local & Estabilização Pós-Fogo (25 m) -->
+      <div class="climate-section" id="climate-mitigation-section">
+        <p class="climate-field-label">🛡️ Mitigação Local &amp; Estabilização Pós-Fogo (25 m)</p>
+        <p class="probe-hint" style="margin: 0 0 8px; font-size: 0.8em;">
+          Simula medidas de estabilização de emergência no terreno (cruzando chuva CERRA + declive + cicatrizes de incêndio):
+        </p>
+        <div class="mitig-btns" role="group" aria-label="Medidas de mitigação local">
+          <button type="button" class="mitig-btn" id="mitig-mulching" aria-pressed="false">
+            <span class="mitig-title">🌾 Mulching / Hidrossementeira</span>
+            <small>Cobertura orgânica nas áreas ardidas (-65% erosão)</small>
+          </button>
+          <button type="button" class="mitig-btn" id="mitig-barriers" aria-pressed="false">
+            <span class="mitig-title">🪵 Barreiras de Retenção (Fascinas)</span>
+            <small>Trava transporte de cinzas em encostas ≥ 18% (-45%)</small>
+          </button>
+          <button type="button" class="mitig-btn" id="mitig-terraces" aria-pressed="false">
+            <span class="mitig-title">🧱 Drenagem de Muros de Socalco</span>
+            <small>Barbacãs e consolidação de patamares vitícolas (-55%)</small>
+          </button>
+        </div>
+        <div id="climate-mitigation-stats" class="mitig-stats-box"></div>
       </div>
 
       <!-- 4. Leitura Instantânea das 7 Variáveis Meteorológicas -->
